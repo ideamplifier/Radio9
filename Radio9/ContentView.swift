@@ -63,24 +63,12 @@ struct ContentView: View {
                             viewModel.togglePlayPause()
                             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                         }) {
-                            ZStack {
-                                Circle()
-                                    .fill(Color.white)
-                                    .frame(width: 80, height: 80)
-                                    .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
-                                
-                                Circle()
-                                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-                                    .frame(width: 60, height: 60)
-                                
-                                Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
-                                    .font(.system(size: 24))
-                                    .foregroundColor(.orange)
-                                    .offset(x: viewModel.isPlaying ? 0 : 2)
-                            }
+                            Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
+                                .font(.system(size: 24))
+                                .foregroundColor(.orange)
+                                .offset(x: viewModel.isPlaying ? 0 : 2)
                         }
                         .disabled(viewModel.currentStation == nil)
-                        .scaleEffect(viewModel.currentStation == nil ? 0.9 : 1.0)
                         .opacity(viewModel.currentStation == nil ? 0.5 : 1.0)
                         
                         Button(action: {}) {
