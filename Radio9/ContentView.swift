@@ -1,61 +1,184 @@
-//
-//  ContentView.swift
-//  Radio9
-//
-//  Created by EUIHYUNG JUNG on 7/22/25.
-//
-
 import SwiftUI
-import SwiftData
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
-
+    @StateObject private var viewModel = RadioViewModel()
+    @State private var showStationList = false
+    
     var body: some View {
-        NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
+        ZStack {
+            // Full screen background
+            Color(red: 0.98, green: 0.98, blue: 0.98)
+                .ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                // Header with menu
+                HStack {
+                    Text("Radio9")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(.black)
+                    
+                    Spacer()
+                    
+                    Button(action: { 
+                        showStationList.toggle()
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    }) {
+                        Image(systemName: "line.3.horizontal")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(.black)
                     }
                 }
-                .onDelete(perform: deleteItems)
-            }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
+                .padding(.horizontal, 24)
+                .padding(.top, 50)
+                .padding(.bottom, 20)
+                
+                // Speaker Grill
+                SpeakerGrillView()
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 20)
+                
+                // Station Display with Skeuomorphic LCD
+                StationDisplayView(
+                    station: viewModel.currentStation,
+                    frequency: viewModel.currentFrequency,
+                    isPlaying: viewModel.isPlaying
+                )
+                .padding(.horizontal, 20)
+                .padding(.bottom, 30)
+                
+                // Control Section
+                VStack(spacing: 20) {
+                    // Playback Controls
+                    HStack(spacing: 30) {
+                        Button(action: {}) {
+                            Image(systemName: "pause.fill")
+                                .font(.system(size: 16))
+                                .foregroundColor(.gray.opacity(0.3))
+                                .frame(width: 44, height: 44)
+                        }
+                        .disabled(true)
+                        
+                        // Main Play/Pause Button
+                        Button(action: { 
+                            viewModel.togglePlayPause()
+                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        }) {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.white)
+                                    .frame(width: 80, height: 80)
+                                    .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                                
+                                Circle()
+                                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                                    .frame(width: 60, height: 60)
+                                
+                                Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(.orange)
+                                    .offset(x: viewModel.isPlaying ? 0 : 2)
+                            }
+                        }
+                        .disabled(viewModel.currentStation == nil)
+                        .scaleEffect(viewModel.currentStation == nil ? 0.9 : 1.0)
+                        .opacity(viewModel.currentStation == nil ? 0.5 : 1.0)
+                        
+                        Button(action: {}) {
+                            Image(systemName: "forward.fill")
+                                .font(.system(size: 16))
+                                .foregroundColor(.gray.opacity(0.3))
+                                .frame(width: 44, height: 44)
+                        }
+                        .disabled(true)
                     }
+                    
+                    // Frequency Dial
+                    FrequencyDialView(frequency: $viewModel.currentFrequency)
+                        .frame(width: 240, height: 240)
+                        .onChange(of: viewModel.currentFrequency) { _, newValue in
+                            viewModel.tuneToFrequency(newValue)
+                        }
+                }
+                
+                Spacer()
+                
+                // Bottom Controls
+                HStack {
+                    // Menu Button
+                    Button(action: {}) {
+                        VStack(spacing: 3) {
+                            ForEach(0..<3) { _ in
+                                RoundedRectangle(cornerRadius: 1)
+                                    .fill(Color.gray.opacity(0.4))
+                                    .frame(width: 20, height: 2)
+                            }
+                        }
+                    }
+                    .padding(.leading, 30)
+                    
+                    Spacer()
+                    
+                    // Preset Stations
+                    HStack(spacing: 16) {
+                        ForEach(0..<3) { index in
+                            Button(action: {
+                                if index < viewModel.stations.count {
+                                    viewModel.selectStation(viewModel.stations[index])
+                                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                }
+                            }) {
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(index < viewModel.stations.count && 
+                                         viewModel.currentStation?.id == viewModel.stations[index].id 
+                                         ? Color.orange : Color.gray.opacity(0.2))
+                                    .frame(width: 40, height: 6)
+                            }
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    // Shuffle Button
+                    Button(action: {}) {
+                        Image(systemName: "shuffle")
+                            .font(.system(size: 18))
+                            .foregroundColor(.orange)
+                    }
+                    .padding(.trailing, 30)
+                }
+                .padding(.bottom, 40)
+            }
+            
+            // Station List Modal
+            if showStationList {
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        showStationList = false
+                    }
+                
+                VStack {
+                    Spacer()
+                    
+                    StationListView(
+                        stations: viewModel.stations,
+                        currentStation: viewModel.currentStation,
+                        onSelect: { station in
+                            viewModel.selectStation(station)
+                            showStationList = false
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        }
+                    )
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 40)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
-        } detail: {
-            Text("Select an item")
         }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
-            }
-        }
+        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: showStationList)
     }
 }
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
 }
