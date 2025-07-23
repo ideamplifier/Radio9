@@ -90,8 +90,6 @@ struct TuningNeedle: View {
                 let clampedPosition = max(0, min(1, normalizedPosition))
                 let xPosition = 10 + (geometry.size.width - 20) * clampedPosition
                 
-                // Debug logging
-                let _ = print("TuningNeedle - Freq: \(frequency), Normalized: \(normalizedPosition), XPos: \(xPosition), Width: \(geometry.size.width)")
                 
                 Rectangle()
                     .fill(
@@ -108,6 +106,7 @@ struct TuningNeedle: View {
                     .shadow(color: Color(red: 1.0, green: 0.8, blue: 0.4), radius: 5)
                     .shadow(color: .black.opacity(0.3), radius: 2, x: 1, y: 1)
                     .position(x: xPosition, y: geometry.size.height / 2)
+                    .animation(.none, value: frequency)  // 애니메이션 비활성화
             }
         }
         .frame(height: 45)
