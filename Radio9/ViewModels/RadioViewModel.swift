@@ -342,14 +342,6 @@ class RadioViewModel: NSObject, ObservableObject {
         if let cachedBuffer = audioBufferCache[key] {
             print("🎵 Playing from cache for \(station.name)")
             playFromCache(cachedBuffer, station: station)
-            
-            // 백그라운드에서 실제 스트림 연결
-            Task {
-                try? await Task.sleep(nanoseconds: 100_000_000)  // 0.1초 후
-                await MainActor.run {
-                    self.connectToLiveStream(station: station)
-                }
-            }
             return
         }
         
@@ -1112,97 +1104,45 @@ class RadioViewModel: NSObject, ObservableObject {
     }
     
     private func connectToLiveStream(station: RadioStation) {
-        // 캐시에서 라이브 스트림으로 전환
+        // 프리로드가 없는 경우에만 새 플레이어 생성
         let key = stationKey(station)
-        let streamURL = station.streamURL  // CDN 테스트 비활성화
+        let streamURL = station.streamURL
         guard let url = URL(string: streamURL) else { return }
         
-        // 기존 플레이어가 캐시 재생 중이면 저장
-        let cachedPlayer = player
-        let wasCachedPlayback = cachedPlayer != nil
+        // 기존 플레이어 정리
+        player?.pause()
+        removeObserver()
         
-        // 새 플레이어 생성 (프리로드된 것 사용)
-        if let preloadedPlayer = preloadedPlayers[key] {
-            player = preloadedPlayer
-            player?.volume = volume
-            player?.play()
-            
-            // 상태 업데이트
-            isPlaying = true
-            isLoading = false
-            
-            // 메타데이터 옵저버 추가
-            addObserver()
-            
-            print("🔄 Switched from cache to live stream (preloaded)")
-            
-            // 캐시 플레이어 정리
-            cachedPlayer?.pause()
-            
-            // 오디오 버퍼 캡처 시작
-            startBufferCapture(for: station)
-            
-            // 다음 스테이션 프리로드
-            Task {
-                await preloadNearbyStations(frequency: station.frequency)
-            }
-        } else {
-            // 프리로드가 없으면 새로 생성
-            let playerItem = AVPlayerItem(url: url)
-            
-            // 최적화 설정
-            playerItem.preferredForwardBufferDuration = 0.5
-            playerItem.canUseNetworkResourcesForLiveStreamingWhilePaused = true
-            
-            if #available(iOS 14.0, *) {
-                playerItem.startsOnFirstEligibleVariant = true
-                playerItem.preferredPeakBitRate = 24000 // 낮은 품질로 시작
-            }
-            
-            let newPlayer = AVPlayer(playerItem: playerItem)
-            newPlayer.automaticallyWaitsToMinimizeStalling = false
-            newPlayer.volume = volume
-            
-            // 캐시 재생 중이면 동기화
-            if wasCachedPlayback, let cachedPlayer = cachedPlayer {
-                // 캐시 재생 위치 가져오기
-                _ = cachedPlayer.currentTime()
-                
-                // 새 플레이어 시작
-                newPlayer.play()
-                
-                // 페이드 전환
-                Task {
-                    // 0.3초 동안 크로스페이드
-                    for i in 0...10 {
-                        let fadeProgress = Float(i) / 10.0
-                        await MainActor.run {
-                            cachedPlayer.volume = self.volume * (1.0 - fadeProgress)
-                            newPlayer.volume = self.volume * fadeProgress
-                        }
-                        try? await Task.sleep(nanoseconds: 30_000_000) // 30ms
-                    }
-                    
-                    await MainActor.run {
-                        cachedPlayer.pause()
-                        self.player = newPlayer
-                        self.addObserver()
-                        print("🎵 Smooth transition from cache to live completed")
-                    }
-                }
-            } else {
-                // 캐시 재생이 아니면 바로 전환
-                player = newPlayer
-                player?.play()
-                addObserver()
-            }
-            
-            // 상태 업데이트
-            isPlaying = true
-            isLoading = false
-            
-            // 오디오 버퍼 캡처 시작
-            startBufferCapture(for: station)
+        let playerItem = AVPlayerItem(url: url)
+        
+        // 최적화 설정
+        playerItem.preferredForwardBufferDuration = 0.5
+        playerItem.canUseNetworkResourcesForLiveStreamingWhilePaused = true
+        
+        if #available(iOS 14.0, *) {
+            playerItem.startsOnFirstEligibleVariant = true
+            playerItem.preferredPeakBitRate = 64000 // 64kbps로 시작
+        }
+        
+        player = AVPlayer(playerItem: playerItem)
+        player?.automaticallyWaitsToMinimizeStalling = false
+        player?.volume = volume
+        player?.play()
+        
+        // 상태 업데이트
+        isPlaying = true
+        isLoading = false
+        
+        addObserver()
+        
+        print("📡 Direct stream connection for \(station.name)")
+        
+        // 오디오 버퍼 캡처 시작
+        startBufferCapture(for: station)
+        
+        // 다음 스테이션 프리로드
+        Task {
+            await preloadNearbyStations(frequency: station.frequency)
         }
     }
     
