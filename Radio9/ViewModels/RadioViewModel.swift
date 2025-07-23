@@ -182,7 +182,7 @@ class RadioViewModel: NSObject, ObservableObject {
                     // Cache the first valid address
                     var current = info.pointee
                     while true {
-                        if let address = await MainActor.run { self.extractIPAddress(from: current) } {
+                        if let address = self.extractIPAddress(from: current) {
                             DispatchQueue.main.async {
                                 self.dnsCache[host] = address
                                 print("DNS prefetched for \(host): \(address)")
@@ -203,7 +203,7 @@ class RadioViewModel: NSObject, ObservableObject {
     private func extractIPAddress(from addrinfo: addrinfo) -> String? {
         if addrinfo.ai_family == AF_INET {
             var addr = sockaddr_in()
-            _ = withUnsafeMutableBytes(of: &addr) { ptr in
+            withUnsafeMutableBytes(of: &addr) { ptr in
                 addrinfo.ai_addr.withMemoryRebound(to: UInt8.self, capacity: MemoryLayout<sockaddr_in>.size) {
                     ptr.copyMemory(from: UnsafeRawBufferPointer(start: $0, count: MemoryLayout<sockaddr_in>.size))
                 }
