@@ -12,7 +12,7 @@ struct StationInfoView: View {
             // Station name - 고정 크기
             VStack(alignment: .leading, spacing: 2) {
                 Text(station?.name ?? "- - - -")
-                    .font(.system(size: 18, weight: .semibold, design: .monospaced))
+                    .font(.system(size: 17, weight: .semibold, design: .monospaced))
                     .foregroundColor(Color(red: 1.0, green: 0.9, blue: 0.7))
                     .shadow(color: Color(red: 1.0, green: 0.7, blue: 0.3), radius: glowAnimation ? 8 : 5)
                     .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true), value: glowAnimation)
@@ -39,7 +39,7 @@ struct StationInfoView: View {
                 }
                 .frame(height: 12)  // 고정 높이
             }
-            .frame(maxWidth: 200)  // 최대 너비 제한
+            .frame(maxWidth: 280)  // JP 버튼 공간 고려해서 늘림
             .offset(y: -12)  // 2픽셀 더 위로 (-10 -> -12)
             
             Spacer()
