@@ -7,10 +7,14 @@ class StationCache {
     private var memoryCache: [String: Any] = [:]
     private let maxCacheAge: TimeInterval = 3600 // 1 hour
     
+    private var cleanupTimer: Timer?
+    
     private init() {
-        // Setup cache cleanup timer
-        Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { _ in
-            self.cleanupExpiredCache()
+        // Setup cache cleanup timer on main thread
+        DispatchQueue.main.async { [weak self] in
+            self?.cleanupTimer = Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { [weak self] _ in
+                self?.cleanupExpiredCache()
+            }
         }
     }
     
@@ -61,5 +65,9 @@ class StationCache {
     private struct CacheEntry {
         let data: Data
         let timestamp: Date
+    }
+    
+    deinit {
+        cleanupTimer?.invalidate()
     }
 }

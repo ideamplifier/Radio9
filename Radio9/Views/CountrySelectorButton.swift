@@ -23,16 +23,24 @@ struct CountrySelectorButton: View {
                         radius: 8
                     )
                 
-                // Country code display
-                Text(viewModel.selectedCountry.code)
-                    .font(.system(size: 14, weight: .medium, design: .monospaced))
-                    .foregroundColor(Color(red: 1.0, green: 0.9, blue: 0.7))
-                    .shadow(
-                        color: viewModel.isCountrySelectionMode ?
-                            Color(red: 1.0, green: 0.7, blue: 0.3) :
-                            Color(red: 1.0, green: 0.7, blue: 0.3).opacity(0.5),
-                        radius: viewModel.isCountrySelectionMode ? 6 : 3
-                    )
+                // Country code or check icon
+                if viewModel.isCountrySelectionMode {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(Color(red: 1.0, green: 0.9, blue: 0.7))
+                        .shadow(
+                            color: Color(red: 1.0, green: 0.7, blue: 0.3),
+                            radius: 6
+                        )
+                } else {
+                    Text(viewModel.selectedCountry.code)
+                        .font(.system(size: 14, weight: .medium, design: .monospaced))
+                        .foregroundColor(Color(red: 1.0, green: 0.9, blue: 0.7))
+                        .shadow(
+                            color: Color(red: 1.0, green: 0.7, blue: 0.3).opacity(0.5),
+                            radius: 3
+                        )
+                }
             }
             .frame(width: 40, height: 24)
         }

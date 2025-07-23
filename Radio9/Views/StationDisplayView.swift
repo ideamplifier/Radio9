@@ -1,10 +1,78 @@
 import SwiftUI
 
+struct StationInfoModal: View {
+    let station: RadioStation?
+    let songInfo: SongInfo?
+    let isPlaying: Bool
+    @Environment(\.dismiss) var dismiss
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            // Header
+            Text("NOW PLAYING")
+                .font(.system(size: 12, weight: .medium, design: .monospaced))
+                .foregroundColor(.secondary)
+                .padding(.top, 30)
+            
+            // Station Name
+            if let station = station {
+                VStack(spacing: 8) {
+                    Text(station.name)
+                        .font(.system(size: 20, weight: .semibold))
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                    
+                    Text("\(String(format: "%.1f", station.frequency)) MHz")
+                        .font(.system(size: 16, weight: .medium, design: .monospaced))
+                        .foregroundColor(.secondary)
+                }
+                .padding(.horizontal)
+            }
+            
+            Divider()
+                .padding(.horizontal)
+            
+            // Current Song Info
+            if let songInfo = songInfo {
+                VStack(spacing: 12) {
+                    Text(songInfo.title)
+                        .font(.system(size: 18, weight: .medium))
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                    
+                    Text(songInfo.artist)
+                        .font(.system(size: 16))
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.horizontal)
+            } else if isPlaying {
+                Text("No song information available")
+                    .font(.system(size: 16))
+                    .foregroundColor(.secondary)
+                    .italic()
+            } else {
+                Text("Radio is not playing")
+                    .font(.system(size: 16))
+                    .foregroundColor(.secondary)
+                    .italic()
+            }
+            
+            Spacer()
+        }
+        .presentationDetents([.height(300)])
+        .presentationDragIndicator(.hidden)
+        .presentationCornerRadius(30)
+        .presentationBackground(.regularMaterial)
+    }
+}
+
 struct StationDisplayView: View {
     let station: RadioStation?
     let frequency: Double
     let isPlaying: Bool
     @ObservedObject var viewModel: RadioViewModel
+    @State private var showStationInfo = false
     
     var body: some View {
         ZStack {
@@ -85,17 +153,11 @@ struct StationDisplayView: View {
                 )
             
             VStack(spacing: 0) {
-                // Analog frequency scale or Country selection
-                Group {
-                    if viewModel.isCountrySelectionMode {
-                        CountrySelectionDisplay(viewModel: viewModel)
-                    } else {
-                        FrequencyScaleView(frequency: frequency)
-                    }
-                }
-                .frame(height: 45)
-                .padding(.horizontal, 15)
-                .padding(.top, 18)  // 2픽셀 위로 (20 -> 18)
+                // Analog frequency scale
+                FrequencyScaleView(frequency: frequency)
+                    .frame(height: 45)
+                    .padding(.horizontal, 15)
+                    .padding(.top, 18)  // 2픽셀 위로 (20 -> 18)
                 
                 Spacer()
                 
@@ -104,21 +166,47 @@ struct StationDisplayView: View {
                     station: station,
                     frequency: frequency,
                     isPlaying: isPlaying,
-                    isLoading: viewModel.isLoading
+                    isLoading: viewModel.isLoading,
+                    viewModel: viewModel
                 )
                 .frame(height: 50)  // 고정 높이
                 .id("\(station?.id.uuidString ?? "")_\(isPlaying)") // 상태별 고유 ID (로딩 상태 제외)
                 
             }
-            // Country selector button - overlay로 위치 고정
+            // Country selector button and info button - overlay로 위치 고정
             .overlay(
-                CountrySelectorButton(viewModel: viewModel)
-                    .padding(.trailing, 20)
-                    .padding(.bottom, 62),  // 2픽셀 더 위로 (60 -> 62)
+                HStack(spacing: 10) {
+                    // Info button - 국가 선택 모드에서는 숨김
+                    if viewModel.currentStation != nil && !viewModel.isCountrySelectionMode {
+                        Button(action: {
+                            showStationInfo.toggle()
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        }) {
+                            Image(systemName: "info.circle")
+                                .font(.system(size: 16))
+                                .foregroundColor(Color(red: 1.0, green: 0.9, blue: 0.7))
+                                .shadow(
+                                    color: Color(red: 1.0, green: 0.7, blue: 0.3).opacity(0.5),
+                                    radius: 4
+                                )
+                        }
+                    }
+                    
+                    CountrySelectorButton(viewModel: viewModel)
+                }
+                .padding(.trailing, 20)
+                .padding(.bottom, 62),  // 2픽셀 더 위로 (60 -> 62)
                 alignment: .bottomTrailing
             )
         }
         .frame(height: 160) // 고정 높이 (140 -> 160)
         .clipped() // 넘치는 내용 잘라내기
+        .sheet(isPresented: $showStationInfo) {
+            StationInfoModal(
+                station: station,
+                songInfo: viewModel.latestSongInfo,
+                isPlaying: isPlaying
+            )
+        }
     }
 }

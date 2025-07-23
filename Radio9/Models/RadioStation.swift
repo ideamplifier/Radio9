@@ -37,12 +37,21 @@ enum StationGenre: String, CaseIterable, Codable {
 }
 
 struct RadioStation: Identifiable, Codable, Equatable {
-    let id = UUID()
+    let id: UUID
     let name: String
     let frequency: Double
     let streamURL: String
     let genre: StationGenre
     let subGenre: String?
+    
+    init(id: UUID = UUID(), name: String, frequency: Double, streamURL: String, genre: StationGenre, subGenre: String? = nil) {
+        self.id = id
+        self.name = name
+        self.frequency = frequency
+        self.streamURL = streamURL
+        self.genre = genre
+        self.subGenre = subGenre
+    }
     
     var formattedFrequency: String {
         String(format: "%.1f", frequency)
@@ -67,9 +76,11 @@ struct RadioStation: Identifiable, Codable, Equatable {
         case "education", "public radio": self.genre = .education
         default: self.genre = .music
         }
+        self.id = UUID()
     }
     
     init(name: String, frequency: Double, streamURL: String, genre: StationGenre, subGenre: String? = nil) {
+        self.id = UUID()
         self.name = name
         self.frequency = frequency
         self.streamURL = streamURL

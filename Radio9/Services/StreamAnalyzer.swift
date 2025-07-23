@@ -20,13 +20,14 @@ class StreamAnalyzer {
                 return nil
             }
             
-            let formatDescriptions = try await audioTrack.load(.formatDescriptions)
+            let _ = try await audioTrack.load(.formatDescriptions)
             let bitrate = try await audioTrack.load(.estimatedDataRate)
+            let duration = try await asset.load(.duration)
             
             return StreamMetrics(
                 bitrate: Int(bitrate),
                 format: "Audio Stream",
-                isLive: asset.duration.isIndefinite,
+                isLive: duration.isIndefinite,
                 hasMultipleQualities: false,
                 estimatedLatency: 0.5
             )

@@ -2,18 +2,18 @@ import Foundation
 import ShazamKit
 import AVFoundation
 
+// Metadata from stream
+struct SongInfo {
+    let title: String
+    let artist: String
+    let album: String?
+    let artworkURL: String?
+}
+
 class SongRecognitionService: NSObject {
     private var session: SHSession?
     private var audioEngine: AVAudioEngine?
     private var isListening = false
-    
-    // Metadata from stream
-    struct SongInfo {
-        let title: String
-        let artist: String
-        let album: String?
-        let artworkURL: String?
-    }
     
     override init() {
         super.init()
@@ -110,7 +110,12 @@ class SongRecognitionService: NSObject {
         guard let playerItem = player.currentItem else { return nil }
         
         // Check for metadata in the player item
-        let metadata = playerItem.asset.metadata
+        let metadata: [AVMetadataItem]
+        do {
+            metadata = try await playerItem.asset.load(.metadata)
+        } catch {
+            return nil
+        }
         
         var title: String?
         var artist: String?
@@ -129,6 +134,21 @@ class SongRecognitionService: NSObject {
         }
         
         if let title = title {
+            // Check if title contains artist info (common in radio streams)
+            if artist == nil && title.contains(" - ") {
+                let parts = title.split(separator: " - ", maxSplits: 1)
+                if parts.count == 2 {
+                    artist = String(parts[0]).trimmingCharacters(in: .whitespaces)
+                    let songTitle = String(parts[1]).trimmingCharacters(in: .whitespaces)
+                    return SongInfo(
+                        title: songTitle,
+                        artist: artist ?? "Unknown Artist",
+                        album: nil,
+                        artworkURL: nil
+                    )
+                }
+            }
+            
             return SongInfo(
                 title: title,
                 artist: artist ?? "Unknown Artist",
@@ -194,4 +214,43 @@ extension SongRecognitionService: SHSessionDelegate {
 
 extension Notification.Name {
     static let songRecognized = Notification.Name("songRecognized")
+}
+
+extension SongRecognitionService {
+    // Parse timed metadata array
+    func parseTimedMetadata(_ metadata: [AVMetadataItem]) async -> SongInfo? {
+        var title: String?
+        var artist: String?
+        
+        for item in metadata {
+            if let key = item.commonKey?.rawValue {
+                switch key {
+                case "title":
+                    title = try? await item.load(.stringValue)
+                case "artist":
+                    artist = try? await item.load(.stringValue)
+                default:
+                    if let value = try? await item.load(.stringValue) {
+                        print("Metadata key: \(key), value: \(value)")
+                    }
+                }
+            }
+        }
+        
+        // Check if title contains artist info (common in radio streams)
+        if let title = title {
+            if artist == nil && title.contains(" - ") {
+                let parts = title.split(separator: " - ", maxSplits: 1)
+                if parts.count == 2 {
+                    artist = String(parts[0]).trimmingCharacters(in: .whitespaces)
+                    let songTitle = String(parts[1]).trimmingCharacters(in: .whitespaces)
+                    return SongInfo(title: songTitle, artist: artist ?? "Unknown Artist", album: nil, artworkURL: nil)
+                }
+            }
+            
+            return SongInfo(title: title, artist: artist ?? "Unknown Artist", album: nil, artworkURL: nil)
+        }
+        
+        return nil
+    }
 }

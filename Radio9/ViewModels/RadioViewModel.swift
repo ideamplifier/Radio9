@@ -19,6 +19,7 @@ class RadioViewModel: NSObject, ObservableObject {
     @Published var filteredStations: [RadioStation] = []
     @Published var fastestStations: [RadioStation] = []
     @Published var favoriteStations: [RadioStation?] = Array(repeating: nil, count: 9)
+    @Published var latestSongInfo: SongInfo?
     
     private var player: AVPlayer?
     private var isObserving = false
@@ -43,14 +44,26 @@ class RadioViewModel: NSObject, ObservableObject {
     
     override init() {
         super.init()
-        setupAudioSession()
-        setupNetworkMonitoring()
-        loadStationsForCountry()
-        updateFilteredStations()
-        updateFastestStations()
-        loadFavorites()
-        preloadFavoriteStations()
-        startConnectionWarming()
+        
+        // Initialize with default data first
+        self.filteredStations = RadioStation.sampleStations
+        self.stations = RadioStation.sampleStations
+        
+        // Perform heavy operations asynchronously
+        Task { @MainActor in
+            setupAudioSession()
+            setupNetworkMonitoring()
+            loadStationsForCountry()
+            updateFilteredStations()
+            updateFastestStations()
+            loadFavorites()
+            
+            // These can be done in background
+            Task {
+                await preloadFavoriteStations()
+            }
+            startConnectionWarming()
+        }
     }
     
     private func setupAudioSession() {
@@ -91,13 +104,11 @@ class RadioViewModel: NSObject, ObservableObject {
         }
     }
     
-    private func preloadFavoriteStations() {
+    private func preloadFavoriteStations() async {
         // Preload favorite stations for instant playback
-        Task {
-            for station in favoriteStations.prefix(3) {
-                guard let station = station else { continue }
-                await preloadStation(station)
-            }
+        for station in favoriteStations.prefix(3) {
+            guard let station = station else { continue }
+            await preloadStation(station)
         }
     }
     
@@ -193,6 +204,8 @@ class RadioViewModel: NSObject, ObservableObject {
     func selectStation(_ station: RadioStation) {
         currentStation = station
         currentFrequency = station.frequency
+        // Clear cached song info when changing station
+        latestSongInfo = nil
         // Auto-play when selecting a station
         play()
     }
@@ -385,9 +398,10 @@ class RadioViewModel: NSObject, ObservableObject {
         }
         
         playerItem.addObserver(self, forKeyPath: "status", options: [.new], context: nil)
+        playerItem.addObserver(self, forKeyPath: "timedMetadata", options: [.new], context: nil)
         observedPlayerItem = playerItem
         isObserving = true
-        print("Observer added")
+        print("Observer added for status and timedMetadata")
     }
     
     private func removeObserver() {
@@ -399,6 +413,7 @@ class RadioViewModel: NSObject, ObservableObject {
         
         // Only remove observer from the exact item we added it to
         observedItem.removeObserver(self, forKeyPath: "status", context: nil)
+        observedItem.removeObserver(self, forKeyPath: "timedMetadata", context: nil)
         isObserving = false
         observedPlayerItem = nil
         print("Observer removed successfully")
@@ -410,60 +425,59 @@ class RadioViewModel: NSObject, ObservableObject {
     }
     
     func recognizeCurrentSong() {
-        guard isPlaying, let player = player else { return }
+        guard isPlaying else { return }
         
-        Task {
-            // Try to get metadata from player first
-            if let songInfo = await songRecognitionService.extractMetadataFromPlayer(player) {
-                await MainActor.run {
-                    NotificationCenter.default.post(
-                        name: .songRecognized,
-                        object: nil,
-                        userInfo: ["songInfo": songInfo]
-                    )
-                }
-            } else if let station = currentStation,
-                      let url = URL(string: station.streamURL),
-                      let songInfo = await songRecognitionService.extractMetadataFromStream(url) {
-                // Try stream metadata
-                await MainActor.run {
-                    NotificationCenter.default.post(
-                        name: .songRecognized,
-                        object: nil,
-                        userInfo: ["songInfo": songInfo]
-                    )
-                }
-            } else {
-                // Fall back to Shazam if no metadata
-                await MainActor.run {
-                    // Show alert that metadata is not available
-                    print("No metadata available from stream. Shazam recognition requires microphone permission.")
-                    // For now, try Shazam but it may fail without proper permissions
-                    self.songRecognitionService.startShazamRecognition()
-                }
-                
-                // Stop recognition after 10 seconds
-                Task {
-                    try? await Task.sleep(nanoseconds: 10_000_000_000)
-                    await MainActor.run {
-                        self.songRecognitionService.stopShazamRecognition()
-                    }
-                }
-            }
+        // If we have cached metadata, show it immediately
+        if let latestSongInfo = latestSongInfo {
+            NotificationCenter.default.post(
+                name: .songRecognized,
+                object: nil,
+                userInfo: ["songInfo": latestSongInfo]
+            )
+            return
         }
+        
+        // Otherwise, show a message with station info and web search suggestion
+        let songInfo = SongInfo(
+            title: currentStation?.name ?? "Radio Station",
+            artist: "Song recognition not available",
+            album: "Search '\(currentStation?.name ?? "radio") playlist' online",
+            artworkURL: nil
+        )
+        
+        NotificationCenter.default.post(
+            name: .songRecognized,
+            object: nil,
+            userInfo: ["songInfo": songInfo]
+        )
     }
     
     func tuneToFrequency(_ frequency: Double) {
         currentFrequency = frequency
         if let station = filteredStations.first(where: { abs($0.frequency - frequency) < 0.1 }) {
-            // 다이얼 돌릴 때는 station만 설정, 재생하지 않음
+            // 다이얼 돌릴 때는 station만 설정
             if currentStation?.id != station.id {
                 currentStation = station
+                // Clear cached song info when changing station
+                latestSongInfo = nil
+                // 이미 재생 중이면 새 스테이션 재생
+                if isPlaying {
+                    play()
+                }
             }
         } else {
             if currentStation != nil {
                 currentStation = nil
-                pause()
+                // Clear cached song info
+                latestSongInfo = nil
+                // 플레이어만 정지, isPlaying 상태는 유지
+                if isPlaying {
+                    player?.pause()
+                    player = nil
+                    removeObserver()
+                    loadTimeoutTask?.cancel()
+                    isLoading = false
+                }
             }
         }
     }
@@ -471,20 +485,32 @@ class RadioViewModel: NSObject, ObservableObject {
     // MARK: - Station Navigation
     func selectNextStation() {
         guard let currentStation = currentStation,
-              let currentIndex = filteredStations.firstIndex(where: { $0.id == currentStation.id }),
-              currentIndex < filteredStations.count - 1 else { return }
+              let currentIndex = filteredStations.firstIndex(where: { $0.id == currentStation.id }) else {
+            // 스테이션 없으면 첫 번째 스테이션 선택
+            if let firstStation = filteredStations.first {
+                selectStation(firstStation)
+            }
+            return
+        }
         
-        let nextStation = filteredStations[currentIndex + 1]
-        selectStation(nextStation)
+        // 다음 스테이션으로 순환
+        let nextIndex = (currentIndex + 1) % filteredStations.count
+        selectStation(filteredStations[nextIndex])
     }
     
     func selectPreviousStation() {
         guard let currentStation = currentStation,
-              let currentIndex = filteredStations.firstIndex(where: { $0.id == currentStation.id }),
-              currentIndex > 0 else { return }
+              let currentIndex = filteredStations.firstIndex(where: { $0.id == currentStation.id }) else {
+            // 스테이션 없으면 마지막 스테이션 선택
+            if let lastStation = filteredStations.last {
+                selectStation(lastStation)
+            }
+            return
+        }
         
-        let previousStation = filteredStations[currentIndex - 1]
-        selectStation(previousStation)
+        // 이전 스테이션으로 순환
+        let previousIndex = currentIndex == 0 ? filteredStations.count - 1 : currentIndex - 1
+        selectStation(filteredStations[previousIndex])
     }
     
     func hasNextStation() -> Bool {
@@ -654,7 +680,21 @@ class RadioViewModel: NSObject, ObservableObject {
     }
     
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-        if keyPath == "status" {
+        if keyPath == "timedMetadata" {
+            if let playerItem = object as? AVPlayerItem,
+               let metadata = playerItem.timedMetadata {
+                // Parse metadata immediately when it arrives
+                Task {
+                    if let songInfo = await songRecognitionService.parseTimedMetadata(metadata) {
+                        await MainActor.run {
+                            print("Real-time metadata found: \(songInfo.title)")
+                            // Store the latest metadata
+                            self.latestSongInfo = songInfo
+                        }
+                    }
+                }
+            }
+        } else if keyPath == "status" {
             if let playerItem = object as? AVPlayerItem {
                 switch playerItem.status {
                 case .failed:

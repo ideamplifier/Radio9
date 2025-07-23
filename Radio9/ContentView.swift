@@ -1,6 +1,23 @@
 import SwiftUI
 import Combine
 
+// Extension for custom corner radius
+extension View {
+    func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
+        clipShape(RoundedCorner(radius: radius, corners: corners))
+    }
+}
+
+struct RoundedCorner: Shape {
+    var radius: CGFloat = .infinity
+    var corners: UIRectCorner = .allCorners
+    
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(roundedRect: rect, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
+        return Path(path.cgPath)
+    }
+}
+
 struct ContentView: View {
     @StateObject private var viewModel = RadioViewModel()
     @State private var showStationList = false
@@ -19,19 +36,6 @@ struct ContentView: View {
                         .foregroundColor(.black)
                     
                     Spacer()
-                    
-                    // Song Recognition Button
-                    if viewModel.isPlaying {
-                        Button(action: {
-                            viewModel.recognizeCurrentSong()
-                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                        }) {
-                            Image(systemName: "music.note.list")
-                                .font(.system(size: 16))
-                                .foregroundColor(.black.opacity(0.7))
-                        }
-                        .padding(.trailing, 16)
-                    }
                     
                     Button(action: { 
                         showStationList.toggle()
@@ -73,10 +77,11 @@ struct ContentView: View {
                         }) {
                             Image(systemName: "backward.fill")
                                 .font(.system(size: 16))
-                                .foregroundColor(viewModel.hasPreviousStation() ? .black : .gray.opacity(0.3))
+                                .foregroundColor(.black)
                                 .frame(width: 44, height: 44)
                         }
-                        .disabled(!viewModel.hasPreviousStation())
+                        .disabled(false)
+                        .id("previousButton")
                         
                         // Main Play/Pause Button
                         Button(action: { 
@@ -88,8 +93,9 @@ struct ContentView: View {
                                 .foregroundColor(.orange)
                                 .offset(x: viewModel.isPlaying ? 0 : 2)
                         }
-                        .disabled(viewModel.currentStation == nil || viewModel.isLoading)
-                        .opacity(viewModel.currentStation == nil ? 0.5 : 1.0)
+                        .disabled(false)
+                        .opacity(1.0)
+                        .id("playButton")
                         
                         // Next Station Button
                         Button(action: {
@@ -98,20 +104,22 @@ struct ContentView: View {
                         }) {
                             Image(systemName: "forward.fill")
                                 .font(.system(size: 16))
-                                .foregroundColor(viewModel.hasNextStation() ? .black : .gray.opacity(0.3))
+                                .foregroundColor(.black)
                                 .frame(width: 44, height: 44)
                         }
-                        .disabled(!viewModel.hasNextStation())
+                        .disabled(false)
+                        .id("nextButton")
                     }
+                    .animation(.none, value: viewModel.currentStation)
                     
                     // Frequency Dial - Completely independent
                     IndependentDialView(
-                        frequency: $viewModel.currentFrequency,
+                        frequency: viewModel.currentFrequency,
                         isCountrySelectionMode: viewModel.isCountrySelectionMode,
                         countrySelectionIndex: viewModel.countrySelectionIndex,
                         onFrequencyChange: { newFrequency in
-                            viewModel.currentFrequency = newFrequency
                             if !viewModel.isCountrySelectionMode {
+                                viewModel.currentFrequency = newFrequency
                                 viewModel.tuneToFrequency(newFrequency)
                             }
                         },
@@ -152,6 +160,7 @@ struct ContentView: View {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
+            
         }
     }
 }
