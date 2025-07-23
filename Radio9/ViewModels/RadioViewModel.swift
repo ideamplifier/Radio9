@@ -356,6 +356,12 @@ class RadioViewModel: NSObject, ObservableObject {
         // URL 처리 및 정규화
         var streamURL = station.streamURL
         
+        // Listen.moe 특별 처리
+        if let workingURL = ListenMoeURLs.getWorkingURL(for: streamURL) {
+            print("🎵 Listen.moe URL converted: \(streamURL) → \(workingURL)")
+            streamURL = workingURL
+        }
+        
         // HTTPS:443 포트 제거
         if streamURL.hasPrefix("https://") && streamURL.contains(":443") {
             streamURL = streamURL.replacingOccurrences(of: ":443", with: "")
@@ -1000,10 +1006,16 @@ class RadioViewModel: NSObject, ObservableObject {
                 switch playerItem.status {
                 case .failed:
                     let error = playerItem.error
+                    let errorCode = (error as NSError?)?.code ?? -1
                     print("🚫 Player failed for \(self.currentStation?.name ?? "Unknown")")
                     print("   Error: \(error?.localizedDescription ?? "Unknown error")")
-                    print("   Error code: \((error as NSError?)?.code ?? -1)")
+                    print("   Error code: \(errorCode)")
                     print("   URL: \(self.currentStation?.streamURL ?? "No URL")")
+                    
+                    // Error -11828은 지원되지 않는 포맷
+                    if errorCode == -11828 {
+                        print("   💡 This appears to be an unsupported format error")
+                    }
                     
                     isPlaying = false
                     isLoading = false
@@ -1154,6 +1166,12 @@ class RadioViewModel: NSObject, ObservableObject {
         let key = stationKey(station)
         // URL 처리 및 정규화
         var streamURL = station.streamURL
+        
+        // Listen.moe 특별 처리
+        if let workingURL = ListenMoeURLs.getWorkingURL(for: streamURL) {
+            print("🎵 Listen.moe URL converted: \(streamURL) → \(workingURL)")
+            streamURL = workingURL
+        }
         
         // HTTPS:443 포트 제거
         if streamURL.hasPrefix("https://") && streamURL.contains(":443") {
