@@ -14,11 +14,24 @@ struct ContentView: View {
             VStack(spacing: 0) {
                 // Header with menu
                 HStack {
-                    Text("Radio9")
+                    Text("POCKET")
                         .font(.system(size: 18, weight: .medium))
                         .foregroundColor(.black)
                     
                     Spacer()
+                    
+                    // Song Recognition Button
+                    if viewModel.isPlaying {
+                        Button(action: {
+                            viewModel.recognizeCurrentSong()
+                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        }) {
+                            Image(systemName: "music.note.list")
+                                .font(.system(size: 16))
+                                .foregroundColor(.black.opacity(0.7))
+                        }
+                        .padding(.trailing, 16)
+                    }
                     
                     Button(action: { 
                         showStationList.toggle()
@@ -45,95 +58,73 @@ struct ContentView: View {
                     isPlaying: viewModel.isPlaying,
                     viewModel: viewModel
                 )
-                .padding(.horizontal, 20)
+                .padding(.horizontal, 17)  // 좌우 1픽셀씩 더 늘려 (18 -> 17)
                 .padding(.bottom, 30)
+                .id("stationDisplay") // 고정 ID로 재렌더링 방지
                 
                 // Control Section
                 VStack(spacing: 20) {
                     // Playback Controls
                     HStack(spacing: 30) {
-                        Button(action: {}) {
-                            Image(systemName: "pause.fill")
+                        // Previous Station Button
+                        Button(action: {
+                            viewModel.selectPreviousStation()
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        }) {
+                            Image(systemName: "backward.fill")
                                 .font(.system(size: 16))
-                                .foregroundColor(.gray.opacity(0.3))
+                                .foregroundColor(viewModel.hasPreviousStation() ? .black : .gray.opacity(0.3))
                                 .frame(width: 44, height: 44)
                         }
-                        .disabled(true)
+                        .disabled(!viewModel.hasPreviousStation())
                         
                         // Main Play/Pause Button
                         Button(action: { 
                             viewModel.togglePlayPause()
                             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                         }) {
-                            ZStack {
-                                if viewModel.isLoading {
-                                    ProgressView()
-                                        .scaleEffect(0.8)
-                                        .progressViewStyle(CircularProgressViewStyle(tint: .orange))
-                                } else {
-                                    Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
-                                        .font(.system(size: 24))
-                                        .foregroundColor(.orange)
-                                        .offset(x: viewModel.isPlaying ? 0 : 2)
-                                }
-                            }
+                            Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
+                                .font(.system(size: 24))
+                                .foregroundColor(.orange)
+                                .offset(x: viewModel.isPlaying ? 0 : 2)
                         }
                         .disabled(viewModel.currentStation == nil || viewModel.isLoading)
                         .opacity(viewModel.currentStation == nil ? 0.5 : 1.0)
                         
-                        Button(action: {}) {
+                        // Next Station Button
+                        Button(action: {
+                            viewModel.selectNextStation()
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        }) {
                             Image(systemName: "forward.fill")
                                 .font(.system(size: 16))
-                                .foregroundColor(.gray.opacity(0.3))
+                                .foregroundColor(viewModel.hasNextStation() ? .black : .gray.opacity(0.3))
                                 .frame(width: 44, height: 44)
                         }
-                        .disabled(true)
+                        .disabled(!viewModel.hasNextStation())
                     }
                     
-                    // Frequency Dial
-                    FrequencyDialView(
+                    // Frequency Dial - Completely independent
+                    IndependentDialView(
                         frequency: $viewModel.currentFrequency,
-                        viewModel: viewModel
+                        isCountrySelectionMode: viewModel.isCountrySelectionMode,
+                        countrySelectionIndex: viewModel.countrySelectionIndex,
+                        onFrequencyChange: { newFrequency in
+                            viewModel.currentFrequency = newFrequency
+                            if !viewModel.isCountrySelectionMode {
+                                viewModel.tuneToFrequency(newFrequency)
+                            }
+                        },
+                        onCountryChange: { newIndex in
+                            viewModel.countrySelectionIndex = newIndex
+                            viewModel.selectCountryByIndex(newIndex)
+                        }
                     )
                     .frame(width: 240, height: 240)
-                    .onChange(of: viewModel.currentFrequency) { newValue in
-                        if !viewModel.isCountrySelectionMode {
-                            viewModel.tuneToFrequency(newValue)
-                        }
-                    }
                 }
                 
                 Spacer()
-                
-                // Bottom Controls - 9 preset buttons (favorites)
-                HStack(spacing: 14) {
-                    ForEach(0..<9) { index in
-                        ZStack {
-                            // Short capsule shape
-                            Capsule()
-                                .fill(viewModel.favoriteStations[index] != nil && 
-                                     viewModel.currentStation?.id == viewModel.favoriteStations[index]?.id 
-                                     ? Color.orange : 
-                                     viewModel.favoriteStations[index] != nil 
-                                     ? Color.gray.opacity(0.3) 
-                                     : Color.gray.opacity(0.15))
-                                .frame(width: 16, height: 12)
-                        }
-                        .onTapGesture {
-                            if let station = viewModel.favoriteStations[index] {
-                                viewModel.selectStation(station)
-                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                            }
-                        }
-                        .onLongPressGesture(minimumDuration: 0.5) {
-                            if let currentStation = viewModel.currentStation {
-                                viewModel.saveFavorite(station: currentStation, at: index)
-                            }
-                        }
-                    }
-                }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 40)
+                    .frame(height: 40)
             }
             
             // Station List Modal

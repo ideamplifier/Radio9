@@ -8,6 +8,7 @@ struct FrequencyDialView: View {
     @State private var startLocation: CGPoint = .zero
     @State private var startFrequency: Double = 0
     @State private var startCountryIndex: Double = 0
+    @State private var currentRotation: Double = 0
     
     var body: some View {
         GeometryReader { geometry in
@@ -46,7 +47,7 @@ struct FrequencyDialView: View {
                 
             }
             .frame(width: dialSize, height: dialSize)
-            .rotationEffect(.degrees(normalizedAngle))
+            .rotationEffect(.degrees(currentRotation))
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { value in
@@ -55,11 +56,12 @@ struct FrequencyDialView: View {
                             startLocation = value.startLocation
                             startFrequency = frequency
                             startCountryIndex = viewModel.countrySelectionIndex
+                            currentRotation = normalizedAngle  // Reset to current angle
                             UIImpactFeedbackGenerator(style: .light).impactOccurred()
                         }
                         
-                        // Calculate rotation based on drag
-                        let center = CGPoint(x: dialSize/2, y: dialSize/2)
+                        // Calculate rotation based on drag - moved center calculation outside
+                        let center = CGPoint(x: geometry.size.width/2, y: geometry.size.height/2)
                         let startAngle = atan2(startLocation.y - center.y, startLocation.x - center.x)
                         let currentAngle = atan2(value.location.y - center.y, value.location.x - center.x)
                         
@@ -71,6 +73,9 @@ struct FrequencyDialView: View {
                         } else if angleDelta < -180 {
                             angleDelta += 360
                         }
+                        
+                        // Update rotation immediately without affecting frequency
+                        currentRotation += angleDelta
                         
                         if viewModel.isCountrySelectionMode {
                             // Country selection mode
@@ -104,9 +109,6 @@ struct FrequencyDialView: View {
                             let oldFrequency = frequency
                             frequency = newFrequency
                             
-                            // Debug logging
-                            print("Freq: \(frequency) (\(range.lowerBound)-\(range.upperBound)), Delta: \(frequencyDelta), Rotations: \(rotations), Start: \(startFrequency)")
-                            
                             // Haptic feedback at major frequencies
                             if Int(oldFrequency) != Int(frequency) {
                                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
@@ -117,6 +119,14 @@ struct FrequencyDialView: View {
                         isInteracting = false
                     }
             )
+            .onAppear {
+                currentRotation = normalizedAngle
+            }
+            .onChange(of: frequency) { _ in
+                if !isInteracting {
+                    currentRotation = normalizedAngle
+                }
+            }
         }
     }
     

@@ -1,6 +1,7 @@
 import Foundation
 import AVFoundation
 import Combine
+import ShazamKit
 import UIKit
 
 @MainActor
@@ -21,9 +22,20 @@ class RadioViewModel: NSObject, ObservableObject {
     
     private var player: AVPlayer?
     private var isObserving = false
+    private var observedPlayerItem: AVPlayerItem?  // Track which item we're observing
     private var stationLoadTimes: [String: TimeInterval] = [:]
     private var loadStartTime: Date?
     private var loadTimeoutTask: Task<Void, Never>?
+    
+    // Performance optimization
+    private var preloadedPlayers: [String: AVPlayer] = [:]
+    private var connectionPool: [String: URLSession] = [:]
+    private let maxPreloadedPlayers = 3
+    private var networkReachability = true
+    private var stationHealthScores: [String: Double] = [:]
+    private var streamAnalyzer = StreamAnalyzer()
+    private var connectionWarmer: Timer?
+    private var songRecognitionService = SongRecognitionService()
     
     private func stationKey(_ station: RadioStation) -> String {
         return "\(station.name)_\(station.frequency)"
@@ -32,29 +44,157 @@ class RadioViewModel: NSObject, ObservableObject {
     override init() {
         super.init()
         setupAudioSession()
+        setupNetworkMonitoring()
         loadStationsForCountry()
         updateFilteredStations()
         updateFastestStations()
         loadFavorites()
+        preloadFavoriteStations()
+        startConnectionWarming()
     }
     
     private func setupAudioSession() {
         do {
-            // 백그라운드 재생 지원
-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers, .allowAirPlay])
+            // 백그라운드 재생 지원 및 최적화
+            try AVAudioSession.sharedInstance().setCategory(.playback, 
+                                                           mode: .default, 
+                                                           options: [.mixWithOthers, .allowAirPlay])
             try AVAudioSession.sharedInstance().setActive(true)
+            
+            // 오디오 세션 최적화 - 버퍼 크기를 더 현실적으로 설정
+            try AVAudioSession.sharedInstance().setPreferredIOBufferDuration(0.02) // 20ms buffer (more realistic)
             print("Audio session setup successful")
         } catch {
             print("Failed to setup audio session: \(error)")
         }
     }
     
+    private func setupNetworkMonitoring() {
+        // Monitor network changes for smooth transitions
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleNetworkChange),
+            name: .AVPlayerItemFailedToPlayToEndTime,
+            object: nil
+        )
+    }
+    
+    private func removeNetworkMonitoring() {
+        NotificationCenter.default.removeObserver(self, name: .AVPlayerItemFailedToPlayToEndTime, object: nil)
+    }
+    
+    @objc private func handleNetworkChange() {
+        // Reconnect if network changes
+        if currentStation != nil, isPlaying {
+            print("Network changed, reconnecting...")
+            play()
+        }
+    }
+    
+    private func preloadFavoriteStations() {
+        // Preload favorite stations for instant playback
+        Task {
+            for station in favoriteStations.prefix(3) {
+                guard let station = station else { continue }
+                await preloadStation(station)
+            }
+        }
+    }
+    
+    private func startConnectionWarming() {
+        // Warm connections for visible stations every 30 seconds
+        Task { @MainActor in
+            connectionWarmer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in
+                guard let self = self else { return }
+                Task {
+                    await self.warmConnections()
+                }
+            }
+        }
+    }
+    
+    private func warmConnections() async {
+        // Warm up connections for current and nearby stations
+        let nearbyStations = filteredStations.filter { station in
+            abs(station.frequency - currentFrequency) < 5.0
+        }.prefix(5)
+        
+        for station in nearbyStations {
+            if connectionPool[stationKey(station)] == nil {
+                await preloadStation(station)
+            }
+        }
+    }
+    
+    private func preloadStation(_ station: RadioStation) async {
+        guard let url = URL(string: station.streamURL) else { return }
+        
+        // Create optimized session for this station
+        let config = URLSessionConfiguration.ephemeral
+        config.timeoutIntervalForRequest = 3.0  // Even faster timeout
+        config.requestCachePolicy = .reloadIgnoringLocalCacheData
+        config.urlCache = nil
+        config.httpMaximumConnectionsPerHost = 2
+        config.multipathServiceType = .handover  // Use best available network
+        
+        let session = URLSession(configuration: config)
+        connectionPool[stationKey(station)] = session
+        
+        // Pre-warm the connection and test speed
+        let startTime = Date()
+        do {
+            let (_, _) = try await session.data(from: url)
+            let loadTime = Date().timeIntervalSince(startTime)
+            
+            // Calculate health score (0-1, higher is better)
+            let healthScore = max(0, min(1, 2.0 / loadTime))  // 2 seconds = 1.0 score
+            stationHealthScores[stationKey(station)] = healthScore
+            
+            // Pre-create player for high-scoring stations
+            if healthScore > 0.7 && preloadedPlayers.count < maxPreloadedPlayers {
+                await createPreloadedPlayer(for: station)
+            }
+        } catch {
+            stationHealthScores[stationKey(station)] = 0.1  // Low score for failed stations
+        }
+    }
+    
+    private func createPreloadedPlayer(for station: RadioStation) async {
+        guard let url = URL(string: station.streamURL) else { return }
+        
+        await MainActor.run {
+            let asset = AVURLAsset(url: url)
+            let playerItem = AVPlayerItem(asset: asset)
+            
+            // Ultra-aggressive buffering
+            playerItem.preferredForwardBufferDuration = 0.1  // Absolute minimum
+            playerItem.canUseNetworkResourcesForLiveStreamingWhilePaused = true
+            
+            let player = AVPlayer(playerItem: playerItem)
+            player.automaticallyWaitsToMinimizeStalling = false  // Don't wait, just play
+            player.volume = 0  // Mute preloaded players
+            
+            preloadedPlayers[stationKey(station)] = player
+            
+            // Clean up old preloaded players
+            if preloadedPlayers.count > maxPreloadedPlayers {
+                let sortedByHealth = preloadedPlayers.keys.sorted { key1, key2 in
+                    (stationHealthScores[key1] ?? 0) > (stationHealthScores[key2] ?? 0)
+                }
+                
+                if let keyToRemove = sortedByHealth.last {
+                    preloadedPlayers[keyToRemove]?.pause()
+                    preloadedPlayers.removeValue(forKey: keyToRemove)
+                }
+            }
+        }
+    }
+    
     func selectStation(_ station: RadioStation) {
         currentStation = station
         currentFrequency = station.frequency
-        if isPlaying {
-            play()
-        }
+        // Auto-play when selecting a station
+        play()
     }
     
     func togglePlayPause() {
@@ -69,21 +209,37 @@ class RadioViewModel: NSObject, ObservableObject {
         guard let station = currentStation,
               let url = URL(string: station.streamURL) else { return }
         
+        // Use preloaded player if available
+        if let preloadedPlayer = preloadedPlayers[stationKey(station)] {
+            player = preloadedPlayer
+            player?.volume = volume  // Restore volume
+            player?.play()
+            isPlaying = true
+            isLoading = false
+            print("Using preloaded player for \(station.name)")
+            
+            // Preload next likely station
+            Task {
+                await predictAndPreloadNextStation()
+            }
+            return
+        }
+        
         // Clean up existing player
         removeObserver()
         player?.pause()
+        player = nil  // Clear the player reference
         loadTimeoutTask?.cancel()
         isLoading = true
         loadStartTime = Date()
         
-        // Set timeout for slow connections
+        // Set ultra-short timeout and try fallback
         loadTimeoutTask = Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds
+            try? await Task.sleep(nanoseconds: 3_000_000_000) // 3 seconds
             if self.isLoading {
-                print("Station load timeout after 10 seconds")
-                self.isLoading = false
-                self.isPlaying = false
-                // Don't automatically try next station - let user choose
+                print("Station load timeout after 3 seconds, trying fallback...")
+                // Try alternative stream or lower quality
+                self.tryAlternativeStream(for: station)
             }
         }
         
@@ -93,21 +249,37 @@ class RadioViewModel: NSObject, ObservableObject {
             let asset = AVURLAsset(url: url)
             let playerItem = AVPlayerItem(asset: asset)
             
-            // Aggressive optimization for fast loading
-            playerItem.preferredForwardBufferDuration = 2.0 // Increase buffer for stability
+            // Optimized for instant playback
+            playerItem.preferredForwardBufferDuration = 1.0 // Balance between speed and stability
+            playerItem.canUseNetworkResourcesForLiveStreamingWhilePaused = true
+            
             if #available(iOS 15.0, *) {
-                playerItem.preferredPeakBitRate = 256000 // Increase bitrate for better quality
+                playerItem.preferredPeakBitRate = 192000 // Optimal bitrate
+                playerItem.preferredMaximumResolution = .zero // Audio only
+            }
+            
+            // Configure for low latency
+            if #available(iOS 13.0, *) {
+                playerItem.configuredTimeOffsetFromLive = CMTime(seconds: 0.5, preferredTimescale: 1)
             }
             
             player = AVPlayer(playerItem: playerItem)
-            player?.automaticallyWaitsToMinimizeStalling = true
+            player?.automaticallyWaitsToMinimizeStalling = false  // Don't wait for buffer
             player?.rate = 1.0
             player?.volume = volume
             player?.play()
             
+            // Force immediate playback
+            if #available(iOS 12.0, *) {
+                player?.playImmediately(atRate: 1.0)
+            }
+            
             print("Playing HLS stream: \(station.streamURL)")
-            isPlaying = true
             addObserver()
+            // Ensure state update on main thread
+            Task { @MainActor in
+                self.isPlaying = true
+            }
         } else if station.streamURL.contains(".pls") || station.streamURL.contains(".m3u") {
             // Playlist file - parse for actual stream URL
             Task {
@@ -136,8 +308,8 @@ class RadioViewModel: NSObject, ObservableObject {
                                 self.player = AVPlayer(url: streamURL)
                                 self.player?.volume = self.volume
                                 self.player?.play()
-                                self.isPlaying = true
                                 self.addObserver()
+                                self.isPlaying = true
                             }
                             return
                         }
@@ -157,44 +329,79 @@ class RadioViewModel: NSObject, ObservableObject {
             }
         } else {
             // Direct stream (MP3, AAC, etc) with aggressive optimization
-            let playerItem = AVPlayerItem(url: url)
+            let asset = AVURLAsset(url: url)
             
-            // Balanced buffering for stability
-            playerItem.preferredForwardBufferDuration = 2.0
+            // Configure asset for fast loading
+            if #available(iOS 10.0, *) {
+                asset.resourceLoader.preloadsEligibleContentKeys = true
+            }
+            
+            let playerItem = AVPlayerItem(asset: asset)
+            
+            // Ultra-fast buffering for instant playback
+            playerItem.preferredForwardBufferDuration = 0.5 // Minimal buffer
+            playerItem.canUseNetworkResourcesForLiveStreamingWhilePaused = true
+            
             if #available(iOS 15.0, *) {
-                playerItem.preferredPeakBitRate = 256000 // Good quality
+                playerItem.preferredPeakBitRate = 192000 // Optimal bitrate
+                playerItem.preferredMaximumResolution = .zero // Audio only
             }
             
             player = AVPlayer(playerItem: playerItem)
-            player?.automaticallyWaitsToMinimizeStalling = true
+            player?.automaticallyWaitsToMinimizeStalling = false  // Don't wait for buffer
             player?.rate = 1.0
             player?.volume = volume
             player?.play()
             
+            // Force immediate playback
+            if #available(iOS 12.0, *) {
+                player?.playImmediately(atRate: 1.0)
+            }
+            
             print("Playing direct stream: \(station.streamURL)")
-            isPlaying = true
             addObserver()
+            // Ensure state update on main thread
+            Task { @MainActor in
+                self.isPlaying = true
+            }
         }
     }
     
     private func pause() {
-        removeObserver()
-        player?.pause()
         isPlaying = false
         loadTimeoutTask?.cancel()
         isLoading = false
+        removeObserver()
+        player?.pause()
+        player = nil  // Clear player reference
     }
     
     private func addObserver() {
-        guard !isObserving, player?.currentItem != nil else { return }
-        player?.currentItem?.addObserver(self, forKeyPath: "status", options: [.new], context: nil)
+        guard let playerItem = player?.currentItem, !isObserving else { return }
+        
+        // Remove any existing observer first
+        if observedPlayerItem != nil && observedPlayerItem !== playerItem {
+            removeObserver()
+        }
+        
+        playerItem.addObserver(self, forKeyPath: "status", options: [.new], context: nil)
+        observedPlayerItem = playerItem
         isObserving = true
+        print("Observer added")
     }
     
     private func removeObserver() {
-        guard isObserving, player?.currentItem != nil else { return }
-        player?.currentItem?.removeObserver(self, forKeyPath: "status", context: nil)
+        guard isObserving, let observedItem = observedPlayerItem else { 
+            isObserving = false
+            observedPlayerItem = nil
+            return 
+        }
+        
+        // Only remove observer from the exact item we added it to
+        observedItem.removeObserver(self, forKeyPath: "status", context: nil)
         isObserving = false
+        observedPlayerItem = nil
+        print("Observer removed successfully")
     }
     
     func adjustVolume(_ newVolume: Float) {
@@ -202,14 +409,94 @@ class RadioViewModel: NSObject, ObservableObject {
         player?.volume = volume
     }
     
+    func recognizeCurrentSong() {
+        guard isPlaying, let player = player else { return }
+        
+        Task {
+            // Try to get metadata from player first
+            if let songInfo = await songRecognitionService.extractMetadataFromPlayer(player) {
+                await MainActor.run {
+                    NotificationCenter.default.post(
+                        name: .songRecognized,
+                        object: nil,
+                        userInfo: ["songInfo": songInfo]
+                    )
+                }
+            } else if let station = currentStation,
+                      let url = URL(string: station.streamURL),
+                      let songInfo = await songRecognitionService.extractMetadataFromStream(url) {
+                // Try stream metadata
+                await MainActor.run {
+                    NotificationCenter.default.post(
+                        name: .songRecognized,
+                        object: nil,
+                        userInfo: ["songInfo": songInfo]
+                    )
+                }
+            } else {
+                // Fall back to Shazam if no metadata
+                await MainActor.run {
+                    // Show alert that metadata is not available
+                    print("No metadata available from stream. Shazam recognition requires microphone permission.")
+                    // For now, try Shazam but it may fail without proper permissions
+                    self.songRecognitionService.startShazamRecognition()
+                }
+                
+                // Stop recognition after 10 seconds
+                Task {
+                    try? await Task.sleep(nanoseconds: 10_000_000_000)
+                    await MainActor.run {
+                        self.songRecognitionService.stopShazamRecognition()
+                    }
+                }
+            }
+        }
+    }
+    
     func tuneToFrequency(_ frequency: Double) {
         currentFrequency = frequency
         if let station = filteredStations.first(where: { abs($0.frequency - frequency) < 0.1 }) {
-            selectStation(station)
+            // 다이얼 돌릴 때는 station만 설정, 재생하지 않음
+            if currentStation?.id != station.id {
+                currentStation = station
+            }
         } else {
-            currentStation = nil
-            pause()
+            if currentStation != nil {
+                currentStation = nil
+                pause()
+            }
         }
+    }
+    
+    // MARK: - Station Navigation
+    func selectNextStation() {
+        guard let currentStation = currentStation,
+              let currentIndex = filteredStations.firstIndex(where: { $0.id == currentStation.id }),
+              currentIndex < filteredStations.count - 1 else { return }
+        
+        let nextStation = filteredStations[currentIndex + 1]
+        selectStation(nextStation)
+    }
+    
+    func selectPreviousStation() {
+        guard let currentStation = currentStation,
+              let currentIndex = filteredStations.firstIndex(where: { $0.id == currentStation.id }),
+              currentIndex > 0 else { return }
+        
+        let previousStation = filteredStations[currentIndex - 1]
+        selectStation(previousStation)
+    }
+    
+    func hasNextStation() -> Bool {
+        guard let currentStation = currentStation,
+              let currentIndex = filteredStations.firstIndex(where: { $0.id == currentStation.id }) else { return false }
+        return currentIndex < filteredStations.count - 1
+    }
+    
+    func hasPreviousStation() -> Bool {
+        guard let currentStation = currentStation,
+              let currentIndex = filteredStations.firstIndex(where: { $0.id == currentStation.id }) else { return false }
+        return currentIndex > 0
     }
     
     func toggleCountrySelectionMode() {
@@ -245,22 +532,24 @@ class RadioViewModel: NSObject, ObservableObject {
                     self.updateFilteredStations()
                     self.updateFastestStations()
                     
-                    // 현재 주파수 근처 스테이션 찾기
+                    // 현재 주파수 근처 스테이션 찾기 (자동 재생 없이)
                     if let nearbyStation = self.filteredStations.first(where: { abs($0.frequency - self.currentFrequency) < 2.0 }) {
-                        self.selectStation(nearbyStation)
+                        self.currentStation = nearbyStation
+                        self.currentFrequency = nearbyStation.frequency
                     }
                 }
             }
         }
         
-        // 초기 스테이션 선택
+        // 초기 스테이션 선택 (자동 재생 없이)
         if let nearbyStation = filteredStations.first(where: { abs($0.frequency - currentFrequency) < 2.0 }) {
-            selectStation(nearbyStation)
+            currentStation = nearbyStation
+            currentFrequency = nearbyStation.frequency
         } else if let firstStation = filteredStations.first {
-            selectStation(firstStation)
+            currentStation = firstStation
+            currentFrequency = firstStation.frequency
         } else {
             currentStation = nil
-            pause()
         }
     }
     
@@ -394,6 +683,8 @@ class RadioViewModel: NSObject, ObservableObject {
                         player?.play()
                         print("Forcing play after ready state")
                     }
+                    // Ensure isPlaying is set to true
+                    isPlaying = true
                 case .unknown:
                     print("Player status unknown")
                 default:
@@ -414,8 +705,69 @@ class RadioViewModel: NSObject, ObservableObject {
         }
     }
     
+    private func predictAndPreloadNextStation() async {
+        // Intelligent prediction based on user behavior
+        guard let currentStation = currentStation else { return }
+        
+        // Find stations near current frequency
+        let nearbyStations = filteredStations.filter { station in
+            station.id != currentStation.id &&
+            abs(station.frequency - currentStation.frequency) < 2.0
+        }.sorted { station1, station2 in
+            // Sort by health score and proximity
+            let score1 = (stationHealthScores[stationKey(station1)] ?? 0.5) / (1 + abs(station1.frequency - currentStation.frequency))
+            let score2 = (stationHealthScores[stationKey(station2)] ?? 0.5) / (1 + abs(station2.frequency - currentStation.frequency))
+            return score1 > score2
+        }
+        
+        // Preload top candidate
+        if let nextStation = nearbyStations.first {
+            await preloadStation(nextStation)
+        }
+    }
+    
+    private func tryAlternativeStream(for station: RadioStation) {
+        // Try lower quality or alternative stream
+        guard URL(string: station.streamURL) != nil else { return }
+        
+        // Reset and try with more aggressive settings
+        isLoading = false
+        isPlaying = false
+        
+        Task {
+            // Mark this station as slow
+            stationHealthScores[stationKey(station)] = 0.2
+            
+            // Try to find a better station
+            if let betterStation = findBetterAlternative(to: station) {
+                await MainActor.run {
+                    self.selectStation(betterStation)
+                }
+            }
+        }
+    }
+    
+    private func findBetterAlternative(to station: RadioStation) -> RadioStation? {
+        // Find similar station with better health score
+        return filteredStations.filter { candidate in
+            candidate.id != station.id &&
+            candidate.genre == station.genre &&
+            (stationHealthScores[stationKey(candidate)] ?? 0.5) > 0.6
+        }.max { station1, station2 in
+            (stationHealthScores[stationKey(station1)] ?? 0) < (stationHealthScores[stationKey(station2)] ?? 0)
+        }
+    }
+    
     deinit {
-        // Observer is removed in pause() method when needed
-        // No need to remove here as deinit is not on main actor
+        // Clean up timer on deinit
+        connectionWarmer?.invalidate()
+        // Ensure observer is removed from the exact item
+        if isObserving, let observedItem = observedPlayerItem {
+            observedItem.removeObserver(self, forKeyPath: "status", context: nil)
+            isObserving = false
+            observedPlayerItem = nil
+        }
+        // Clean up network monitoring
+        NotificationCenter.default.removeObserver(self)
     }
 }

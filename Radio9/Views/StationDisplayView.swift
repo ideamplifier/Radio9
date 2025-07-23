@@ -9,11 +9,11 @@ struct StationDisplayView: View {
     var body: some View {
         ZStack {
             // Recessed display area - carved into the body
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: 20)
                 .fill(Color(red: 0.94, green: 0.94, blue: 0.94))
                 .overlay(
                     // Top inner shadow - precise and thin
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: 20)
                         .stroke(
                             LinearGradient(
                                 colors: [
@@ -30,7 +30,7 @@ struct StationDisplayView: View {
                 )
                 .overlay(
                     // Left inner shadow
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: 20)
                         .stroke(
                             LinearGradient(
                                 colors: [
@@ -47,7 +47,7 @@ struct StationDisplayView: View {
                 )
                 .overlay(
                     // Bottom/right highlight - subtle
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: 20)
                         .stroke(
                             LinearGradient(
                                 colors: [
@@ -63,12 +63,12 @@ struct StationDisplayView: View {
                 )
             
             // Display panel - the actual screen
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: 15)
                 .fill(Color.black.opacity(0.85))
                 .padding(5)
                 .overlay(
                     // Subtle inner shadow on the display
-                    RoundedRectangle(cornerRadius: 9)
+                    RoundedRectangle(cornerRadius: 14)
                         .stroke(Color.black.opacity(0.3), lineWidth: 0.5)
                         .blur(radius: 0.5)
                         .padding(5)
@@ -80,7 +80,7 @@ struct StationDisplayView: View {
                         startPoint: .top,
                         endPoint: .center
                     )
-                    .cornerRadius(9)
+                    .cornerRadius(14)
                     .padding(5)
                 )
             
@@ -95,7 +95,7 @@ struct StationDisplayView: View {
                 }
                 .frame(height: 45)
                 .padding(.horizontal, 15)
-                .padding(.top, 15)
+                .padding(.top, 18)  // 2픽셀 위로 (20 -> 18)
                 
                 Spacer()
                 
@@ -103,14 +103,22 @@ struct StationDisplayView: View {
                 StationInfoView(
                     station: station,
                     frequency: frequency,
-                    isPlaying: isPlaying
+                    isPlaying: isPlaying,
+                    isLoading: viewModel.isLoading
                 )
+                .frame(height: 50)  // 고정 높이
+                .id("\(station?.id.uuidString ?? "")_\(isPlaying)") // 상태별 고유 ID (로딩 상태 제외)
                 
-                // Country selector button - bottom right
-                CountrySelectorButton(viewModel: viewModel)
-                    .position(x: UIScreen.main.bounds.width - 50, y: 90)
             }
+            // Country selector button - overlay로 위치 고정
+            .overlay(
+                CountrySelectorButton(viewModel: viewModel)
+                    .padding(.trailing, 20)
+                    .padding(.bottom, 62),  // 2픽셀 더 위로 (60 -> 62)
+                alignment: .bottomTrailing
+            )
         }
-        .frame(height: 120)
+        .frame(height: 160) // 고정 높이 (140 -> 160)
+        .clipped() // 넘치는 내용 잘라내기
     }
 }
