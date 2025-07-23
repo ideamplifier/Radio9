@@ -114,6 +114,10 @@ struct DialBackground: View {
     var body: some View {
         Circle()
             .fill(Color.white)
+            .overlay(
+                Circle()
+                    .stroke(Color.black.opacity(0.1), lineWidth: 1)
+            )
             .shadow(
                 color: isInteracting ? 
                     Color(red: 1.0, green: 0.6, blue: 0.2).opacity(0.2) : 

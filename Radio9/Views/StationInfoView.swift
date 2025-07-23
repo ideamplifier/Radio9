@@ -39,7 +39,7 @@ struct StationInfoView: View {
                 }
                 .frame(height: 12)  // 고정 높이
             }
-            .frame(maxWidth: 280)  // JP 버튼 공간 고려해서 늘림
+            .frame(maxWidth: 200)  // 최대 너비 제한
             .offset(y: -12)  // 2픽셀 더 위로 (-10 -> -12)
             
             Spacer()
