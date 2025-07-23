@@ -218,125 +218,16 @@ class RadioViewModel: NSObject, ObservableObject {
     
     // CDN 엣지 서버 테스트 - 가장 빠른 서버 찾기
     private func findFastestServer(for station: RadioStation) async -> String {
-        let key = stationKey(station)
-        
-        // 캐시 확인
-        if let cachedURL = fastestServers[key] {
-            return cachedURL
-        }
-        
-        // 가능한 미러/CDN URL들 생성
-        let possibleURLs = generatePossibleURLs(for: station.streamURL)
-        
-        // 병렬로 모든 서버 테스트
-        let results = await withTaskGroup(of: (String, TimeInterval?).self) { group in
-            for urlString in possibleURLs {
-                group.addTask {
-                    let startTime = Date()
-                    let success = await self.testServerConnection(urlString)
-                    let elapsed = success ? Date().timeIntervalSince(startTime) : nil
-                    return (urlString, elapsed)
-                }
-            }
-            
-            var results: [(String, TimeInterval)] = []
-            for await (url, time) in group {
-                if let time = time {
-                    results.append((url, time))
-                }
-            }
-            return results
-        }
-        
-        // 가장 빠른 서버 선택
-        if let fastest = results.min(by: { $0.1 < $1.1 }) {
-            fastestServers[key] = fastest.0
-            print("⚡ Fastest server for \(station.name): \(fastest.0) (\(Int(fastest.1 * 1000))ms)")
-            return fastest.0
-        }
-        
-        // 실패 시 원본 URL 반환
+        // CDN 테스트를 비활성화하고 항상 원본 URL 반환
         return station.streamURL
     }
     
-    // 가능한 CDN/미러 URL들 생성
+    // 가능한 CDN/미러 URL들 생성 - 비활성화
     private func generatePossibleURLs(for originalURL: String) -> [String] {
-        var urls = [originalURL]
-        
-        guard let url = URL(string: originalURL),
-              let host = url.host else { return urls }
-        
-        // 일반적인 CDN 패턴들
-        let cdnPrefixes = ["cdn", "stream"]
-        let cdnNumbers = ["", "1", "2"]  // 더 적은 수의 변형 생성
-        
-        // 호스트 변형 생성
-        for prefix in cdnPrefixes {
-            for number in cdnNumbers {
-                // cdn.example.com, cdn1.example.com 등
-                let cdnHost = "\(prefix)\(number).\(host)"
-                if var components = URLComponents(url: url, resolvingAgainstBaseURL: false) {
-                    components.host = cdnHost
-                    if let cdnURL = components.url?.absoluteString {
-                        urls.append(cdnURL)
-                    }
-                }
-                
-                // example-cdn.com 패턴
-                if host.contains(".") {
-                    let parts = host.split(separator: ".", maxSplits: 1)
-                    if parts.count == 2 {
-                        let cdnHost2 = "\(parts[0])-\(prefix)\(number).\(parts[1])"
-                        if var components = URLComponents(url: url, resolvingAgainstBaseURL: false) {
-                            components.host = String(cdnHost2)
-                            if let cdnURL = components.url?.absoluteString {
-                                urls.append(cdnURL)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        
-        // 포트 변형 (일반적인 스트리밍 포트들)
-        let streamPorts = [80, 8000, 8080, 8008]
-        for port in streamPorts {
-            if var components = URLComponents(url: url, resolvingAgainstBaseURL: false) {
-                components.port = port
-                if let portURL = components.url?.absoluteString {
-                    urls.append(portURL)
-                }
-            }
-        }
-        
-        // 중복 제거
-        return Array(Set(urls)).prefix(3).map { $0 }  // 최대 3개만 테스트로 제한
+        // CDN 변형 생성을 비활성화하고 원본 URL만 반환
+        return [originalURL]
     }
     
-    // 서버 연결 테스트
-    private func testServerConnection(_ urlString: String) async -> Bool {
-        guard let url = URL(string: urlString) else { return false }
-        
-        let config = URLSessionConfiguration.ephemeral
-        config.timeoutIntervalForRequest = 0.5  // 500ms 타임아웃
-        config.requestCachePolicy = .reloadIgnoringLocalCacheData
-        
-        let session = URLSession(configuration: config)
-        
-        do {
-            var request = URLRequest(url: url)
-            request.httpMethod = "HEAD"  // HEAD 요청으로 빠르게 테스트
-            
-            let (_, response) = try await session.data(for: request)
-            if let httpResponse = response as? HTTPURLResponse {
-                return (200...299).contains(httpResponse.statusCode)
-            }
-        } catch {
-            // 실패
-        }
-        
-        return false
-    }
     
     private func preloadStation(_ station: RadioStation) async {
         guard let url = URL(string: station.streamURL) else { return }
@@ -462,17 +353,10 @@ class RadioViewModel: NSObject, ObservableObject {
             return
         }
         
-        // 가장 빠른 서버 찾기 (백그라운드)
-        Task {
-            let fastestURL = await findFastestServer(for: station)
-            if fastestURL != station.streamURL {
-                // 더 빠른 서버 발견 시 캐시에 저장
-                print("🚀 Using faster server: \(fastestURL)")
-            }
-        }
+        // CDN 테스트 비활성화
         
         // 캐시된 빠른 서버가 있으면 사용, 없으면 원본 사용
-        let streamURL = fastestServers[key] ?? station.streamURL
+        let streamURL = station.streamURL  // CDN 테스트 비활성화
         guard let url = URL(string: streamURL) else { return }
         
         // Use preloaded player if available - 즉시 재생!
@@ -1230,7 +1114,7 @@ class RadioViewModel: NSObject, ObservableObject {
     private func connectToLiveStream(station: RadioStation) {
         // 캐시에서 라이브 스트림으로 전환
         let key = stationKey(station)
-        let streamURL = fastestServers[key] ?? station.streamURL
+        let streamURL = station.streamURL  // CDN 테스트 비활성화
         guard let url = URL(string: streamURL) else { return }
         
         // 기존 플레이어가 캐시 재생 중이면 저장
