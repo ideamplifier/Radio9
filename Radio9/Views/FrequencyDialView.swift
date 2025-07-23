@@ -2,10 +2,12 @@ import SwiftUI
 
 struct FrequencyDialView: View {
     @Binding var frequency: Double
+    @ObservedObject var viewModel: RadioViewModel
     let range: ClosedRange<Double> = 88.0...108.0
     @State private var isInteracting = false
     @State private var startLocation: CGPoint = .zero
     @State private var startFrequency: Double = 0
+    @State private var startCountryIndex: Double = 0
     
     var body: some View {
         GeometryReader { geometry in
@@ -20,7 +22,6 @@ struct FrequencyDialView: View {
                             Color(red: 1.0, green: 0.6, blue: 0.2).opacity(0.2) : 
                             Color.black.opacity(0.08), 
                             radius: isInteracting ? 20 : 12, x: 0, y: 6)
-                    .animation(.easeInOut(duration: 0.3), value: isInteracting)
                 
                 // Inner ring border
                 Circle()
@@ -53,31 +54,58 @@ struct FrequencyDialView: View {
                             isInteracting = true
                             startLocation = value.startLocation
                             startFrequency = frequency
+                            startCountryIndex = viewModel.countrySelectionIndex
                             UIImpactFeedbackGenerator(style: .light).impactOccurred()
                         }
                         
-                        // Calculate rotation based on drag distance, not absolute position
-                        if value.translation.width != 0 || value.translation.height != 0 {
-                            let startAngle = atan2(startLocation.x - dialSize/2, 
-                                                 dialSize/2 - startLocation.y)
-                            let currentAngle = atan2(value.location.x - dialSize/2, 
-                                                   dialSize/2 - value.location.y)
+                        // Calculate rotation based on drag
+                        let center = CGPoint(x: dialSize/2, y: dialSize/2)
+                        let startAngle = atan2(startLocation.y - center.y, startLocation.x - center.x)
+                        let currentAngle = atan2(value.location.y - center.y, value.location.x - center.x)
+                        
+                        var angleDelta = (currentAngle - startAngle) * 180 / .pi
+                        
+                        // Handle angle wrap-around
+                        if angleDelta > 180 {
+                            angleDelta -= 360
+                        } else if angleDelta < -180 {
+                            angleDelta += 360
+                        }
+                        
+                        if viewModel.isCountrySelectionMode {
+                            // Country selection mode
+                            let countryCount = Double(Country.countries.count)
+                            let indexDelta = (angleDelta / 720.0) * countryCount
+                            let newIndex = startCountryIndex + indexDelta
                             
-                            var angleDelta = (currentAngle - startAngle) * 180 / .pi
+                            let oldIndex = Int(viewModel.countrySelectionIndex)
+                            viewModel.countrySelectionIndex = max(0, min(newIndex, countryCount - 1))
+                            viewModel.selectCountryByIndex(viewModel.countrySelectionIndex)
                             
-                            // Handle angle wrap-around
-                            if angleDelta > 180 {
-                                angleDelta -= 360
-                            } else if angleDelta < -180 {
-                                angleDelta += 360
+                            // Haptic feedback when changing country
+                            if oldIndex != Int(viewModel.countrySelectionIndex) {
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            }
+                        } else {
+                            // Normal frequency tuning mode - allow multiple rotations
+                            let rotations = angleDelta / 360.0
+                            let frequencyRange = range.upperBound - range.lowerBound
+                            let frequencyDelta = rotations * frequencyRange
+                            var newFrequency = startFrequency + frequencyDelta
+                            
+                            // Handle wrap-around
+                            while newFrequency > range.upperBound {
+                                newFrequency -= frequencyRange
+                            }
+                            while newFrequency < range.lowerBound {
+                                newFrequency += frequencyRange
                             }
                             
-                            let frequencyRange = range.upperBound - range.lowerBound
-                            let frequencyDelta = (angleDelta / 360.0) * frequencyRange
-                            let newFrequency = startFrequency + frequencyDelta
-                            
                             let oldFrequency = frequency
-                            frequency = min(max(newFrequency, range.lowerBound), range.upperBound)
+                            frequency = newFrequency
+                            
+                            // Debug logging
+                            print("Freq: \(frequency) (\(range.lowerBound)-\(range.upperBound)), Delta: \(frequencyDelta), Rotations: \(rotations), Start: \(startFrequency)")
                             
                             // Haptic feedback at major frequencies
                             if Int(oldFrequency) != Int(frequency) {
@@ -89,13 +117,19 @@ struct FrequencyDialView: View {
                         isInteracting = false
                     }
             )
-            .animation(.interactiveSpring(response: 0.35, dampingFraction: 0.85), value: frequency)
         }
     }
     
     private var normalizedAngle: Double {
-        let frequencyRange = range.upperBound - range.lowerBound
-        let normalizedFrequency = (frequency - range.lowerBound) / frequencyRange
-        return normalizedFrequency * 360
+        if viewModel.isCountrySelectionMode {
+            // Country selection mode - use index
+            let countryCount = Double(Country.countries.count)
+            return (viewModel.countrySelectionIndex / countryCount) * 360
+        } else {
+            // Frequency mode
+            let frequencyRange = range.upperBound - range.lowerBound
+            let normalizedFrequency = (frequency - range.lowerBound) / frequencyRange
+            return normalizedFrequency * 360
+        }
     }
 }

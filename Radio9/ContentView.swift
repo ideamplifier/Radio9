@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 struct ContentView: View {
     @StateObject private var viewModel = RadioViewModel()
@@ -41,7 +42,8 @@ struct ContentView: View {
                 StationDisplayView(
                     station: viewModel.currentStation,
                     frequency: viewModel.currentFrequency,
-                    isPlaying: viewModel.isPlaying
+                    isPlaying: viewModel.isPlaying,
+                    viewModel: viewModel
                 )
                 .padding(.horizontal, 20)
                 .padding(.bottom, 30)
@@ -63,12 +65,20 @@ struct ContentView: View {
                             viewModel.togglePlayPause()
                             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                         }) {
-                            Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
-                                .font(.system(size: 24))
-                                .foregroundColor(.orange)
-                                .offset(x: viewModel.isPlaying ? 0 : 2)
+                            ZStack {
+                                if viewModel.isLoading {
+                                    ProgressView()
+                                        .scaleEffect(0.8)
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .orange))
+                                } else {
+                                    Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
+                                        .font(.system(size: 24))
+                                        .foregroundColor(.orange)
+                                        .offset(x: viewModel.isPlaying ? 0 : 2)
+                                }
+                            }
                         }
-                        .disabled(viewModel.currentStation == nil)
+                        .disabled(viewModel.currentStation == nil || viewModel.isLoading)
                         .opacity(viewModel.currentStation == nil ? 0.5 : 1.0)
                         
                         Button(action: {}) {
@@ -81,59 +91,48 @@ struct ContentView: View {
                     }
                     
                     // Frequency Dial
-                    FrequencyDialView(frequency: $viewModel.currentFrequency)
-                        .frame(width: 240, height: 240)
-                        .onChange(of: viewModel.currentFrequency) { _, newValue in
+                    FrequencyDialView(
+                        frequency: $viewModel.currentFrequency,
+                        viewModel: viewModel
+                    )
+                    .frame(width: 240, height: 240)
+                    .onChange(of: viewModel.currentFrequency) { newValue in
+                        if !viewModel.isCountrySelectionMode {
                             viewModel.tuneToFrequency(newValue)
                         }
+                    }
                 }
                 
                 Spacer()
                 
-                // Bottom Controls
-                HStack {
-                    // Menu Button
-                    Button(action: {}) {
-                        VStack(spacing: 3) {
-                            ForEach(0..<3) { _ in
-                                RoundedRectangle(cornerRadius: 1)
-                                    .fill(Color.gray.opacity(0.4))
-                                    .frame(width: 20, height: 2)
+                // Bottom Controls - 9 preset buttons (favorites)
+                HStack(spacing: 14) {
+                    ForEach(0..<9) { index in
+                        ZStack {
+                            // Short capsule shape
+                            Capsule()
+                                .fill(viewModel.favoriteStations[index] != nil && 
+                                     viewModel.currentStation?.id == viewModel.favoriteStations[index]?.id 
+                                     ? Color.orange : 
+                                     viewModel.favoriteStations[index] != nil 
+                                     ? Color.gray.opacity(0.3) 
+                                     : Color.gray.opacity(0.15))
+                                .frame(width: 16, height: 12)
+                        }
+                        .onTapGesture {
+                            if let station = viewModel.favoriteStations[index] {
+                                viewModel.selectStation(station)
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            }
+                        }
+                        .onLongPressGesture(minimumDuration: 0.5) {
+                            if let currentStation = viewModel.currentStation {
+                                viewModel.saveFavorite(station: currentStation, at: index)
                             }
                         }
                     }
-                    .padding(.leading, 30)
-                    
-                    Spacer()
-                    
-                    // Preset Stations
-                    HStack(spacing: 16) {
-                        ForEach(0..<3) { index in
-                            Button(action: {
-                                if index < viewModel.stations.count {
-                                    viewModel.selectStation(viewModel.stations[index])
-                                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                                }
-                            }) {
-                                RoundedRectangle(cornerRadius: 4)
-                                    .fill(index < viewModel.stations.count && 
-                                         viewModel.currentStation?.id == viewModel.stations[index].id 
-                                         ? Color.orange : Color.gray.opacity(0.2))
-                                    .frame(width: 40, height: 6)
-                            }
-                        }
-                    }
-                    
-                    Spacer()
-                    
-                    // Shuffle Button
-                    Button(action: {}) {
-                        Image(systemName: "shuffle")
-                            .font(.system(size: 18))
-                            .foregroundColor(.orange)
-                    }
-                    .padding(.trailing, 30)
                 }
+                .padding(.horizontal, 20)
                 .padding(.bottom, 40)
             }
             
@@ -149,7 +148,7 @@ struct ContentView: View {
                     Spacer()
                     
                     StationListView(
-                        stations: viewModel.stations,
+                        stations: viewModel.filteredStations,
                         currentStation: viewModel.currentStation,
                         onSelect: { station in
                             viewModel.selectStation(station)
@@ -163,7 +162,6 @@ struct ContentView: View {
                 }
             }
         }
-        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: showStationList)
     }
 }
 
