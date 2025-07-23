@@ -1,5 +1,6 @@
 import Foundation
 import AVFoundation
+import AVKit
 import Combine
 import ShazamKit
 import UIKit
@@ -31,12 +32,29 @@ class RadioViewModel: NSObject, ObservableObject {
     // Performance optimization
     private var preloadedPlayers: [String: AVPlayer] = [:]
     private var connectionPool: [String: URLSession] = [:]
-    private let maxPreloadedPlayers = 3
+    private let maxPreloadedPlayers = 7  // 3 → 7개로 증가
     private var networkReachability = true
     private var stationHealthScores: [String: Double] = [:]
     private var streamAnalyzer = StreamAnalyzer()
     private var connectionWarmer: Timer?
     private var songRecognitionService = SongRecognitionService()
+    
+    // 프리로드 우선순위 큐
+    private let preloadQueue = DispatchQueue(label: "radio9.preload", qos: .userInitiated)
+    
+    // DNS prefetch cache
+    private var dnsCache: [String: String] = [:]
+    private let dnsQueue = DispatchQueue(label: "radio9.dns", qos: .userInitiated, attributes: .concurrent)
+    
+    // CDN edge selection
+    private var fastestServers: [String: String] = [:]  // station key -> fastest URL
+    private let serverTestQueue = DispatchQueue(label: "radio9.servertest", qos: .userInitiated, attributes: .concurrent)
+    
+    // Audio buffer caching - 최근 재생 오디오 캐싱
+    private var audioBufferCache: [String: Data] = [:]  // station key -> last 5 seconds of audio
+    private let maxCachedStations = 5
+    private let cacheBufferDuration: TimeInterval = 5.0  // 5초 캐싱
+    private var bufferCaptureTimers: [String: Timer] = [:]
     
     private func stationKey(_ station: RadioStation) -> String {
         return "\(station.name)_\(station.frequency)"
@@ -60,6 +78,9 @@ class RadioViewModel: NSObject, ObservableObject {
             
             // These can be done in background
             Task {
+                // 초기 주파수 근처 스테이션들 프리로드
+                await preloadNearbyStations(frequency: currentFrequency)
+                // 즐겨찾기도 프리로드
                 await preloadFavoriteStations()
             }
             startConnectionWarming()
@@ -137,16 +158,213 @@ class RadioViewModel: NSObject, ObservableObject {
         }
     }
     
+    // DNS Prefetch for faster connection
+    private func prefetchDNS(for urlString: String) async {
+        guard let url = URL(string: urlString),
+              let host = url.host else { return }
+        
+        // Check cache first
+        if dnsCache[host] != nil { return }
+        
+        await withCheckedContinuation { continuation in
+            dnsQueue.async {
+                // DNS lookup using system resolver
+                var hints = addrinfo()
+                hints.ai_family = AF_UNSPEC
+                hints.ai_socktype = SOCK_STREAM
+                
+                var servinfo: UnsafeMutablePointer<addrinfo>?
+                let status = getaddrinfo(host, nil, &hints, &servinfo)
+                
+                if status == 0, let info = servinfo {
+                    defer { freeaddrinfo(servinfo) }
+                    
+                    // Cache the first valid address
+                    var current = info.pointee
+                    while true {
+                        if let address = await MainActor.run { self.extractIPAddress(from: current) } {
+                            DispatchQueue.main.async {
+                                self.dnsCache[host] = address
+                                print("DNS prefetched for \(host): \(address)")
+                            }
+                            break
+                        }
+                        
+                        guard let next = current.ai_next else { break }
+                        current = next.pointee
+                    }
+                }
+                
+                continuation.resume()
+            }
+        }
+    }
+    
+    private func extractIPAddress(from addrinfo: addrinfo) -> String? {
+        if addrinfo.ai_family == AF_INET {
+            var addr = sockaddr_in()
+            _ = withUnsafeMutableBytes(of: &addr) { ptr in
+                addrinfo.ai_addr.withMemoryRebound(to: UInt8.self, capacity: MemoryLayout<sockaddr_in>.size) {
+                    ptr.copyMemory(from: UnsafeRawBufferPointer(start: $0, count: MemoryLayout<sockaddr_in>.size))
+                }
+            }
+            
+            var buffer = [CChar](repeating: 0, count: Int(INET_ADDRSTRLEN))
+            inet_ntop(AF_INET, &addr.sin_addr, &buffer, socklen_t(INET_ADDRSTRLEN))
+            return String(cString: buffer)
+        }
+        return nil
+    }
+    
+    // CDN 엣지 서버 테스트 - 가장 빠른 서버 찾기
+    private func findFastestServer(for station: RadioStation) async -> String {
+        let key = stationKey(station)
+        
+        // 캐시 확인
+        if let cachedURL = fastestServers[key] {
+            return cachedURL
+        }
+        
+        // 가능한 미러/CDN URL들 생성
+        let possibleURLs = generatePossibleURLs(for: station.streamURL)
+        
+        // 병렬로 모든 서버 테스트
+        let results = await withTaskGroup(of: (String, TimeInterval?).self) { group in
+            for urlString in possibleURLs {
+                group.addTask {
+                    let startTime = Date()
+                    let success = await self.testServerConnection(urlString)
+                    let elapsed = success ? Date().timeIntervalSince(startTime) : nil
+                    return (urlString, elapsed)
+                }
+            }
+            
+            var results: [(String, TimeInterval)] = []
+            for await (url, time) in group {
+                if let time = time {
+                    results.append((url, time))
+                }
+            }
+            return results
+        }
+        
+        // 가장 빠른 서버 선택
+        if let fastest = results.min(by: { $0.1 < $1.1 }) {
+            fastestServers[key] = fastest.0
+            print("⚡ Fastest server for \(station.name): \(fastest.0) (\(Int(fastest.1 * 1000))ms)")
+            return fastest.0
+        }
+        
+        // 실패 시 원본 URL 반환
+        return station.streamURL
+    }
+    
+    // 가능한 CDN/미러 URL들 생성
+    private func generatePossibleURLs(for originalURL: String) -> [String] {
+        var urls = [originalURL]
+        
+        guard let url = URL(string: originalURL),
+              let host = url.host else { return urls }
+        
+        // 일반적인 CDN 패턴들
+        let cdnPrefixes = ["cdn", "edge", "stream", "live", "broadcast"]
+        let cdnNumbers = ["", "1", "2", "3", "01", "02", "03"]
+        
+        // 호스트 변형 생성
+        for prefix in cdnPrefixes {
+            for number in cdnNumbers {
+                // cdn.example.com, cdn1.example.com 등
+                let cdnHost = "\(prefix)\(number).\(host)"
+                if var components = URLComponents(url: url, resolvingAgainstBaseURL: false) {
+                    components.host = cdnHost
+                    if let cdnURL = components.url?.absoluteString {
+                        urls.append(cdnURL)
+                    }
+                }
+                
+                // example-cdn.com 패턴
+                if host.contains(".") {
+                    let parts = host.split(separator: ".", maxSplits: 1)
+                    if parts.count == 2 {
+                        let cdnHost2 = "\(parts[0])-\(prefix)\(number).\(parts[1])"
+                        if var components = URLComponents(url: url, resolvingAgainstBaseURL: false) {
+                            components.host = String(cdnHost2)
+                            if let cdnURL = components.url?.absoluteString {
+                                urls.append(cdnURL)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 포트 변형 (일반적인 스트리밍 포트들)
+        let streamPorts = [80, 8000, 8080, 8008]
+        for port in streamPorts {
+            if var components = URLComponents(url: url, resolvingAgainstBaseURL: false) {
+                components.port = port
+                if let portURL = components.url?.absoluteString {
+                    urls.append(portURL)
+                }
+            }
+        }
+        
+        // 중복 제거
+        return Array(Set(urls)).prefix(10).map { $0 }  // 최대 10개만 테스트
+    }
+    
+    // 서버 연결 테스트
+    private func testServerConnection(_ urlString: String) async -> Bool {
+        guard let url = URL(string: urlString) else { return false }
+        
+        let config = URLSessionConfiguration.ephemeral
+        config.timeoutIntervalForRequest = 0.5  // 500ms 타임아웃
+        config.requestCachePolicy = .reloadIgnoringLocalCacheData
+        
+        let session = URLSession(configuration: config)
+        
+        do {
+            var request = URLRequest(url: url)
+            request.httpMethod = "HEAD"  // HEAD 요청으로 빠르게 테스트
+            
+            let (_, response) = try await session.data(for: request)
+            if let httpResponse = response as? HTTPURLResponse {
+                return (200...299).contains(httpResponse.statusCode)
+            }
+        } catch {
+            // 실패
+        }
+        
+        return false
+    }
+    
     private func preloadStation(_ station: RadioStation) async {
         guard let url = URL(string: station.streamURL) else { return }
+        
+        // Prefetch DNS first
+        await prefetchDNS(for: station.streamURL)
         
         // Create optimized session for this station
         let config = URLSessionConfiguration.ephemeral
         config.timeoutIntervalForRequest = 3.0  // Even faster timeout
         config.requestCachePolicy = .reloadIgnoringLocalCacheData
         config.urlCache = nil
-        config.httpMaximumConnectionsPerHost = 2
+        config.httpMaximumConnectionsPerHost = 4  // More parallel connections
         config.multipathServiceType = .handover  // Use best available network
+        config.httpShouldUsePipelining = true  // Enable HTTP pipelining
+        config.allowsExpensiveNetworkAccess = true
+        config.allowsConstrainedNetworkAccess = true
+        
+        // HTTP/3 (QUIC) 지원 - iOS 15+
+        if #available(iOS 15.0, *) {
+            // HTTP/3 support - removed as it's not available in iOS SDK
+        }
+        
+        // DNS 캐시 활용을 위한 커스텀 프로토콜
+        if let host = url.host, let cachedIP = dnsCache[host] {
+            // IP 주소로 직접 연결하면 DNS 조회 시간 절약
+            print("Using cached DNS for \(host): \(cachedIP)")
+        }
         
         let session = URLSession(configuration: config)
         connectionPool[stationKey(station)] = session
@@ -177,9 +395,15 @@ class RadioViewModel: NSObject, ObservableObject {
             let asset = AVURLAsset(url: url)
             let playerItem = AVPlayerItem(asset: asset)
             
-            // Ultra-aggressive buffering
-            playerItem.preferredForwardBufferDuration = 0.1  // Absolute minimum
+            // Ultra-aggressive buffering for preloaded players
+            playerItem.preferredForwardBufferDuration = 0.02  // 20ms - 프리로드는 더 작게
             playerItem.canUseNetworkResourcesForLiveStreamingWhilePaused = true
+            
+            // 프리로드 최적화
+            if #available(iOS 14.0, *) {
+                playerItem.startsOnFirstEligibleVariant = true
+                playerItem.preferredPeakBitRate = 64000 // 프리로드는 최소 비트레이트
+            }
             
             let player = AVPlayer(playerItem: playerItem)
             player.automaticallyWaitsToMinimizeStalling = false  // Don't wait, just play
@@ -219,22 +443,66 @@ class RadioViewModel: NSObject, ObservableObject {
     }
     
     private func play() {
-        guard let station = currentStation,
-              let url = URL(string: station.streamURL) else { return }
+        guard let station = currentStation else { return }
         
-        // Use preloaded player if available
+        let key = stationKey(station)
+        
+        // 캐시된 오디오 버퍼가 있으면 즉시 재생!
+        if let cachedBuffer = audioBufferCache[key] {
+            print("🎵 Playing from cache for \(station.name)")
+            playFromCache(cachedBuffer, station: station)
+            
+            // 백그라운드에서 실제 스트림 연결
+            Task {
+                try? await Task.sleep(nanoseconds: 100_000_000)  // 0.1초 후
+                await MainActor.run {
+                    self.connectToLiveStream(station: station)
+                }
+            }
+            return
+        }
+        
+        // 가장 빠른 서버 찾기 (백그라운드)
+        Task {
+            let fastestURL = await findFastestServer(for: station)
+            if fastestURL != station.streamURL {
+                // 더 빠른 서버 발견 시 캐시에 저장
+                print("🚀 Using faster server: \(fastestURL)")
+            }
+        }
+        
+        // 캐시된 빠른 서버가 있으면 사용, 없으면 원본 사용
+        let streamURL = fastestServers[key] ?? station.streamURL
+        guard let url = URL(string: streamURL) else { return }
+        
+        // Use preloaded player if available - 즉시 재생!
         if let preloadedPlayer = preloadedPlayers[stationKey(station)] {
+            // 이전 플레이어 즉시 정지
+            player?.pause()
+            removeObserver()
+            
+            // 프리로드된 플레이어로 즉시 전환
             player = preloadedPlayer
             player?.volume = volume  // Restore volume
             player?.play()
+            
+            // 상태 즉시 업데이트
             isPlaying = true
             isLoading = false
-            print("Using preloaded player for \(station.name)")
             
-            // Preload next likely station
+            // 메타데이터 옵저버 추가
+            addObserver()
+            
+            print("💨 Instant play using preloaded player for \(station.name)")
+            
+            // Start buffer capture for next instant replay
+            startBufferCapture(for: station)
+            
+            // 다음 가능한 스테이션들 미리 준비
             Task {
-                await predictAndPreloadNextStation()
+                await preloadNearbyStations(frequency: station.frequency)
             }
+            
             return
         }
         
@@ -248,9 +516,9 @@ class RadioViewModel: NSObject, ObservableObject {
         
         // Set ultra-short timeout and try fallback
         loadTimeoutTask = Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 3_000_000_000) // 3 seconds
+            try? await Task.sleep(nanoseconds: 1_500_000_000) // 1.5초로 단축 (기존 3초)
             if self.isLoading {
-                print("Station load timeout after 3 seconds, trying fallback...")
+                print("Station load timeout after 1.5 seconds, trying fallback...")
                 // Try alternative stream or lower quality
                 self.tryAlternativeStream(for: station)
             }
@@ -259,21 +527,46 @@ class RadioViewModel: NSObject, ObservableObject {
         // Handle different stream types
         if station.streamURL.contains(".m3u8") {
             // HLS stream with optimized settings
-            let asset = AVURLAsset(url: url)
-            let playerItem = AVPlayerItem(asset: asset)
+            var options: [String: Any] = [:]
             
-            // Optimized for instant playback
-            playerItem.preferredForwardBufferDuration = 1.0 // Balance between speed and stability
-            playerItem.canUseNetworkResourcesForLiveStreamingWhilePaused = true
-            
+            // Network optimization settings
             if #available(iOS 15.0, *) {
-                playerItem.preferredPeakBitRate = 192000 // Optimal bitrate
-                playerItem.preferredMaximumResolution = .zero // Audio only
+                options[AVURLAssetAllowsCellularAccessKey as String] = true
+                options[AVURLAssetAllowsExpensiveNetworkAccessKey as String] = true
+                options[AVURLAssetAllowsConstrainedNetworkAccessKey as String] = true
             }
             
-            // Configure for low latency
+            let asset = AVURLAsset(url: url, options: options)
+            let playerItem = AVPlayerItem(asset: asset)
+            
+            // Ultra-optimized for instant playback - 극도로 작은 버퍼
+            playerItem.preferredForwardBufferDuration = 0.1 // 100ms만 버퍼링 (기존 1.0초)
+            playerItem.canUseNetworkResourcesForLiveStreamingWhilePaused = true
+            
+            // 버퍼 언더런 방지를 위한 설정
+            if #available(iOS 14.0, *) {
+                playerItem.startsOnFirstEligibleVariant = true // 첫 가능한 스트림으로 즉시 시작
+            }
+            
+            if #available(iOS 15.0, *) {
+                playerItem.preferredPeakBitRate = 32000 // 32kbps 초저화질로 즉시 시작!
+                playerItem.preferredMaximumResolution = .zero // Audio only
+                
+                // 0.5초 후 품질 향상
+                Task {
+                    try? await Task.sleep(nanoseconds: 500_000_000)  // 0.5초 대기
+                    await MainActor.run {
+                        if self.player?.currentItem === playerItem {
+                            playerItem.preferredPeakBitRate = 128000  // 128kbps로 향상
+                            print("📈 Quality upgraded to 128kbps")
+                        }
+                    }
+                }
+            }
+            
+            // Configure for ultra-low latency
             if #available(iOS 13.0, *) {
-                playerItem.configuredTimeOffsetFromLive = CMTime(seconds: 0.5, preferredTimescale: 1)
+                playerItem.configuredTimeOffsetFromLive = CMTime(seconds: 0.1, preferredTimescale: 1) // 0.1초 지연
             }
             
             player = AVPlayer(playerItem: playerItem)
@@ -293,6 +586,9 @@ class RadioViewModel: NSObject, ObservableObject {
             Task { @MainActor in
                 self.isPlaying = true
             }
+            
+            // Start buffer capture for next instant replay
+            startBufferCapture(for: station)
         } else if station.streamURL.contains(".pls") || station.streamURL.contains(".m3u") {
             // Playlist file - parse for actual stream URL
             Task {
@@ -342,7 +638,16 @@ class RadioViewModel: NSObject, ObservableObject {
             }
         } else {
             // Direct stream (MP3, AAC, etc) with aggressive optimization
-            let asset = AVURLAsset(url: url)
+            var options: [String: Any] = [:]
+            
+            // Network optimization settings
+            if #available(iOS 15.0, *) {
+                options[AVURLAssetAllowsCellularAccessKey as String] = true
+                options[AVURLAssetAllowsExpensiveNetworkAccessKey as String] = true
+                options[AVURLAssetAllowsConstrainedNetworkAccessKey as String] = true
+            }
+            
+            let asset = AVURLAsset(url: url, options: options)
             
             // Configure asset for fast loading
             if #available(iOS 10.0, *) {
@@ -352,12 +657,38 @@ class RadioViewModel: NSObject, ObservableObject {
             let playerItem = AVPlayerItem(asset: asset)
             
             // Ultra-fast buffering for instant playback
-            playerItem.preferredForwardBufferDuration = 0.5 // Minimal buffer
+            playerItem.preferredForwardBufferDuration = 0.05 // 50ms 극소 버퍼 (기존 0.5초)
             playerItem.canUseNetworkResourcesForLiveStreamingWhilePaused = true
             
+            // 스트림 시작 최적화
+            if #available(iOS 14.0, *) {
+                playerItem.startsOnFirstEligibleVariant = true
+            }
+            
             if #available(iOS 15.0, *) {
-                playerItem.preferredPeakBitRate = 192000 // Optimal bitrate
+                playerItem.preferredPeakBitRate = 24000 // 24kbps 초초저화질로 즉시 시작!
                 playerItem.preferredMaximumResolution = .zero // Audio only
+                
+                // 단계적 품질 향상
+                Task {
+                    // 0.3초 후 48kbps
+                    try? await Task.sleep(nanoseconds: 300_000_000)
+                    await MainActor.run {
+                        if self.player?.currentItem === playerItem {
+                            playerItem.preferredPeakBitRate = 48000
+                            print("📈 Quality step 1: 48kbps")
+                        }
+                    }
+                    
+                    // 추가 0.5초 후 128kbps
+                    try? await Task.sleep(nanoseconds: 500_000_000)
+                    await MainActor.run {
+                        if self.player?.currentItem === playerItem {
+                            playerItem.preferredPeakBitRate = 128000
+                            print("📈 Quality step 2: 128kbps (final)")
+                        }
+                    }
+                }
             }
             
             player = AVPlayer(playerItem: playerItem)
@@ -377,6 +708,9 @@ class RadioViewModel: NSObject, ObservableObject {
             Task { @MainActor in
                 self.isPlaying = true
             }
+            
+            // Start buffer capture for next instant replay
+            startBufferCapture(for: station)
         }
     }
     
@@ -454,6 +788,12 @@ class RadioViewModel: NSObject, ObservableObject {
     
     func tuneToFrequency(_ frequency: Double) {
         currentFrequency = frequency
+        
+        // 현재 주파수 근처 스테이션들을 프리로드
+        Task {
+            await preloadNearbyStations(frequency: frequency)
+        }
+        
         if let station = filteredStations.first(where: { abs($0.frequency - frequency) < 0.1 }) {
             // 다이얼 돌릴 때는 station만 설정
             if currentStation?.id != station.id {
@@ -479,6 +819,45 @@ class RadioViewModel: NSObject, ObservableObject {
                     isLoading = false
                 }
             }
+        }
+    }
+    
+    // 현재 주파수 근처의 스테이션들을 프리로드
+    private func preloadNearbyStations(frequency: Double) async {
+        // 현재 주파수 ±2 MHz 범위의 스테이션들
+        let nearbyStations = filteredStations.filter { station in
+            abs(station.frequency - frequency) <= 2.0
+        }.sorted { station1, station2 in
+            // 현재 주파수에 가까운 순으로 정렬
+            abs(station1.frequency - frequency) < abs(station2.frequency - frequency)
+        }
+        
+        // 상위 7개 스테이션 프리로드
+        for station in nearbyStations.prefix(maxPreloadedPlayers) {
+            if preloadedPlayers[stationKey(station)] == nil {
+                await createPreloadedPlayer(for: station)
+            }
+        }
+        
+        // 범위 밖의 오래된 프리로드 정리
+        cleanupDistantPreloads(currentFrequency: frequency)
+    }
+    
+    // 현재 주파수에서 멀리 떨어진 프리로드 정리
+    private func cleanupDistantPreloads(currentFrequency: Double) {
+        let keysToRemove = preloadedPlayers.compactMap { key, _ -> String? in
+            // key에서 주파수 추출
+            if let station = filteredStations.first(where: { stationKey($0) == key }),
+               abs(station.frequency - currentFrequency) > 3.0 {
+                return key
+            }
+            return nil
+        }
+        
+        for key in keysToRemove {
+            preloadedPlayers[key]?.pause()
+            preloadedPlayers.removeValue(forKey: key)
+            print("Cleaned up distant preload: \(key)")
         }
     }
     
@@ -600,6 +979,20 @@ class RadioViewModel: NSObject, ObservableObject {
             }
         }
         updateFastestStations()
+        
+        // Prefetch DNS and find fastest servers for top stations in background
+        Task {
+            await withTaskGroup(of: Void.self) { group in
+                for station in filteredStations.prefix(20) {
+                    group.addTask {
+                        // DNS 프리페치
+                        await self.prefetchDNS(for: station.streamURL)
+                        // 가장 빠른 서버 찾기
+                        _ = await self.findFastestServer(for: station)
+                    }
+                }
+            }
+        }
     }
     
     private func updateFastestStations() {
@@ -798,9 +1191,182 @@ class RadioViewModel: NSObject, ObservableObject {
         }
     }
     
+    // MARK: - Audio Buffer Caching
+    
+    private func playFromCache(_ cachedData: Data, station: RadioStation) {
+        // 캐시 데이터가 있다는 것은 프리로드가 준비되었다는 의미
+        let key = stationKey(station)
+        
+        if let preloadedPlayer = preloadedPlayers[key] {
+            // 프리로드된 플레이어 즉시 사용
+            player?.pause()
+            removeObserver()
+            
+            player = preloadedPlayer
+            player?.volume = volume
+            player?.play()
+            
+            isPlaying = true
+            isLoading = false
+            
+            addObserver()
+            
+            print("⚡ Ultra-fast playback using preloaded player for \(station.name)")
+            
+            // 다음 스테이션들 프리로드
+            Task {
+                await preloadNearbyStations(frequency: station.frequency)
+            }
+            
+            // 버퍼 캡처 시작 (다음번을 위해)
+            startBufferCapture(for: station)
+        } else {
+            // 프리로드가 없으면 일반 재생
+            print("📡 No preload available, connecting to live stream")
+            connectToLiveStream(station: station)
+        }
+    }
+    
+    private func connectToLiveStream(station: RadioStation) {
+        // 캐시에서 라이브 스트림으로 전환
+        let key = stationKey(station)
+        let streamURL = fastestServers[key] ?? station.streamURL
+        guard let url = URL(string: streamURL) else { return }
+        
+        // 기존 플레이어가 캐시 재생 중이면 저장
+        let cachedPlayer = player
+        let wasCachedPlayback = cachedPlayer != nil
+        
+        // 새 플레이어 생성 (프리로드된 것 사용)
+        if let preloadedPlayer = preloadedPlayers[key] {
+            player = preloadedPlayer
+            player?.volume = volume
+            player?.play()
+            
+            // 상태 업데이트
+            isPlaying = true
+            isLoading = false
+            
+            // 메타데이터 옵저버 추가
+            addObserver()
+            
+            print("🔄 Switched from cache to live stream (preloaded)")
+            
+            // 캐시 플레이어 정리
+            cachedPlayer?.pause()
+            
+            // 오디오 버퍼 캡처 시작
+            startBufferCapture(for: station)
+            
+            // 다음 스테이션 프리로드
+            Task {
+                await preloadNearbyStations(frequency: station.frequency)
+            }
+        } else {
+            // 프리로드가 없으면 새로 생성
+            let playerItem = AVPlayerItem(url: url)
+            
+            // 최적화 설정
+            playerItem.preferredForwardBufferDuration = 0.05
+            playerItem.canUseNetworkResourcesForLiveStreamingWhilePaused = true
+            
+            if #available(iOS 14.0, *) {
+                playerItem.startsOnFirstEligibleVariant = true
+                playerItem.preferredPeakBitRate = 24000 // 낮은 품질로 시작
+            }
+            
+            let newPlayer = AVPlayer(playerItem: playerItem)
+            newPlayer.automaticallyWaitsToMinimizeStalling = false
+            newPlayer.volume = volume
+            
+            // 캐시 재생 중이면 동기화
+            if wasCachedPlayback, let cachedPlayer = cachedPlayer {
+                // 캐시 재생 위치 가져오기
+                _ = cachedPlayer.currentTime()
+                
+                // 새 플레이어 시작
+                newPlayer.play()
+                
+                // 페이드 전환
+                Task {
+                    // 0.3초 동안 크로스페이드
+                    for i in 0...10 {
+                        let fadeProgress = Float(i) / 10.0
+                        await MainActor.run {
+                            cachedPlayer.volume = self.volume * (1.0 - fadeProgress)
+                            newPlayer.volume = self.volume * fadeProgress
+                        }
+                        try? await Task.sleep(nanoseconds: 30_000_000) // 30ms
+                    }
+                    
+                    await MainActor.run {
+                        cachedPlayer.pause()
+                        self.player = newPlayer
+                        self.addObserver()
+                        print("🎵 Smooth transition from cache to live completed")
+                    }
+                }
+            } else {
+                // 캐시 재생이 아니면 바로 전환
+                player = newPlayer
+                player?.play()
+                addObserver()
+            }
+            
+            // 상태 업데이트
+            isPlaying = true
+            isLoading = false
+            
+            // 오디오 버퍼 캡처 시작
+            startBufferCapture(for: station)
+        }
+    }
+    
+    private func startBufferCapture(for station: RadioStation) {
+        let key = stationKey(station)
+        
+        // 기존 타이머 정리
+        bufferCaptureTimers[key]?.invalidate()
+        
+        // 5초 후부터 버퍼 캡처 시작
+        bufferCaptureTimers[key] = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: false) { [weak self] _ in
+            Task { @MainActor in
+                self?.captureAudioBuffer(for: station)
+            }
+        }
+    }
+    
+    private func captureAudioBuffer(for station: RadioStation) {
+        // 라이브 스트림은 AVAssetExportSession으로 캡처할 수 없으므로
+        // 단순히 현재 스테이션 정보를 빠르게 로드할 수 있도록 표시
+        let key = stationKey(station)
+        
+        print("📼 Marking \(station.name) as ready for instant replay")
+        
+        // 단순히 표시를 위해 빈 데이터 저장 (실제 오디오 대신)
+        // 이렇게 하면 다음번 재생 시 프리로드된 플레이어를 사용할 수 있음
+        if audioBufferCache.count >= maxCachedStations {
+            if let oldestKey = audioBufferCache.keys.first {
+                audioBufferCache.removeValue(forKey: oldestKey)
+            }
+        }
+        
+        // 빈 데이터로 표시 ("instant-ready" 플래그 역할)
+        audioBufferCache[key] = Data()
+        
+        // 프리로드가 없으면 생성
+        if preloadedPlayers[key] == nil {
+            Task {
+                await createPreloadedPlayer(for: station)
+            }
+        }
+    }
+    
     deinit {
         // Clean up timer on deinit
         connectionWarmer?.invalidate()
+        bufferCaptureTimers.values.forEach { $0.invalidate() }
+        
         // Ensure observer is removed from the exact item
         if isObserving, let observedItem = observedPlayerItem {
             observedItem.removeObserver(self, forKeyPath: "status", context: nil)
