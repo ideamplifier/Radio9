@@ -88,29 +88,17 @@ class RadioViewModel: NSObject, ObservableObject {
     }
     
     private func setupAudioSession() {
+        // 단순한 설정으로 시작
         do {
             let audioSession = AVAudioSession.sharedInstance()
             
-            // 백그라운드 재생 지원
-            try audioSession.setCategory(.playback,
-                                       mode: .default,
-                                       options: [.allowAirPlay, .allowBluetooth, .allowBluetoothA2DP])
-            
-            // 오디오 세션 활성화
-            try audioSession.setActive(true, options: [])
+            // 기본 재생 카테고리만 설정
+            try audioSession.setCategory(.playback)
+            try audioSession.setActive(true)
             
             print("✅ Audio session setup successful")
         } catch {
-            print("❌ Audio session configuration failed: \(error)")
-            
-            // 기본 설정으로 재시도
-            do {
-                try AVAudioSession.sharedInstance().setCategory(.playback)
-                try AVAudioSession.sharedInstance().setActive(true)
-                print("✅ Audio session setup with basic configuration")
-            } catch {
-                print("❌ Failed to setup basic audio session: \(error)")
-            }
+            print("❌ Failed to setup audio session: \(error)")
         }
     }
     
@@ -365,13 +353,22 @@ class RadioViewModel: NSObject, ObservableObject {
         // CDN 테스트 비활성화
         
         // 캐시된 빠른 서버가 있으면 사용, 없으면 원본 사용
-        // HTTPS 전용 URL 처리
+        // URL 처리 및 정규화
         var streamURL = station.streamURL
+        
+        // HTTPS:443 포트 제거
         if streamURL.hasPrefix("https://") && streamURL.contains(":443") {
             streamURL = streamURL.replacingOccurrences(of: ":443", with: "")
         }
         
-        guard let url = URL(string: streamURL) else { return }
+        // 이중 슬래시 제거 (http:// 또는 https:// 뒤)
+        streamURL = streamURL.replacingOccurrences(of: "://", with: ":/")
+            .replacingOccurrences(of: ":/", with: "://")
+        
+        guard let url = URL(string: streamURL) else { 
+            print("🚫 Invalid URL: \(streamURL)")
+            return 
+        }
         
         // Use preloaded player if available - 즉시 재생!
         if let preloadedPlayer = preloadedPlayers[stationKey(station)] {
@@ -414,12 +411,17 @@ class RadioViewModel: NSObject, ObservableObject {
         
         // Set timeout
         loadTimeoutTask = Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 5_000_000_000) // 5초 타임아웃
+            try? await Task.sleep(nanoseconds: 10_000_000_000) // 10초 타임아웃 (느린 스트림 대응)
             if self.isLoading {
-                print("⏰ Station load timeout after 5 seconds")
+                print("⏰ Station load timeout after 10 seconds")
                 self.isLoading = false
                 self.player?.pause()
                 self.removeObserver()
+                
+                // 타임아웃 스테이션 기록
+                if let station = self.currentStation {
+                    self.stationHealthScores[self.stationKey(station)] = 0.3
+                }
             }
         }
         
@@ -539,10 +541,11 @@ class RadioViewModel: NSObject, ObservableObject {
             // Direct stream (MP3, AAC, etc) with aggressive optimization
             var options: [String: Any] = [:]
             
-            // Listen.moe 및 특수 스트림 처리
-            if station.streamURL.contains("listen.moe") {
-                // Listen.moe는 특별한 처리가 필요할 수 있음
+            // 특수 스트림 처리
+            if station.streamURL.contains("listen.moe") || station.streamURL.contains("radioca.st") {
+                // 특별한 처리가 필요한 스트림
                 options[AVURLAssetReferenceRestrictionsKey as String] = 0
+                options[AVURLAssetPreferPreciseDurationAndTimingKey as String] = false
             }
             
             // Network optimization settings
@@ -1149,13 +1152,22 @@ class RadioViewModel: NSObject, ObservableObject {
     private func connectToLiveStream(station: RadioStation) {
         // 프리로드가 없는 경우에만 새 플레이어 생성
         let key = stationKey(station)
-        // HTTPS 전용 URL 처리
+        // URL 처리 및 정규화
         var streamURL = station.streamURL
+        
+        // HTTPS:443 포트 제거
         if streamURL.hasPrefix("https://") && streamURL.contains(":443") {
             streamURL = streamURL.replacingOccurrences(of: ":443", with: "")
         }
         
-        guard let url = URL(string: streamURL) else { return }
+        // 이중 슬래시 제거 (http:// 또는 https:// 뒤)
+        streamURL = streamURL.replacingOccurrences(of: "://", with: ":/")
+            .replacingOccurrences(of: ":/", with: "://")
+        
+        guard let url = URL(string: streamURL) else { 
+            print("🚫 Invalid URL: \(streamURL)")
+            return 
+        }
         
         // 기존 플레이어 정리
         player?.pause()
