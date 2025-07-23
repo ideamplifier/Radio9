@@ -32,7 +32,7 @@ class RadioViewModel: NSObject, ObservableObject {
     // Performance optimization
     private var preloadedPlayers: [String: AVPlayer] = [:]
     private var connectionPool: [String: URLSession] = [:]
-    private let maxPreloadedPlayers = 7  // 3 → 7개로 증가
+    private let maxPreloadedPlayers = 3  // 안정성을 위해 3개로 제한
     private var networkReachability = true
     private var stationHealthScores: [String: Double] = [:]
     private var streamAnalyzer = StreamAnalyzer()
@@ -76,14 +76,14 @@ class RadioViewModel: NSObject, ObservableObject {
             updateFastestStations()
             loadFavorites()
             
-            // These can be done in background
+            // 초기 로듹 후 약간의 딜레이로 프리로드 시작
             Task {
-                // 초기 주파수 근처 스테이션들 프리로드
+                try? await Task.sleep(nanoseconds: 500_000_000)  // 0.5초 대기
+                // 초기 주파수 근처 스테이션들만 프리로드
                 await preloadNearbyStations(frequency: currentFrequency)
-                // 즐겨찾기도 프리로드
-                await preloadFavoriteStations()
             }
-            startConnectionWarming()
+            // Connection warming은 일단 비활성화
+            // startConnectionWarming()
         }
     }
     
@@ -267,8 +267,8 @@ class RadioViewModel: NSObject, ObservableObject {
               let host = url.host else { return urls }
         
         // 일반적인 CDN 패턴들
-        let cdnPrefixes = ["cdn", "edge", "stream", "live", "broadcast"]
-        let cdnNumbers = ["", "1", "2", "3", "01", "02", "03"]
+        let cdnPrefixes = ["cdn", "stream"]
+        let cdnNumbers = ["", "1", "2"]  // 더 적은 수의 변형 생성
         
         // 호스트 변형 생성
         for prefix in cdnPrefixes {
@@ -310,7 +310,7 @@ class RadioViewModel: NSObject, ObservableObject {
         }
         
         // 중복 제거
-        return Array(Set(urls)).prefix(10).map { $0 }  // 최대 10개만 테스트
+        return Array(Set(urls)).prefix(3).map { $0 }  // 최대 3개만 테스트로 제한
     }
     
     // 서버 연결 테스트
@@ -396,7 +396,7 @@ class RadioViewModel: NSObject, ObservableObject {
             let playerItem = AVPlayerItem(asset: asset)
             
             // Ultra-aggressive buffering for preloaded players
-            playerItem.preferredForwardBufferDuration = 0.02  // 20ms - 프리로드는 더 작게
+            playerItem.preferredForwardBufferDuration = 0.5  // 500ms - 안정적인 프리로드
             playerItem.canUseNetworkResourcesForLiveStreamingWhilePaused = true
             
             // 프리로드 최적화
@@ -516,7 +516,7 @@ class RadioViewModel: NSObject, ObservableObject {
         
         // Set ultra-short timeout and try fallback
         loadTimeoutTask = Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 1_500_000_000) // 1.5초로 단축 (기존 3초)
+            try? await Task.sleep(nanoseconds: 3_000_000_000) // 3초 타임아웃 (안정성)
             if self.isLoading {
                 print("Station load timeout after 1.5 seconds, trying fallback...")
                 // Try alternative stream or lower quality
@@ -540,7 +540,7 @@ class RadioViewModel: NSObject, ObservableObject {
             let playerItem = AVPlayerItem(asset: asset)
             
             // Ultra-optimized for instant playback - 극도로 작은 버퍼
-            playerItem.preferredForwardBufferDuration = 0.1 // 100ms만 버퍼링 (기존 1.0초)
+            playerItem.preferredForwardBufferDuration = 1.0 // 1초 버퍼 (안정성)
             playerItem.canUseNetworkResourcesForLiveStreamingWhilePaused = true
             
             // 버퍼 언더런 방지를 위한 설정
@@ -657,7 +657,7 @@ class RadioViewModel: NSObject, ObservableObject {
             let playerItem = AVPlayerItem(asset: asset)
             
             // Ultra-fast buffering for instant playback
-            playerItem.preferredForwardBufferDuration = 0.05 // 50ms 극소 버퍼 (기존 0.5초)
+            playerItem.preferredForwardBufferDuration = 0.5 // 500ms 버퍼 (안정성)
             playerItem.canUseNetworkResourcesForLiveStreamingWhilePaused = true
             
             // 스트림 시작 최적화
@@ -983,12 +983,12 @@ class RadioViewModel: NSObject, ObservableObject {
         // Prefetch DNS and find fastest servers for top stations in background
         Task {
             await withTaskGroup(of: Void.self) { group in
-                for station in filteredStations.prefix(20) {
+                for station in filteredStations.prefix(5) {  // 동시 요청 수 제한
                     group.addTask {
                         // DNS 프리페치
                         await self.prefetchDNS(for: station.streamURL)
-                        // 가장 빠른 서버 찾기
-                        _ = await self.findFastestServer(for: station)
+                        // 가장 빠른 서버 찾기는 당장 비활성화
+                        // _ = await self.findFastestServer(for: station)
                     }
                 }
             }
@@ -1267,7 +1267,7 @@ class RadioViewModel: NSObject, ObservableObject {
             let playerItem = AVPlayerItem(url: url)
             
             // 최적화 설정
-            playerItem.preferredForwardBufferDuration = 0.05
+            playerItem.preferredForwardBufferDuration = 0.5
             playerItem.canUseNetworkResourcesForLiveStreamingWhilePaused = true
             
             if #available(iOS 14.0, *) {
@@ -1329,7 +1329,7 @@ class RadioViewModel: NSObject, ObservableObject {
         bufferCaptureTimers[key]?.invalidate()
         
         // 5초 후부터 버퍼 캡처 시작
-        bufferCaptureTimers[key] = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: false) { [weak self] _ in
+        bufferCaptureTimers[key] = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: false) { [weak self] _ in  // 더 긴 대기 시간
             Task { @MainActor in
                 self?.captureAudioBuffer(for: station)
             }
