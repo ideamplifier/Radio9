@@ -131,8 +131,6 @@ struct PowerIndicator: View {
             }
         }
         .shadow(color: hasStation ? (isLoading ? Color(red: 1.0, green: 0.9, blue: 0.7) : (isPlaying ? Color.green : Color.clear)) : Color.clear, radius: 8)
-        .animation(.easeInOut(duration: 0.5), value: isPlaying)
-        .animation(.easeInOut(duration: 0.5), value: isLoading)
         .onAppear {
             if isLoading && hasStation {
                 withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true)) {

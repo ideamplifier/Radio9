@@ -27,6 +27,7 @@ struct IndependentDialView: View {
                 // Markers
                 DialMarkers(size: size, isCountrySelectionMode: isCountrySelectionMode)
                     .rotationEffect(.degrees(dialRotation))
+                    .animation(isInteracting ? .none : .easeInOut(duration: 0.3), value: dialRotation)
                 
                 // Center
                 Circle()
@@ -138,18 +139,20 @@ struct DialMarkers: View {
     let isCountrySelectionMode: Bool
     
     var body: some View {
-        ForEach(0..<markerCount, id: \.self) { index in
-            Rectangle()
-                .fill(
-                    isCountrySelectionMode ?
-                    Color(red: 1.0, green: 0.8, blue: 0.4).opacity(index % 5 == 0 ? 0.8 : 0.5) :
-                    Color.gray.opacity(index % 5 == 0 ? 0.7 : 0.4)
-                )
-                .frame(width: index % 5 == 0 ? 2 : 1, 
-                       height: index % 5 == 0 ? 16 : 10)
-                .offset(y: -size/2 + 35)
-                .rotationEffect(.degrees(Double(index) * 360.0 / Double(markerCount)))
-                .animation(.easeInOut(duration: 0.3), value: isCountrySelectionMode)
+        ZStack {
+            ForEach(0..<markerCount, id: \.self) { index in
+                Rectangle()
+                    .fill(
+                        isCountrySelectionMode ?
+                        Color(red: 1.0, green: 0.8, blue: 0.4).opacity(index % 5 == 0 ? 0.8 : 0.5) :
+                        Color.gray.opacity(index % 5 == 0 ? 0.7 : 0.4)
+                    )
+                    .frame(width: index % 5 == 0 ? 2 : 1, 
+                           height: index % 5 == 0 ? 16 : 10)
+                    .offset(y: -size/2 + 35)
+                    .rotationEffect(.degrees(Double(index) * 360.0 / Double(markerCount)))
+            }
         }
+        .animation(.easeInOut(duration: 0.3), value: isCountrySelectionMode)
     }
 }
