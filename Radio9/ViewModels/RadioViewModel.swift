@@ -230,7 +230,13 @@ class RadioViewModel: NSObject, ObservableObject {
     
     
     private func preloadStation(_ station: RadioStation) async {
-        guard let url = URL(string: station.streamURL) else { return }
+        // HTTPS 전용 URL 처리
+        var urlString = station.streamURL
+        if urlString.hasPrefix("https://") && urlString.contains(":443") {
+            urlString = urlString.replacingOccurrences(of: ":443", with: "")
+        }
+        
+        guard let url = URL(string: urlString) else { return }
         
         // Prefetch DNS first
         await prefetchDNS(for: station.streamURL)
@@ -348,7 +354,12 @@ class RadioViewModel: NSObject, ObservableObject {
         // CDN 테스트 비활성화
         
         // 캐시된 빠른 서버가 있으면 사용, 없으면 원본 사용
-        let streamURL = station.streamURL  // CDN 테스트 비활성화
+        // HTTPS 전용 URL 처리
+        var streamURL = station.streamURL
+        if streamURL.hasPrefix("https://") && streamURL.contains(":443") {
+            streamURL = streamURL.replacingOccurrences(of: ":443", with: "")
+        }
+        
         guard let url = URL(string: streamURL) else { return }
         
         // Use preloaded player if available - 즉시 재생!
@@ -390,13 +401,14 @@ class RadioViewModel: NSObject, ObservableObject {
         isLoading = true
         loadStartTime = Date()
         
-        // Set ultra-short timeout and try fallback
+        // Set timeout
         loadTimeoutTask = Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 3_000_000_000) // 3초 타임아웃 (안정성)
+            try? await Task.sleep(nanoseconds: 5_000_000_000) // 5초 타임아웃
             if self.isLoading {
-                print("Station load timeout after 1.5 seconds, trying fallback...")
-                // Try alternative stream or lower quality
-                self.tryAlternativeStream(for: station)
+                print("⏰ Station load timeout after 5 seconds")
+                self.isLoading = false
+                self.player?.pause()
+                self.removeObserver()
             }
         }
         
@@ -578,7 +590,7 @@ class RadioViewModel: NSObject, ObservableObject {
                 player?.playImmediately(atRate: 1.0)
             }
             
-            print("Playing direct stream: \(station.streamURL)")
+            print("🎧 Playing direct stream: \(station.streamURL)")
             addObserver()
             // Ensure state update on main thread
             Task { @MainActor in
@@ -967,13 +979,27 @@ class RadioViewModel: NSObject, ObservableObject {
             if let playerItem = object as? AVPlayerItem {
                 switch playerItem.status {
                 case .failed:
-                    print("Player failed: \(playerItem.error?.localizedDescription ?? "Unknown error")")
+                    let error = playerItem.error
+                    print("🚫 Player failed for \(self.currentStation?.name ?? "Unknown")")
+                    print("   Error: \(error?.localizedDescription ?? "Unknown error")")
+                    print("   Error code: \((error as NSError?)?.code ?? -1)")
+                    print("   URL: \(self.currentStation?.streamURL ?? "No URL")")
+                    
                     isPlaying = false
                     isLoading = false
                     loadTimeoutTask?.cancel()
                     
-                    // 재생 실패 - 사용자가 다시 선택하도록 함
-                    print("Station failed to load - let user try another")
+                    // 스테이션 건강도 업데이트
+                    if let station = self.currentStation {
+                        self.stationHealthScores[self.stationKey(station)] = 0.1
+                    }
+                    
+                    // 프리로드된 플레이어 제거
+                    if let station = self.currentStation {
+                        let key = self.stationKey(station)
+                        self.preloadedPlayers[key]?.pause()
+                        self.preloadedPlayers.removeValue(forKey: key)
+                    }
                 case .readyToPlay:
                     print("Player ready to play")
                     isLoading = false
@@ -1106,7 +1132,12 @@ class RadioViewModel: NSObject, ObservableObject {
     private func connectToLiveStream(station: RadioStation) {
         // 프리로드가 없는 경우에만 새 플레이어 생성
         let key = stationKey(station)
-        let streamURL = station.streamURL
+        // HTTPS 전용 URL 처리
+        var streamURL = station.streamURL
+        if streamURL.hasPrefix("https://") && streamURL.contains(":443") {
+            streamURL = streamURL.replacingOccurrences(of: ":443", with: "")
+        }
+        
         guard let url = URL(string: streamURL) else { return }
         
         // 기존 플레이어 정리
