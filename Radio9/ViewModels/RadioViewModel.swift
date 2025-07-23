@@ -200,7 +200,7 @@ class RadioViewModel: NSObject, ObservableObject {
         }
     }
     
-    private func extractIPAddress(from addrinfo: addrinfo) -> String? {
+    nonisolated private func extractIPAddress(from addrinfo: addrinfo) -> String? {
         if addrinfo.ai_family == AF_INET {
             var addr = sockaddr_in()
             withUnsafeMutableBytes(of: &addr) { ptr in
