@@ -89,17 +89,28 @@ class RadioViewModel: NSObject, ObservableObject {
     
     private func setupAudioSession() {
         do {
-            // 백그라운드 재생 지원 및 최적화
-            try AVAudioSession.sharedInstance().setCategory(.playback, 
-                                                           mode: .default, 
-                                                           options: [.mixWithOthers, .allowAirPlay])
-            try AVAudioSession.sharedInstance().setActive(true)
+            let audioSession = AVAudioSession.sharedInstance()
             
-            // 오디오 세션 최적화 - 버퍼 크기를 더 현실적으로 설정
-            try AVAudioSession.sharedInstance().setPreferredIOBufferDuration(0.02) // 20ms buffer (more realistic)
-            print("Audio session setup successful")
+            // 백그라운드 재생 지원
+            try audioSession.setCategory(.playback,
+                                       mode: .default,
+                                       options: [.allowAirPlay, .allowBluetooth, .allowBluetoothA2DP])
+            
+            // 오디오 세션 활성화
+            try audioSession.setActive(true, options: [])
+            
+            print("✅ Audio session setup successful")
         } catch {
-            print("Failed to setup audio session: \(error)")
+            print("❌ Audio session configuration failed: \(error)")
+            
+            // 기본 설정으로 재시도
+            do {
+                try AVAudioSession.sharedInstance().setCategory(.playback)
+                try AVAudioSession.sharedInstance().setActive(true)
+                print("✅ Audio session setup with basic configuration")
+            } catch {
+                print("❌ Failed to setup basic audio session: \(error)")
+            }
         }
     }
     
@@ -528,6 +539,12 @@ class RadioViewModel: NSObject, ObservableObject {
             // Direct stream (MP3, AAC, etc) with aggressive optimization
             var options: [String: Any] = [:]
             
+            // Listen.moe 및 특수 스트림 처리
+            if station.streamURL.contains("listen.moe") {
+                // Listen.moe는 특별한 처리가 필요할 수 있음
+                options[AVURLAssetReferenceRestrictionsKey as String] = 0
+            }
+            
             // Network optimization settings
             if #available(iOS 15.0, *) {
                 options[AVURLAssetAllowsCellularAccessKey as String] = true
@@ -554,7 +571,7 @@ class RadioViewModel: NSObject, ObservableObject {
             }
             
             if #available(iOS 15.0, *) {
-                playerItem.preferredPeakBitRate = 24000 // 24kbps 초초저화질로 즉시 시작!
+                playerItem.preferredPeakBitRate = 64000 // 64kbps로 시작 (안정성)
                 playerItem.preferredMaximumResolution = .zero // Audio only
                 
                 // 단계적 품질 향상
