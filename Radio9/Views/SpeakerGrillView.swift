@@ -24,7 +24,7 @@ struct SpeakerGrillView: View {
                 .shadow(color: .black.opacity(0.02), radius: 1, x: 0, y: 1)
         )
         .onAppear {
-            if viewModel.isPlaying {
+            if viewModel.isPlaying && !viewModel.isLoading {
                 startTimer()
             }
         }
@@ -32,12 +32,24 @@ struct SpeakerGrillView: View {
             timer?.invalidate()
         }
         .onChange(of: viewModel.isPlaying) { isPlaying in
-            if isPlaying {
+            if isPlaying && !viewModel.isLoading {
                 startTimer()
             } else {
                 timer?.invalidate()
-                // Reset equalizer levels
-                equalizerLevels = Array(repeating: Array(repeating: 0.0, count: 30), count: 6)
+                // Reset equalizer levels smoothly
+                withAnimation(.easeOut(duration: 0.3)) {
+                    equalizerLevels = Array(repeating: Array(repeating: 0.0, count: 30), count: 6)
+                }
+            }
+        }
+        .onChange(of: viewModel.isLoading) { isLoading in
+            if isLoading {
+                timer?.invalidate()
+                withAnimation(.easeOut(duration: 0.3)) {
+                    equalizerLevels = Array(repeating: Array(repeating: 0.0, count: 30), count: 6)
+                }
+            } else if viewModel.isPlaying {
+                startTimer()
             }
         }
     }
@@ -50,11 +62,20 @@ struct SpeakerGrillView: View {
     }
     
     private func updateEqualizer() {
-        // 이퀄라이저 애니메이션 업데이트
-        for col in 0..<columns {
-            let targetHeight = Int.random(in: 0...rows)
-            for row in 0..<rows {
-                equalizerLevels[row][col] = row >= (rows - targetHeight) ? 1.0 : 0.0
+        // 더 부드러운 이퀄라이저 애니메이션
+        withAnimation(.easeInOut(duration: 0.2)) {
+            for col in 0..<columns {
+                let currentHeight = equalizerLevels.enumerated().filter { $0.element[col] > 0.5 }.count
+                let targetHeight = Int.random(in: 0...rows)
+                
+                // 부드러운 전환을 위해 현재 높이와 목표 높이 사이의 차이를 제한
+                let smoothedHeight = currentHeight > 0 ? 
+                    max(0, min(rows, currentHeight + Int.random(in: -2...2))) : 
+                    targetHeight
+                
+                for row in 0..<rows {
+                    equalizerLevels[row][col] = row >= (rows - smoothedHeight) ? 1.0 : 0.0
+                }
             }
         }
     }
@@ -62,10 +83,10 @@ struct SpeakerGrillView: View {
     @ViewBuilder
     private func speakerDot(row: Int, column: Int) -> some View {
         Circle()
-            .fill(viewModel.isPlaying && equalizerLevels[row][column] > 0.5 ? 
-                  Color(red: 1.0, green: 0.7, blue: 0.3).opacity(0.8) : 
+            .fill(viewModel.isPlaying && !viewModel.isLoading && equalizerLevels[row][column] > 0.5 ? 
+                  Color.orange : 
                   Color.black.opacity(0.25))
             .frame(width: 4, height: 4)
-            .animation(.easeInOut(duration: 0.1), value: equalizerLevels[row][column])
+            .animation(.easeInOut(duration: 0.3), value: equalizerLevels[row][column])
     }
 }
