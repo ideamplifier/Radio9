@@ -2,7 +2,7 @@ import SwiftUI
 
 struct SpeakerGrillView: View {
     let rows = 6
-    let columns = 24
+    let columns = 26
     
     var body: some View {
         VStack(spacing: 6) {
