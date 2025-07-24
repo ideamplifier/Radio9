@@ -329,7 +329,11 @@ class RadioViewModel: NSObject, ObservableObject {
         
         // Ensure audio session is active before playing
         do {
-            try AVAudioSession.sharedInstance().setActive(true)
+            let audioSession = AVAudioSession.sharedInstance()
+            if audioSession.category != .playback {
+                try audioSession.setCategory(.playback)
+            }
+            try audioSession.setActive(true)
         } catch {
             print("Failed to activate audio session: \(error)")
         }
@@ -963,8 +967,21 @@ class RadioViewModel: NSObject, ObservableObject {
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == "timedMetadata" {
             if let playerItem = object as? AVPlayerItem {
-                // Safely handle timedMetadata which might be nil or different types
-                if let metadata = playerItem.timedMetadata as? [AVMetadataItem], !metadata.isEmpty {
+                // Safely handle timedMetadata - check if it's actually an array
+                guard let timedMetadata = playerItem.timedMetadata else { return }
+                
+                // Ensure it's an array of AVMetadataItem
+                let metadata: [AVMetadataItem]
+                if let metadataArray = timedMetadata as? [AVMetadataItem] {
+                    metadata = metadataArray
+                } else if let singleItem = timedMetadata as? AVMetadataItem {
+                    metadata = [singleItem]
+                } else {
+                    // Skip if it's not a recognized type
+                    return
+                }
+                
+                if !metadata.isEmpty {
                     // Parse metadata immediately when it arrives
                     Task {
                         if let songInfo = await songRecognitionService.parseTimedMetadata(metadata) {
