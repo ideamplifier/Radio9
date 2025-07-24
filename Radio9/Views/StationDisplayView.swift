@@ -178,20 +178,23 @@ struct StationDisplayView: View {
             .overlay(
                 HStack(spacing: 10) {
                     // Info button - 국가 선택 모드에서는 숨김
-                    if viewModel.currentStation != nil && !viewModel.isCountrySelectionMode {
+                    if !viewModel.isCountrySelectionMode {
                         Button(action: {
-                            showStationInfo.toggle()
-                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            if viewModel.currentStation != nil {
+                                showStationInfo.toggle()
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            }
                         }) {
                             Image(systemName: "info.circle")
                                 .font(.system(size: 16))
-                                .foregroundColor(Color(red: 1.0, green: 0.9, blue: 0.7).opacity(0.95))
+                                .foregroundColor(Color(red: 1.0, green: 0.9, blue: 0.7).opacity(viewModel.currentStation != nil ? 0.95 : 0.75))
                                 .shadow(
                                     color: Color(red: 1.0, green: 0.7, blue: 0.3).opacity(0.5),
                                     radius: 4
                                 )
                                 .offset(x: -3, y: 0)
                         }
+                        .disabled(viewModel.currentStation == nil)
                     }
                     
                     CountrySelectorButton(viewModel: viewModel)
