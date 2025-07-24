@@ -6,11 +6,14 @@ struct IndependentDialView: View {
     let countrySelectionIndex: Double
     let onFrequencyChange: (Double) -> Void
     let onCountryChange: (Double) -> Void
+    let onFavoritesButtonTap: () -> Void
+    let onDialLongPress: () -> Void
     @Binding var isInteracting: Bool
     
     @State private var dialRotation: Double = 0
     @State private var lastAngle: Double = 0
     @State private var lastHapticRotation: Double = 0
+    @State private var isLongPressing = false
     
     private let hapticGenerator = UIImpactFeedbackGenerator(style: .soft)
     
@@ -37,15 +40,57 @@ struct IndependentDialView: View {
             .frame(width: size, height: size)
             .contentShape(Circle())
             .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { value in
-                        handleDrag(value: value, in: geometry)
-                    }
-                    .onEnded { _ in
-                        withAnimation(.easeOut(duration: 0.2)) {
-                            isInteracting = false
+                SimultaneousGesture(
+                    // Long press gesture for adding to favorites
+                    LongPressGesture(minimumDuration: 0.5)
+                        .onEnded { _ in
+                            if !isCountrySelectionMode {
+                                onDialLongPress()
+                                isLongPressing = false
+                            }
+                        },
+                    // Drag gesture for tuning
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { value in
+                            handleDrag(value: value, in: geometry)
                         }
-                    }
+                        .onEnded { _ in
+                            withAnimation(.easeOut(duration: 0.2)) {
+                                isInteracting = false
+                            }
+                        }
+                )
+            )
+            .overlay(
+                // Favorites button - Small skeuomorphic button
+                Button(action: {
+                    onFavoritesButtonTap()
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                }) {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color.white,
+                                    Color(red: 0.95, green: 0.95, blue: 0.95)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 22, height: 22)
+                        .overlay(
+                            Circle()
+                                .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
+                        )
+                        .shadow(color: .black.opacity(0.2), radius: 2, x: 1, y: 1)
+                        .shadow(color: .white.opacity(0.8), radius: 1, x: -0.5, y: -0.5)
+                }
+                .offset(
+                    x: 130,
+                    y: -115
+                ),
+                alignment: .center
             )
         }
     }

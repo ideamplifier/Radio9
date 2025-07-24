@@ -19,7 +19,14 @@ class RadioViewModel: NSObject, ObservableObject {
     @Published var selectedGenre: StationGenre = .all
     @Published var filteredStations: [RadioStation] = []
     @Published var fastestStations: [RadioStation] = []
-    @Published var favoriteStations: [RadioStation?] = Array(repeating: nil, count: 9)
+    @Published var favoriteStations: [RadioStation] = []
+    
+    // Computed property for current country's favorites
+    var currentCountryFavorites: [RadioStation] {
+        favoriteStations.filter { station in
+            station.countryCode == selectedCountry.code
+        }
+    }
     @Published var latestSongInfo: SongInfo?
     
     private var player: AVPlayer?
@@ -127,7 +134,6 @@ class RadioViewModel: NSObject, ObservableObject {
     private func preloadFavoriteStations() async {
         // Preload favorite stations for instant playback
         for station in favoriteStations.prefix(3) {
-            guard let station = station else { continue }
             await preloadStation(station)
         }
     }
@@ -752,33 +758,37 @@ class RadioViewModel: NSObject, ObservableObject {
     
     // MARK: - Station Navigation
     func selectNextStation() {
-        guard let currentStation = currentStation,
-              let currentIndex = filteredStations.firstIndex(where: { $0.id == currentStation.id }) else {
-            // 스테이션 없으면 첫 번째 스테이션 선택
-            if let firstStation = filteredStations.first {
+        // 주파수로 정렬된 스테이션 목록
+        let sortedStations = filteredStations.sorted { $0.frequency < $1.frequency }
+        
+        guard !sortedStations.isEmpty else { return }
+        
+        // 현재 주파수보다 높은 주파수의 첫 번째 스테이션 찾기
+        if let nextStation = sortedStations.first(where: { $0.frequency > currentFrequency }) {
+            selectStation(nextStation)
+        } else {
+            // 더 높은 주파수가 없으면 가장 낮은 주파수로 순환
+            if let firstStation = sortedStations.first {
                 selectStation(firstStation)
             }
-            return
         }
-        
-        // 다음 스테이션으로 순환
-        let nextIndex = (currentIndex + 1) % filteredStations.count
-        selectStation(filteredStations[nextIndex])
     }
     
     func selectPreviousStation() {
-        guard let currentStation = currentStation,
-              let currentIndex = filteredStations.firstIndex(where: { $0.id == currentStation.id }) else {
-            // 스테이션 없으면 마지막 스테이션 선택
-            if let lastStation = filteredStations.last {
+        // 주파수로 정렬된 스테이션 목록
+        let sortedStations = filteredStations.sorted { $0.frequency < $1.frequency }
+        
+        guard !sortedStations.isEmpty else { return }
+        
+        // 현재 주파수보다 낮은 주파수의 마지막 스테이션 찾기
+        if let previousStation = sortedStations.last(where: { $0.frequency < currentFrequency }) {
+            selectStation(previousStation)
+        } else {
+            // 더 낮은 주파수가 없으면 가장 높은 주파수로 순환
+            if let lastStation = sortedStations.last {
                 selectStation(lastStation)
             }
-            return
         }
-        
-        // 이전 스테이션으로 순환
-        let previousIndex = currentIndex == 0 ? filteredStations.count - 1 : currentIndex - 1
-        selectStation(filteredStations[previousIndex])
     }
     
     func hasNextStation() -> Bool {
@@ -943,54 +953,49 @@ class RadioViewModel: NSObject, ObservableObject {
     }
     
     // MARK: - Favorites Management
-    func saveFavorite(station: RadioStation, at index: Int) {
-        guard index >= 0 && index < 9 else { return }
-        favoriteStations[index] = station
-        saveFavorites()
-        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+    func addToFavorites(station: RadioStation) {
+        // Check if station is already in favorites
+        if !favoriteStations.contains(where: { $0.id == station.id }) {
+            favoriteStations.append(station)
+            saveFavorites()
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        }
     }
     
-    func removeFavorite(at index: Int) {
-        guard index >= 0 && index < 9 else { return }
-        favoriteStations[index] = nil
+    func removeFromFavorites(station: RadioStation) {
+        favoriteStations.removeAll { $0.id == station.id }
         saveFavorites()
+    }
+    
+    func removeFavorites(at indexSet: IndexSet) {
+        let stationsToRemove = currentCountryFavorites
+        for index in indexSet {
+            if index < stationsToRemove.count {
+                let stationToRemove = stationsToRemove[index]
+                favoriteStations.removeAll { $0.id == stationToRemove.id }
+            }
+        }
+        saveFavorites()
+    }
+    
+    func isFavorite(station: RadioStation) -> Bool {
+        return favoriteStations.contains(where: { $0.id == station.id })
     }
     
     private func saveFavorites() {
         let encoder = JSONEncoder()
-        var favoritesData: [Data] = []
-        
-        for (index, station) in favoriteStations.enumerated() {
-            if let station = station {
-                if let data = try? encoder.encode(station) {
-                    // Store index and data as a dictionary
-                    let dict: [String: Any] = ["index": index, "data": data]
-                    if let dictData = try? JSONSerialization.data(withJSONObject: dict) {
-                        favoritesData.append(dictData)
-                    }
-                }
-            }
+        if let data = try? encoder.encode(favoriteStations) {
+            UserDefaults.standard.set(data, forKey: "favoriteStations")
         }
-        
-        UserDefaults.standard.set(favoritesData, forKey: "favoriteStations")
     }
     
     private func loadFavorites() {
-        guard let favoritesData = UserDefaults.standard.object(forKey: "favoriteStations") as? [Data] else { return }
-        
-        let decoder = JSONDecoder()
-        var loadedFavorites: [RadioStation?] = Array(repeating: nil, count: 9)
-        
-        for dictData in favoritesData {
-            if let dict = try? JSONSerialization.jsonObject(with: dictData) as? [String: Any],
-               let index = dict["index"] as? Int,
-               let data = dict["data"] as? Data,
-               index >= 0 && index < 9 {
-                loadedFavorites[index] = try? decoder.decode(RadioStation.self, from: data)
-            }
+        guard let data = UserDefaults.standard.data(forKey: "favoriteStations"),
+              let stations = try? JSONDecoder().decode([RadioStation].self, from: data) else { 
+            favoriteStations = []
+            return 
         }
-        
-        favoriteStations = loadedFavorites
+        favoriteStations = stations
     }
     
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {

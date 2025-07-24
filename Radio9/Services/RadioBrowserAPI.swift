@@ -42,7 +42,8 @@ class RadioBrowserAPI {
                     frequency: frequency,
                     streamURL: streamURL.absoluteString,
                     genre: genre,
-                    subGenre: station.tags?.components(separatedBy: ",").first?.trimmingCharacters(in: .whitespacesAndNewlines)
+                    subGenre: station.tags?.components(separatedBy: ",").first?.trimmingCharacters(in: .whitespacesAndNewlines),
+                    countryCode: countryCode
                 )
             }
             
@@ -83,7 +84,8 @@ class RadioBrowserAPI {
                     frequency: frequency,
                     streamURL: streamURL.absoluteString,
                     genre: genre,
-                    subGenre: station.tags?.components(separatedBy: ",").first?.trimmingCharacters(in: .whitespacesAndNewlines)
+                    subGenre: station.tags?.components(separatedBy: ",").first?.trimmingCharacters(in: .whitespacesAndNewlines),
+                    countryCode: station.countrycode ?? "INT"
                 )
             }
         } catch {
@@ -111,11 +113,11 @@ class RadioBrowserAPI {
     private func getDefaultStations(for countryCode: String) -> [RadioStation] {
         // 검증된 기본 스테이션들 - 100% 작동하는 URL들
         return [
-            RadioStation(name: "SomaFM Groove Salad", frequency: 88.1, streamURL: "http://ice2.somafm.com/groovesalad-128-mp3", genre: .music),
-            RadioStation(name: "Radio Paradise Main", frequency: 90.3, streamURL: "http://stream.radioparadise.com/aac-128", genre: .rock),
-            RadioStation(name: "KEXP Seattle", frequency: 89.1, streamURL: "http://live-mp3-128.kexp.org/", genre: .rock),
-            RadioStation(name: "Classic FM", frequency: 93.5, streamURL: "http://media-ice.musicradio.com/ClassicFMMP3", genre: .classical),
-            RadioStation(name: "Jazz24", frequency: 88.5, streamURL: "http://ais-sa2.cdnstream1.com/2366_128.mp3", genre: .jazz)
+            RadioStation(name: "SomaFM Groove Salad", frequency: 88.1, streamURL: "http://ice2.somafm.com/groovesalad-128-mp3", genre: .music, countryCode: countryCode),
+            RadioStation(name: "Radio Paradise Main", frequency: 90.3, streamURL: "http://stream.radioparadise.com/aac-128", genre: .rock, countryCode: countryCode),
+            RadioStation(name: "KEXP Seattle", frequency: 89.1, streamURL: "http://live-mp3-128.kexp.org/", genre: .rock, countryCode: countryCode),
+            RadioStation(name: "Classic FM", frequency: 93.5, streamURL: "http://media-ice.musicradio.com/ClassicFMMP3", genre: .classical, countryCode: countryCode),
+            RadioStation(name: "Jazz24", frequency: 88.5, streamURL: "http://ais-sa2.cdnstream1.com/2366_128.mp3", genre: .jazz, countryCode: countryCode)
         ]
     }
 }

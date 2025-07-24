@@ -22,6 +22,7 @@ struct ContentView: View {
     @StateObject private var viewModel = RadioViewModel()
     @State private var showStationList = false
     @State private var isDialInteracting = false
+    @State private var showFavoritesModal = false
     
     var body: some View {
         ZStack {
@@ -124,6 +125,15 @@ struct ContentView: View {
                             viewModel.countrySelectionIndex = newIndex
                             viewModel.selectCountryByIndex(newIndex)
                         },
+                        onFavoritesButtonTap: {
+                            showFavoritesModal = true
+                        },
+                        onDialLongPress: {
+                            // Add current station to favorites if playing
+                            if let station = viewModel.currentStation {
+                                viewModel.addToFavorites(station: station)
+                            }
+                        },
                         isInteracting: $isDialInteracting
                     )
                     .frame(width: 228, height: 228)
@@ -163,6 +173,9 @@ struct ContentView: View {
                 }
             }
             
+        }
+        .sheet(isPresented: $showFavoritesModal) {
+            FavoritesModalView(viewModel: viewModel)
         }
     }
 }

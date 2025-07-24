@@ -42,7 +42,7 @@ struct StationInfoView: View {
                     Group {
                         if isLoading {
                             Text("loading...")
-                                .font(.system(size: 8, weight: .medium, design: .monospaced))
+                                .font(.system(size: 8.5, weight: .medium, design: .monospaced))
                                 .foregroundColor(Color(red: 1.0, green: 0.8, blue: 0.5).opacity(0.5))
                                 .shadow(color: Color(red: 1.0, green: 0.6, blue: 0.2).opacity(0.3), radius: 1)
                         } else if let subGenre = station?.subGenre {

@@ -43,14 +43,16 @@ struct RadioStation: Identifiable, Codable, Equatable {
     let streamURL: String
     let genre: StationGenre
     let subGenre: String?
+    let countryCode: String
     
-    init(id: UUID = UUID(), name: String, frequency: Double, streamURL: String, genre: StationGenre, subGenre: String? = nil) {
+    init(id: UUID = UUID(), name: String, frequency: Double, streamURL: String, genre: StationGenre, subGenre: String? = nil, countryCode: String = "KR") {
         self.id = id
         self.name = name
         self.frequency = frequency
         self.streamURL = streamURL
         self.genre = genre
         self.subGenre = subGenre
+        self.countryCode = countryCode
     }
     
     var formattedFrequency: String {
@@ -77,6 +79,7 @@ struct RadioStation: Identifiable, Codable, Equatable {
         default: self.genre = .music
         }
         self.id = UUID()
+        self.countryCode = "KR"
     }
     
     init(name: String, frequency: Double, streamURL: String, genre: StationGenre, subGenre: String? = nil) {
@@ -86,6 +89,7 @@ struct RadioStation: Identifiable, Codable, Equatable {
         self.streamURL = streamURL
         self.genre = genre
         self.subGenre = subGenre
+        self.countryCode = "KR"
     }
 }
 
@@ -98,7 +102,8 @@ extension RadioStation {
             frequency: 89.1,
             streamURL: "https://ice2.somafm.com/groovesalad-128-mp3",
             genre: .music,
-            subGenre: "Downtempo"
+            subGenre: "Downtempo",
+            countryCode: "KR"
         ),
         RadioStation(
             name: "SomaFM Indie",
