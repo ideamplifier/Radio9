@@ -323,7 +323,7 @@ class RadioViewModel: NSObject, ObservableObject {
         
         // Skip recently failed stations
         if recentlyFailedStations.contains(stationKey(station)) {
-            // Silently skip failed stations to avoid log spam
+            print("⚠️ Skipping recently failed station: \(station.name)")
             return
         }
         
@@ -419,8 +419,7 @@ class RadioViewModel: NSObject, ObservableObject {
                     self.recentlyFailedStations.insert(self.stationKey(station))
                     self.scheduleFailedStationReset()
                     
-                    // 재생 중지 (자동으로 다른 스테이션 시도하지 않음)
-                    self.isPlaying = false
+                    // 플레이어만 정지, isPlaying 상태는 유지
                     print("⏱️ Station timeout: \(station.name)")
                 }
             }
@@ -662,14 +661,17 @@ class RadioViewModel: NSObject, ObservableObject {
     func tuneToFrequency(_ frequency: Double) {
         currentFrequency = frequency
         
+        // 사용자가 명시적으로 재생을 시작한 상태 저장
+        let wasUserPlaying = isPlaying
+        
         if let station = filteredStations.first(where: { abs($0.frequency - frequency) < 0.1 }) {
             // 다이얼 돌릴 때는 station만 설정
             if currentStation?.id != station.id {
                 currentStation = station
                 // Clear cached song info when changing station
                 latestSongInfo = nil
-                // 이미 재생 중이면 새 스테이션 재생
-                if isPlaying {
+                // 사용자가 재생 중이었으면 새 스테이션도 재생
+                if wasUserPlaying {
                     play()
                 }
             }
@@ -678,7 +680,7 @@ class RadioViewModel: NSObject, ObservableObject {
                 currentStation = nil
                 // Clear cached song info
                 latestSongInfo = nil
-                // 스테이션이 없는 주파수에서는 재생 중지
+                // 스테이션이 없는 주파수에서는 플레이어만 정지
                 if player != nil {
                     player?.pause()
                     removeObserver()
@@ -686,6 +688,7 @@ class RadioViewModel: NSObject, ObservableObject {
                     loadTimeoutTask?.cancel()
                     isLoading = false
                 }
+                // isPlaying 상태는 유지 (사용자가 pause 누르지 않는 한)
             }
         }
     }
@@ -1022,8 +1025,8 @@ class RadioViewModel: NSObject, ObservableObject {
                         self.scheduleFailedStationReset()
                     }
                     
-                    // 재생 상태 유지 (사용자가 명시적으로 정지하지 않는 한)
-                    self.isPlaying = false
+                    // 사용자가 명시적으로 정지하지 않는 한 재생 의도는 유지
+                    // isPlaying 상태는 유지
                     
                     // 프리로드된 플레이어 제거
                     if let station = self.currentStation {
@@ -1073,7 +1076,7 @@ class RadioViewModel: NSObject, ObservableObject {
     private func tryNextStation() {
         // 자동으로 다음 스테이션을 시도하지 않음
         // 사용자가 직접 다른 스테이션을 선택하도록 함
-        isPlaying = false
+        // isPlaying 상태는 유지 (사용자의 재생 의도 유지)
         print("❌ Station failed, please select another station")
     }
     
