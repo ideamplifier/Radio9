@@ -66,29 +66,26 @@ struct SpeakerGrillView: View {
         for col in 0..<columns {
             // 현재 높이 계산 (실제 값 기반)
             var currentHeight = 0.0
-            for row in 0..<rows {
+            for row in (0..<rows).reversed() {
                 if equalizerLevels[row][col] > 0.1 {
                     currentHeight = Double(rows - row)
                     break
                 }
             }
             
-            // 목표 높이 (맨 윗줄 제외: 0~4 범위)
-            let targetHeight = Double.random(in: 0...4.5)
+            // 목표 높이 (1~5 범위, 맨 아래부터 시작)
+            let targetHeight = Double.random(in: 1...5)
             
             // 부드러운 보간
             let smoothedHeight = currentHeight * 0.7 + targetHeight * 0.3
             
-            // 그라데이션 효과를 위한 값 설정
+            // 그라데이션 효과를 위한 값 설정 (아래서부터)
             for row in 0..<rows {
                 let distanceFromBottom = Double(rows - 1 - row)
-                if row == 0 {
-                    // 맨 윗줄은 항상 비활성
-                    equalizerLevels[row][col] = 0.0
-                } else if distanceFromBottom < smoothedHeight {
+                if distanceFromBottom < smoothedHeight {
                     // 높이에 따른 그라데이션 효과
-                    let intensity = 1.0 - (smoothedHeight - distanceFromBottom) * 0.3
-                    equalizerLevels[row][col] = max(0.2, intensity)
+                    let intensity = 1.0 - (smoothedHeight - distanceFromBottom) * 0.2
+                    equalizerLevels[row][col] = max(0.3, intensity)
                 } else {
                     equalizerLevels[row][col] = 0.0
                 }
