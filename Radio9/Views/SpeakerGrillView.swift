@@ -62,30 +62,36 @@ struct SpeakerGrillView: View {
     }
     
     private func updateEqualizer() {
-        // 더 부드러운 이퀄라이저 애니메이션
+        // 웨이브 형태의 이퀄라이저
         for col in 0..<columns {
-            // 현재 높이 계산 (실제 값 기반)
+            // 시간 기반 웨이브 패턴
+            let time = Date().timeIntervalSince1970
+            let wave = sin(time * 2.0 + Double(col) * 0.3) // 각 열마다 위상 차이
+            let baseHeight = (wave + 1.0) * 2.5 + 1.0 // 1~6 범위
+            
+            // 랜덤 변동 추가
+            let randomVariation = Double.random(in: -0.5...0.5)
+            let targetHeight = baseHeight + randomVariation
+            
+            // 현재 높이와 보간
             var currentHeight = 0.0
             for row in (0..<rows).reversed() {
-                if equalizerLevels[row][col] > 0.1 {
+                if equalizerLevels[row][col] > 0.01 {
                     currentHeight = Double(rows - row)
                     break
                 }
             }
             
-            // 목표 높이 (1~5 범위, 맨 아래부터 시작)
-            let targetHeight = Double.random(in: 1...5)
+            let smoothedHeight = currentHeight * 0.85 + targetHeight * 0.15
             
-            // 부드러운 보간
-            let smoothedHeight = currentHeight * 0.7 + targetHeight * 0.3
-            
-            // 그라데이션 효과를 위한 값 설정 (아래서부터)
+            // 모든 셀 업데이트
             for row in 0..<rows {
                 let distanceFromBottom = Double(rows - 1 - row)
                 if distanceFromBottom < smoothedHeight {
-                    // 높이에 따른 그라데이션 효과
-                    let intensity = 1.0 - (smoothedHeight - distanceFromBottom) * 0.2
-                    equalizerLevels[row][col] = max(0.3, intensity)
+                    // 중앙이 가장 밝고 위아래로 갈수록 어두워지는 효과
+                    let centerDistance = abs(distanceFromBottom - smoothedHeight / 2.0)
+                    let intensity = 1.0 - (centerDistance / (smoothedHeight / 2.0)) * 0.5
+                    equalizerLevels[row][col] = max(0.2, min(1.0, intensity))
                 } else {
                     equalizerLevels[row][col] = 0.0
                 }
@@ -96,10 +102,10 @@ struct SpeakerGrillView: View {
     @ViewBuilder
     private func speakerDot(row: Int, column: Int) -> some View {
         Circle()
-            .fill(viewModel.isPlaying && !viewModel.isLoading && equalizerLevels[row][column] > 0.1 ? 
-                  Color(red: 0.0, green: 0.7, blue: 0.3).opacity(equalizerLevels[row][column] * 0.9) : 
+            .fill(viewModel.isPlaying && !viewModel.isLoading && equalizerLevels[row][column] > 0.01 ? 
+                  Color(red: 0.2, green: 0.17, blue: 0.0).opacity(equalizerLevels[row][column] * 0.85) : 
                   Color.black.opacity(0.25))
             .frame(width: 4, height: 4)
-            .animation(.spring(response: 0.5, dampingFraction: 0.8, blendDuration: 0.2), value: equalizerLevels[row][column])
+            .animation(.easeInOut(duration: 0.15), value: equalizerLevels[row][column])
     }
 }
