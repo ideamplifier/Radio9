@@ -6,7 +6,6 @@ struct StationInfoView: View {
     let isPlaying: Bool
     let isLoading: Bool
     @ObservedObject var viewModel: RadioViewModel
-    @State private var glowAnimation = false
     
     var body: some View {
         HStack(spacing: 15) {
@@ -17,7 +16,7 @@ struct StationInfoView: View {
                     Text(viewModel.selectedCountry.name)
                         .font(.system(size: 17, weight: .semibold, design: .monospaced))
                         .foregroundColor(Color(red: 1.0, green: 0.9, blue: 0.7))
-                        .shadow(color: Color(red: 1.0, green: 0.7, blue: 0.3), radius: glowAnimation ? 8 : 5)
+                        .shadow(color: Color(red: 1.0, green: 0.7, blue: 0.3), radius: 6)
                         .lineLimit(1)
                         .truncationMode(.tail)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -33,7 +32,7 @@ struct StationInfoView: View {
                     Text(station?.name ?? "- - - -")
                         .font(.system(size: 17, weight: .semibold, design: .monospaced))
                         .foregroundColor(Color(red: 1.0, green: 0.9, blue: 0.7))
-                        .shadow(color: Color(red: 1.0, green: 0.7, blue: 0.3), radius: glowAnimation ? 8 : 5)
+                        .shadow(color: Color(red: 1.0, green: 0.7, blue: 0.3), radius: 6)
                         .lineLimit(1)
                         .truncationMode(.tail)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -78,9 +77,6 @@ struct StationInfoView: View {
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 65)  // 30픽셀 더 위로 (35 -> 65)
-        .onAppear {
-            glowAnimation = true
-        }
     }
 }
 
@@ -129,9 +125,6 @@ struct PowerIndicator: View {
             }
         }
         .shadow(color: hasStation ? (isLoading ? Color(red: 1.0, green: 0.9, blue: 0.7) : (isPlaying ? Color.green : Color.clear)) : Color.clear, radius: 8)
-        .onAppear {
-            glowAnimation = true
-        }
         .onChange(of: isLoading) { newValue in
             if newValue && hasStation {
                 withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true)) {
