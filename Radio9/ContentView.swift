@@ -36,6 +36,7 @@ struct ContentView: View {
                         .font(.system(size: 17, weight: .bold, design: .rounded))
                         .foregroundColor(Color(red: 0.1, green: 0.09, blue: 0.0).opacity(0.95))
                         .shadow(color: Color.white.opacity(0.1), radius: 2)
+                        .tracking(-0.5)
                     
                     Spacer()
                     
