@@ -119,8 +119,6 @@ struct TuningNeedle: View {
                         .shadow(color: .black.opacity(0.3), radius: 2, x: 1, y: 1)
                 }
                 .position(x: xPosition, y: geometry.size.height / 2)
-                .animation(.none, value: frequency)  // 위치 애니메이션 비활성화
-                .animation(.easeInOut(duration: 0.3), value: isDialInteracting)  // 글로우 애니메이션만 활성화
             }
         }
         .frame(height: 45)

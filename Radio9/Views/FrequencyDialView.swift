@@ -93,7 +93,7 @@ struct FrequencyDialView: View {
                                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
                             }
                         } else {
-                            // Normal frequency tuning mode - allow multiple rotations
+                            // Normal frequency tuning mode
                             let rotations = angleDelta / 360.0
                             let frequencyRange = range.upperBound - range.lowerBound
                             let frequencyDelta = rotations * frequencyRange

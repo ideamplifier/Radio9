@@ -26,7 +26,6 @@ class RadioViewModel: NSObject, ObservableObject {
     private var isObserving = false
     private var observedPlayerItem: AVPlayerItem?  // Track which item we're observing
     private var stationLoadTimes: [String: TimeInterval] = [:]
-    private var loadStartTime: Date?
     private var loadTimeoutTask: Task<Void, Never>?
     
     // Performance optimization
@@ -90,21 +89,15 @@ class RadioViewModel: NSObject, ObservableObject {
     }
     
     private func setupAudioSession() {
+        let audioSession = AVAudioSession.sharedInstance()
+        
         do {
-            let audioSession = AVAudioSession.sharedInstance()
-            
-            // 기본 재생 설정만 사용
-            try audioSession.setCategory(.playback, mode: .default, options: [.allowBluetooth, .allowBluetoothA2DP])
-            
-            // 버퍼 설정은 건너뛰기 (오류 -50 원인)
-            // try audioSession.setPreferredIOBufferDuration(0.005) // 5ms buffer
-            
-            try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
-            
+            // 가장 기본적인 설정만 사용하여 오류 -50 방지
+            try audioSession.setCategory(.playback)
+            try audioSession.setActive(true)
             print("✅ Audio session setup successful")
         } catch {
-            // 오류 무시하고 계속 진행
-            print("Audio session configuration warning: \(error)")
+            print("Audio session setup error (non-critical): \(error)")
         }
     }
     
@@ -319,10 +312,8 @@ class RadioViewModel: NSObject, ObservableObject {
         if isPlaying {
             pause()
         } else {
-            // 재생 시작 시각 기록
-            if loadStartTime == nil {
-                loadStartTime = Date()
-            }
+            // 재생 시작
+            isPlaying = true
             play()
         }
     }
@@ -409,7 +400,6 @@ class RadioViewModel: NSObject, ObservableObject {
         player = nil  // Clear the player reference
         loadTimeoutTask?.cancel()
         isLoading = true
-        loadStartTime = Date()
         
         // Set timeout
         loadTimeoutTask = Task { @MainActor in
@@ -425,13 +415,9 @@ class RadioViewModel: NSObject, ObservableObject {
                     self.recentlyFailedStations.insert(self.stationKey(station))
                     self.scheduleFailedStationReset()
                     
-                    // 첫 재생 시도인 경우에만 다음 스테이션 시도
-                    if self.isPlaying && self.loadStartTime != nil {
-                        let timeSinceStart = Date().timeIntervalSince(self.loadStartTime!)
-                        if timeSinceStart < 10 { // 첫 10초 이내면 다음 스테이션 시도
-                            self.tryNextStation()
-                        }
-                    }
+                    // 재생 중지 (자동으로 다른 스테이션 시도하지 않음)
+                    self.isPlaying = false
+                    print("⏱️ Station timeout: \(station.name)")
                 }
             }
         }
@@ -604,7 +590,6 @@ class RadioViewModel: NSObject, ObservableObject {
         removeObserver()
         player?.pause()
         player = nil  // Clear player reference
-        loadStartTime = nil  // 재생 시작 시간 초기화
     }
     
     private func addObserver() {
@@ -673,11 +658,6 @@ class RadioViewModel: NSObject, ObservableObject {
     func tuneToFrequency(_ frequency: Double) {
         currentFrequency = frequency
         
-        // 현재 주파수 근처 스테이션들을 프리로드
-        Task {
-            await preloadNearbyStations(frequency: frequency)
-        }
-        
         if let station = filteredStations.first(where: { abs($0.frequency - frequency) < 0.1 }) {
             // 다이얼 돌릴 때는 station만 설정
             if currentStation?.id != station.id {
@@ -694,14 +674,13 @@ class RadioViewModel: NSObject, ObservableObject {
                 currentStation = nil
                 // Clear cached song info
                 latestSongInfo = nil
-                // 플레이어만 정지, isPlaying 상태는 유지
-                if isPlaying {
+                // 스테이션이 없는 주파수에서는 재생 중지
+                if player != nil {
                     player?.pause()
-                    player = nil
                     removeObserver()
+                    player = nil
                     loadTimeoutTask?.cancel()
                     isLoading = false
-                    // isPlaying은 유지하여 다음 스테이션 찾으면 자동 재생
                 }
             }
         }
@@ -1026,8 +1005,7 @@ class RadioViewModel: NSObject, ObservableObject {
                         self.scheduleFailedStationReset()
                     }
                     
-                    // 실패 시 자동 전환 비활성화
-                    // 사용자가 직접 다른 스테이션을 선택하도록 함
+                    // 재생 상태 유지 (사용자가 명시적으로 정지하지 않는 한)
                     self.isPlaying = false
                     
                     // 프리로드된 플레이어 제거
@@ -1042,11 +1020,13 @@ class RadioViewModel: NSObject, ObservableObject {
                     loadTimeoutTask?.cancel()
                     
                     // Record load time for this station
-                    if let startTime = loadStartTime, let station = currentStation {
-                        let loadTime = Date().timeIntervalSince(startTime)
-                        stationLoadTimes[stationKey(station)] = loadTime
-                        print("Station \(station.name) loaded in \(loadTime) seconds")
-                        updateFastestStations()
+                    if let station = currentStation {
+                        let loadTime = Date().timeIntervalSinceNow
+                        if loadTime < 10 { // 적절한 로드 시간인 경우만 기록
+                            stationLoadTimes[stationKey(station)] = abs(loadTime)
+                            print("Station \(station.name) loaded in \(abs(loadTime)) seconds")
+                            updateFastestStations()
+                        }
                     }
                     
                     // Force play again if not playing
@@ -1074,40 +1054,10 @@ class RadioViewModel: NSObject, ObservableObject {
     }
     
     private func tryNextStation() {
-        guard let currentStation = currentStation,
-              let currentIndex = filteredStations.firstIndex(where: { $0.id == currentStation.id }) else { return }
-        
-        // 첫 재생 시도인지 확인
-        let isInitialPlay = loadStartTime != nil && Date().timeIntervalSince(loadStartTime!) < 15
-        
-        if isInitialPlay {
-            // 첫 재생 시도 시 최대 3개 스테이션만 시도
-            var attemptCount = 0
-            let maxAttempts = 3
-            
-            // 현재 주파수 근처의 스테이션부터 시도
-            let nearbyStations = filteredStations.enumerated().compactMap { (index, station) -> (Int, RadioStation)? in
-                let frequencyDiff = abs(station.frequency - currentStation.frequency)
-                return frequencyDiff <= 2.0 ? (index, station) : nil
-            }.sorted { abs($0.1.frequency - currentStation.frequency) < abs($1.1.frequency - currentStation.frequency) }
-            
-            for (index, station) in nearbyStations {
-                if index != currentIndex && attemptCount < maxAttempts {
-                    if !recentlyFailedStations.contains(stationKey(station)) {
-                        attemptCount += 1
-                        selectStation(station)
-                        play()
-                        return
-                    }
-                }
-            }
-            
-            // 근처에 시도할 스테이션이 없으면 재생 중지
-            isPlaying = false
-        } else {
-            // 사용자가 다이얼로 직접 선택한 경우에는 다음 스테이션 시도하지 않음
-            isPlaying = false
-        }
+        // 자동으로 다음 스테이션을 시도하지 않음
+        // 사용자가 직접 다른 스테이션을 선택하도록 함
+        isPlaying = false
+        print("❌ Station failed, please select another station")
     }
     
     private func predictAndPreloadNextStation() async {
