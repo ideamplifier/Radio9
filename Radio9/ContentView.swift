@@ -40,15 +40,6 @@ struct ContentView: View {
                         .offset(x: -1, y: -5)
                     
                     Spacer()
-                    
-                    Button(action: { 
-                        showStationList.toggle()
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    }) {
-                        Image(systemName: "line.3.horizontal")
-                            .font(.system(size: 18, weight: .medium))
-                            .foregroundColor(.black)
-                    }
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 30)
