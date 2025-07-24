@@ -35,8 +35,6 @@ struct ContentView: View {
                     Text("HOSONO")
                         .font(.system(size: 17, weight: .bold, design: .rounded))
                         .foregroundColor(Color(red: 0.1, green: 0.09, blue: 0.0).opacity(0.95))
-                        .shadow(color: Color.white.opacity(0.8), radius: 0.5, x: 0, y: -1)
-                        .shadow(color: Color.black.opacity(0.3), radius: 0.5, x: 0, y: 1)
                     
                     Spacer()
                     
