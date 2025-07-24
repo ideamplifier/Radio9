@@ -33,7 +33,7 @@ struct ContentView: View {
                 // Header with menu
                 HStack {
                     Text("HOSONO")
-                        .font(.system(size: 18, weight: .semibold, design: .rounded))
+                        .font(.system(size: 17, weight: .bold, design: .rounded))
                         .foregroundColor(.black)
                     
                     Spacer()
