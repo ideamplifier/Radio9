@@ -18,7 +18,6 @@ struct StationInfoView: View {
                         .font(.system(size: 17, weight: .semibold, design: .monospaced))
                         .foregroundColor(Color(red: 1.0, green: 0.9, blue: 0.7))
                         .shadow(color: Color(red: 1.0, green: 0.7, blue: 0.3), radius: glowAnimation ? 8 : 5)
-                        .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true), value: glowAnimation)
                         .lineLimit(1)
                         .truncationMode(.tail)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -35,7 +34,6 @@ struct StationInfoView: View {
                         .font(.system(size: 17, weight: .semibold, design: .monospaced))
                         .foregroundColor(Color(red: 1.0, green: 0.9, blue: 0.7))
                         .shadow(color: Color(red: 1.0, green: 0.7, blue: 0.3), radius: glowAnimation ? 8 : 5)
-                        .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true), value: glowAnimation)
                         .lineLimit(1)
                         .truncationMode(.tail)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -132,11 +130,7 @@ struct PowerIndicator: View {
         }
         .shadow(color: hasStation ? (isLoading ? Color(red: 1.0, green: 0.9, blue: 0.7) : (isPlaying ? Color.green : Color.clear)) : Color.clear, radius: 8)
         .onAppear {
-            if isLoading && hasStation {
-                withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true)) {
-                    pulseAnimation = true
-                }
-            }
+            glowAnimation = true
         }
         .onChange(of: isLoading) { newValue in
             if newValue && hasStation {
