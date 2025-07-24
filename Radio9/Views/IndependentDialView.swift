@@ -27,7 +27,6 @@ struct IndependentDialView: View {
                 // Markers
                 DialMarkers(size: size, isCountrySelectionMode: isCountrySelectionMode)
                     .rotationEffect(.degrees(dialRotation))
-                    .animation(isInteracting ? .none : .easeInOut(duration: 0.3), value: dialRotation)
                 
                 // Center
                 Circle()
