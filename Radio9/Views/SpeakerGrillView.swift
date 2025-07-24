@@ -97,7 +97,7 @@ struct SpeakerGrillView: View {
     private func speakerDot(row: Int, column: Int) -> some View {
         Circle()
             .fill(viewModel.isPlaying && !viewModel.isLoading && equalizerLevels[row][column] > 0.1 ? 
-                  Color(red: 0.2, green: 0.17, blue: 0.0).opacity(equalizerLevels[row][column] * 0.92) : 
+                  Color(red: 0.0, green: 0.7, blue: 0.3).opacity(equalizerLevels[row][column] * 0.9) : 
                   Color.black.opacity(0.25))
             .frame(width: 4, height: 4)
             .animation(.spring(response: 0.5, dampingFraction: 0.8, blendDuration: 0.2), value: equalizerLevels[row][column])
