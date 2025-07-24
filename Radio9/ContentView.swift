@@ -32,7 +32,7 @@ struct ContentView: View {
             VStack(spacing: 0) {
                 // Header with menu
                 HStack {
-                    Text("POCKET")
+                    Text("HOSONO")
                         .font(.system(size: 18, weight: .medium))
                         .foregroundColor(.black)
                     
