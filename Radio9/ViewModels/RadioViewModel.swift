@@ -1178,7 +1178,7 @@ class RadioViewModel: NSObject, ObservableObject {
     
     private func playFromCache(_ cachedData: Data, station: RadioStation) {
         // 캐시 데이터가 있다는 것은 프리로드가 준비되었다는 의미
-        let _ = stationKey(station)
+        let key = stationKey(station)
         
         if let preloadedPlayer = preloadedPlayers[key] {
             // 프리로드된 플레이어 즉시 사용
@@ -1274,7 +1274,7 @@ class RadioViewModel: NSObject, ObservableObject {
     }
     
     private func startBufferCapture(for station: RadioStation) {
-        let _ = stationKey(station)
+        let key = stationKey(station)
         
         // 기존 타이머 정리
         bufferCaptureTimers[key]?.invalidate()
@@ -1291,7 +1291,7 @@ class RadioViewModel: NSObject, ObservableObject {
     private func captureAudioBuffer(for station: RadioStation) {
         // 라이브 스트림은 AVAssetExportSession으로 캡처할 수 없으므로
         // 단순히 현재 스테이션 정보를 빠르게 로드할 수 있도록 표시
-        let _ = stationKey(station)
+        let key = stationKey(station)
         
         print("📼 Marking \(station.name) as ready for instant replay")
         
