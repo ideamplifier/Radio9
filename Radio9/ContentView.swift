@@ -46,7 +46,7 @@ struct ContentView: View {
                 .padding(.bottom, 20)
                 
                 // Speaker Grill
-                SpeakerGrillView()
+                SpeakerGrillView(viewModel: viewModel)
                     .padding(.horizontal, 20)
                     .padding(.bottom, 20)
                 
