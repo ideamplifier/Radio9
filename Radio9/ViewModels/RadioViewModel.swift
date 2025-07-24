@@ -39,6 +39,7 @@ class RadioViewModel: NSObject, ObservableObject {
     // Track recently failed stations to avoid repeated attempts
     private var recentlyFailedStations: Set<String> = []
     private var failedStationResetTimer: Timer?
+    private var failedStationCounts: [String: Int] = [:] // Track failure counts
     private var songRecognitionService = SongRecognitionService()
     
     // 프리로드 우선순위 큐
@@ -321,9 +322,9 @@ class RadioViewModel: NSObject, ObservableObject {
     func play() {
         guard let station = currentStation else { return }
         
-        // Skip recently failed stations
+        // Skip recently failed stations silently
         if recentlyFailedStations.contains(stationKey(station)) {
-            print("⚠️ Skipping recently failed station: \(station.name)")
+            // Silently skip without logging to reduce spam
             return
         }
         
@@ -338,7 +339,7 @@ class RadioViewModel: NSObject, ObservableObject {
             print("Failed to activate audio session: \(error)")
         }
         
-        let key = stationKey(station)
+        let _ = stationKey(station)
         
         // 캐시된 오디오 버퍼 임시 비활성화
         // if let cachedBuffer = audioBufferCache[key] {
@@ -415,12 +416,20 @@ class RadioViewModel: NSObject, ObservableObject {
                 
                 // 타임아웃 스테이션 기록
                 if let station = self.currentStation {
-                    self.stationHealthScores[self.stationKey(station)] = 0.3
-                    self.recentlyFailedStations.insert(self.stationKey(station))
+                    let key = self.stationKey(station)
+                    self.stationHealthScores[key] = 0.3
+                    
+                    // Track timeout count  
+                    self.failedStationCounts[key] = (self.failedStationCounts[key] ?? 0) + 1
+                    let failureCount = self.failedStationCounts[key] ?? 1
+                    
+                    self.recentlyFailedStations.insert(key)
                     self.scheduleFailedStationReset()
                     
                     // 플레이어만 정지, isPlaying 상태는 유지
-                    print("⏱️ Station timeout: \(station.name)")
+                    if failureCount == 1 || failureCount % 10 == 0 {
+                        print("⏱️ Station timeout: \(station.name) (attempt #\(failureCount))")
+                    }
                 }
             }
         }
@@ -673,10 +682,12 @@ class RadioViewModel: NSObject, ObservableObject {
                 // 다이얼 회전이 멈춘 후 재생 시도
                 tuneDebounceTimer?.invalidate()
                 tuneDebounceTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { [weak self] _ in
-                    guard let self = self else { return }
-                    // 사용자가 재생 중이었고 현재 스테이션이 있으면 재생
-                    if self.isPlaying && self.currentStation != nil {
-                        self.play()
+                    Task { @MainActor in
+                        guard let self = self else { return }
+                        // 사용자가 재생 중이었고 현재 스테이션이 있으면 재생
+                        if self.isPlaying && self.currentStation != nil {
+                            self.play()
+                        }
                     }
                 }
             }
@@ -816,18 +827,26 @@ class RadioViewModel: NSObject, ObservableObject {
             player = nil
         }
         
-        // 먼저 새 국가의 기본 스테이션 로드
-        stations = RadioStation.stations(for: selectedCountry.code)
-        updateFilteredStations()
-        updateFastestStations()
-        
-        // 초기 스테이션 선택
-        if let nearbyStation = filteredStations.first(where: { abs($0.frequency - currentFrequency) < 2.0 }) {
-            currentStation = nearbyStation
-            currentFrequency = nearbyStation.frequency
-        } else if let firstStation = filteredStations.first {
-            currentStation = firstStation
-            currentFrequency = firstStation.frequency
+        // 비동기로 스테이션 로드하여 UI 블로킹 방지
+        Task { @MainActor in
+            // 먼저 새 국가의 기본 스테이션 로드
+            // 비동기로 스테이션 로드
+            let countryCode = self.selectedCountry.code
+            let newStations = RadioStation.stations(for: countryCode)
+            
+            // UI 업데이트는 메인 스레드에서
+            self.stations = newStations
+            self.updateFilteredStations()
+            self.updateFastestStations()
+            
+            // 초기 스테이션 선택
+            if let nearbyStation = self.filteredStations.first(where: { abs($0.frequency - self.currentFrequency) < 2.0 }) {
+                self.currentStation = nearbyStation
+                self.currentFrequency = nearbyStation.frequency
+            } else if let firstStation = self.filteredStations.first {
+                self.currentStation = firstStation
+                self.currentFrequency = firstStation.frequency
+            }
         }
         
         // 국가 변경 전에 재생 중이었다면 새 스테이션도 자동 재생
@@ -980,16 +999,8 @@ class RadioViewModel: NSObject, ObservableObject {
                 // Safely handle timedMetadata - check if it's actually an array
                 guard let timedMetadata = playerItem.timedMetadata else { return }
                 
-                // Ensure it's an array of AVMetadataItem
-                let metadata: [AVMetadataItem]
-                if let metadataArray = timedMetadata as? [AVMetadataItem] {
-                    metadata = metadataArray
-                } else if let singleItem = timedMetadata as? AVMetadataItem {
-                    metadata = [singleItem]
-                } else {
-                    // Skip if it's not a recognized type
-                    return
-                }
+                // timedMetadata is already [AVMetadataItem], no need to cast
+                let metadata = timedMetadata
                 
                 if !metadata.isEmpty {
                     // Parse metadata immediately when it arrives
@@ -1021,14 +1032,25 @@ class RadioViewModel: NSObject, ObservableObject {
                     }
                     
                     // 사용자가 일시정지하지 않았다면 isPlaying 상태 유지
-                    let wasUserPaused = !self.isPlaying
+                    let _ = !self.isPlaying
                     isLoading = false
                     loadTimeoutTask?.cancel()
                     
                     // 스테이션 건강도 업데이트
                     if let station = self.currentStation {
-                        self.stationHealthScores[self.stationKey(station)] = 0.1
-                        self.recentlyFailedStations.insert(self.stationKey(station))
+                        let key = self.stationKey(station)
+                        self.stationHealthScores[key] = 0.1
+                        
+                        // Track failure count
+                        self.failedStationCounts[key] = (self.failedStationCounts[key] ?? 0) + 1
+                        
+                        // Only log first failure or every 10th failure
+                        let failureCount = self.failedStationCounts[key] ?? 1
+                        if failureCount == 1 || failureCount % 10 == 0 {
+                            print("⚠️ Station failed: \(station.name) (failure #\(failureCount))")
+                        }
+                        
+                        self.recentlyFailedStations.insert(key)
                         self.scheduleFailedStationReset()
                     }
                     
@@ -1144,8 +1166,11 @@ class RadioViewModel: NSObject, ObservableObject {
     private func scheduleFailedStationReset() {
         failedStationResetTimer?.invalidate()
         failedStationResetTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: false) { [weak self] _ in
-            self?.recentlyFailedStations.removeAll()
-            print("🔄 Reset failed stations list")
+            Task { @MainActor in
+                self?.recentlyFailedStations.removeAll()
+                self?.failedStationCounts.removeAll() // Clear counts too
+                // Silent clear without logging
+            }
         }
     }
     
@@ -1153,7 +1178,7 @@ class RadioViewModel: NSObject, ObservableObject {
     
     private func playFromCache(_ cachedData: Data, station: RadioStation) {
         // 캐시 데이터가 있다는 것은 프리로드가 준비되었다는 의미
-        let key = stationKey(station)
+        let _ = stationKey(station)
         
         if let preloadedPlayer = preloadedPlayers[key] {
             // 프리로드된 플레이어 즉시 사용
@@ -1187,7 +1212,7 @@ class RadioViewModel: NSObject, ObservableObject {
     
     private func connectToLiveStream(station: RadioStation) {
         // 프리로드가 없는 경우에만 새 플레이어 생성
-        let key = stationKey(station)
+        let _ = stationKey(station)
         // URL 처리 및 정규화
         var streamURL = station.streamURL
         
@@ -1249,7 +1274,7 @@ class RadioViewModel: NSObject, ObservableObject {
     }
     
     private func startBufferCapture(for station: RadioStation) {
-        let key = stationKey(station)
+        let _ = stationKey(station)
         
         // 기존 타이머 정리
         bufferCaptureTimers[key]?.invalidate()
@@ -1266,7 +1291,7 @@ class RadioViewModel: NSObject, ObservableObject {
     private func captureAudioBuffer(for station: RadioStation) {
         // 라이브 스트림은 AVAssetExportSession으로 캡처할 수 없으므로
         // 단순히 현재 스테이션 정보를 빠르게 로드할 수 있도록 표시
-        let key = stationKey(station)
+        let _ = stationKey(station)
         
         print("📼 Marking \(station.name) as ready for instant replay")
         
