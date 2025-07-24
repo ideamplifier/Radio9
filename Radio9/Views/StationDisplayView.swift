@@ -198,6 +198,7 @@ struct StationDisplayView: View {
                     }
                     
                     CountrySelectorButton(viewModel: viewModel)
+                        .offset(x: 1, y: 0)
                 }
                 .padding(.trailing, 20)
                 .padding(.bottom, 62),  // 2픽셀 더 위로 (60 -> 62)

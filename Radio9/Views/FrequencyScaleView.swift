@@ -20,13 +20,13 @@ struct FrequencyScaleView: View {
             GeometryReader { geometry in
                 VStack(spacing: 0) {
                     // Frequency labels
-                    FrequencyLabels()
+                    FrequencyLabels(isCountrySelectionMode: isCountrySelectionMode)
                         .frame(width: geometry.size.width)
                         .clipped()
                         .padding(.top, 3)
                     
                     // Scale marks
-                    ScaleMarks()
+                    ScaleMarks(isCountrySelectionMode: isCountrySelectionMode)
                         .frame(width: geometry.size.width)
                         .clipped()
                         .padding(.vertical, 2)
@@ -43,6 +43,8 @@ struct FrequencyScaleView: View {
 }
 
 struct FrequencyLabels: View {
+    let isCountrySelectionMode: Bool
+    
     var body: some View {
         HStack {
             ForEach([88, 92, 96, 100, 104, 108], id: \.self) { freq in
@@ -50,6 +52,8 @@ struct FrequencyLabels: View {
                     .font(.system(size: 9, weight: .medium, design: .monospaced))
                     .foregroundColor(Color(red: 1.0, green: 0.85, blue: 0.6))
                     .shadow(color: Color(red: 1.0, green: 0.6, blue: 0.2), radius: 2)
+                    .opacity(isCountrySelectionMode ? 0.3 : 1.0)
+                    .animation(.easeInOut(duration: 0.3), value: isCountrySelectionMode)
                 if freq != 108 {
                     Spacer()
                 }
@@ -60,6 +64,8 @@ struct FrequencyLabels: View {
 }
 
 struct ScaleMarks: View {
+    let isCountrySelectionMode: Bool
+    
     var body: some View {
         HStack(spacing: 0) {
             ForEach(0..<41) { index in
@@ -67,7 +73,8 @@ struct ScaleMarks: View {
                     .fill(Color(red: 1.0, green: 0.75, blue: 0.4))
                     .frame(width: index % 5 == 0 ? 2 : 1,
                            height: index % 5 == 0 ? 12 : 8)
-                    .opacity(index % 5 == 0 ? 1 : 0.6)
+                    .opacity(isCountrySelectionMode ? 0.3 : (index % 5 == 0 ? 1 : 0.6))
+                    .animation(.easeInOut(duration: 0.3), value: isCountrySelectionMode)
                 if index < 40 {
                     Spacer()
                 }

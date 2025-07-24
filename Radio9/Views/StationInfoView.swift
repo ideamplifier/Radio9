@@ -14,7 +14,7 @@ struct StationInfoView: View {
                 if viewModel.isCountrySelectionMode {
                     // Country name
                     Text(viewModel.selectedCountry.name)
-                        .font(.system(size: 16, weight: .semibold, design: .monospaced))
+                        .font(.system(size: 15.5, weight: .semibold, design: .monospaced))
                         .foregroundColor(Color(red: 1.0, green: 0.9, blue: 0.7))
                         .shadow(color: Color(red: 1.0, green: 0.7, blue: 0.3), radius: 6)
                         .lineLimit(1)
@@ -22,15 +22,16 @@ struct StationInfoView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
                     // Select Country text
-                    Text("TURN THE DIAL TO SELECT A COUNTRY")
+                    Text("Turn the dial to select a country")
                         .font(.system(size: 10, weight: .medium, design: .monospaced))
                         .foregroundColor(Color(red: 1.0, green: 0.8, blue: 0.5).opacity(0.7))
                         .shadow(color: Color(red: 1.0, green: 0.6, blue: 0.2).opacity(0.5), radius: 2)
                         .frame(height: 12)  // 고정 높이
+                        .offset(x: 1)  // 오른쪽으로 1픽셀
                 } else {
                     // Station name
-                    Text(station?.name ?? "- - - -")
-                        .font(.system(size: 16, weight: .semibold, design: .monospaced))
+                    Text(station?.name ?? "- - -")
+                        .font(.system(size: 15.5, weight: .semibold, design: .monospaced))
                         .foregroundColor(Color(red: 1.0, green: 0.9, blue: 0.7))
                         .shadow(color: Color(red: 1.0, green: 0.7, blue: 0.3), radius: 6)
                         .lineLimit(1)
@@ -55,19 +56,24 @@ struct StationInfoView: View {
                         }
                     }
                     .frame(height: 12)  // 고정 높이
+                    .offset(x: 1)  // 오른쪽으로 1픽셀
                 }
             }
             .frame(maxWidth: .infinity)  // 너비 제한 제거
             .offset(y: -12)  // 2픽셀 더 위로 (-10 -> -12)
             
-            Spacer()
+            if !viewModel.isCountrySelectionMode {
+                Spacer()
+            }
             
             // Digital frequency readout
-            HStack(spacing: 8) {
-                FrequencyReadout(frequency: frequency, isCountrySelectionMode: viewModel.isCountrySelectionMode)
+            if !viewModel.isCountrySelectionMode {
+                HStack(spacing: 8) {
+                    FrequencyReadout(frequency: frequency, isCountrySelectionMode: viewModel.isCountrySelectionMode)
+                }
+                .frame(minWidth: 10, alignment: .trailing) // 최소 너비 축소
+                .offset(y: 30)  // 10픽셀 위로 (40 -> 30)
             }
-            .frame(minWidth: 140, alignment: .trailing) // MHz 절대 안잘리게
-            .offset(y: 30)  // 10픽셀 위로 (40 -> 30)
             
             // Power indicator
             PowerIndicator(isPlaying: isPlaying, isLoading: isLoading, hasStation: station != nil)
@@ -84,9 +90,9 @@ struct FrequencyReadout: View {
     
     var body: some View {
         ZStack(alignment: .leading) {
-            HStack(spacing: 2) {
+            HStack(spacing: 3) {
                 // 주파수 숫자
-                Text(String(format: "%05.1f", frequency))
+                Text(String(format: "%.1f", frequency))
                     .font(.system(size: 22, weight: .light, design: .monospaced))
                     .foregroundColor(Color(red: 1.0, green: 0.95, blue: 0.8))
                     .shadow(color: Color(red: 1.0, green: 0.8, blue: 0.4), radius: 6)
