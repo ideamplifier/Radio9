@@ -658,28 +658,33 @@ class RadioViewModel: NSObject, ObservableObject {
         )
     }
     
+    // 다이얼 회전 디바운싱을 위한 타이머
+    private var tuneDebounceTimer: Timer?
+    
     func tuneToFrequency(_ frequency: Double) {
         currentFrequency = frequency
         
-        // 사용자가 명시적으로 재생을 시작한 상태 저장
-        let wasUserPlaying = isPlaying
-        
+        // 다이얼 회전 중에는 스테이션만 표시하고 재생은 지연
         if let station = filteredStations.first(where: { abs($0.frequency - frequency) < 0.1 }) {
-            // 다이얼 돌릴 때는 station만 설정
             if currentStation?.id != station.id {
                 currentStation = station
-                // Clear cached song info when changing station
                 latestSongInfo = nil
-                // 사용자가 재생 중이었으면 새 스테이션도 재생
-                if wasUserPlaying {
-                    play()
+                
+                // 다이얼 회전이 멈춘 후 재생 시도
+                tuneDebounceTimer?.invalidate()
+                tuneDebounceTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { [weak self] _ in
+                    guard let self = self else { return }
+                    // 사용자가 재생 중이었고 현재 스테이션이 있으면 재생
+                    if self.isPlaying && self.currentStation != nil {
+                        self.play()
+                    }
                 }
             }
         } else {
             if currentStation != nil {
                 currentStation = nil
-                // Clear cached song info
                 latestSongInfo = nil
+                
                 // 스테이션이 없는 주파수에서는 플레이어만 정지
                 if player != nil {
                     player?.pause()
@@ -688,7 +693,9 @@ class RadioViewModel: NSObject, ObservableObject {
                     loadTimeoutTask?.cancel()
                     isLoading = false
                 }
-                // isPlaying 상태는 유지 (사용자가 pause 누르지 않는 한)
+                
+                // 다이얼 타이머 취소
+                tuneDebounceTimer?.invalidate()
             }
         }
     }
@@ -1133,10 +1140,10 @@ class RadioViewModel: NSObject, ObservableObject {
         }
     }
     
-    // Reset failed stations after 5 minutes
+    // Reset failed stations after 30 seconds (reduced from 5 minutes)
     private func scheduleFailedStationReset() {
         failedStationResetTimer?.invalidate()
-        failedStationResetTimer = Timer.scheduledTimer(withTimeInterval: 300, repeats: false) { [weak self] _ in
+        failedStationResetTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: false) { [weak self] _ in
             self?.recentlyFailedStations.removeAll()
             print("🔄 Reset failed stations list")
         }
@@ -1283,13 +1290,16 @@ class RadioViewModel: NSObject, ObservableObject {
     }
     
     deinit {
-        // Clean up timer on deinit
+        // Clean up timers on deinit
         connectionWarmer?.invalidate()
         bufferCaptureTimers.values.forEach { $0.invalidate() }
+        tuneDebounceTimer?.invalidate()
+        failedStationResetTimer?.invalidate()
         
         // Ensure observer is removed from the exact item
         if isObserving, let observedItem = observedPlayerItem {
             observedItem.removeObserver(self, forKeyPath: "status", context: nil)
+            observedItem.removeObserver(self, forKeyPath: "timedMetadata", context: nil)
             isObserving = false
             observedPlayerItem = nil
         }
