@@ -106,7 +106,7 @@ struct ContentView: View {
                         .disabled(false)
                         .id("nextButton")
                     }
-                    .offset(y: -20)
+                    .offset(y: -15)
                     .animation(.none, value: viewModel.currentStation)
                     
                     // Frequency Dial - Completely independent
