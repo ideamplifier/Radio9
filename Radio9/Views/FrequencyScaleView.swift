@@ -3,6 +3,7 @@ import SwiftUI
 struct FrequencyScaleView: View {
     let frequency: Double
     let isDialInteracting: Bool
+    let isCountrySelectionMode: Bool
     
     var body: some View {
         ZStack {
@@ -34,6 +35,8 @@ struct FrequencyScaleView: View {
                 // Tuning needle
                 TuningNeedle(frequency: frequency, width: geometry.size.width, isDialInteracting: isDialInteracting)
                     .allowsHitTesting(false)
+                    .opacity(isCountrySelectionMode ? 0 : 1)
+                    .animation(.easeInOut(duration: 0.3), value: isCountrySelectionMode)
             }
         }
     }

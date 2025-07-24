@@ -73,7 +73,7 @@ struct ContentView: View {
                         }) {
                             Image(systemName: "backward.fill")
                                 .font(.system(size: 16))
-                                .foregroundColor(.black)
+                                .foregroundColor(Color(red: 0.2, green: 0.17, blue: 0.0).opacity(0.92))
                                 .frame(width: 44, height: 44)
                         }
                         .disabled(false)
@@ -100,7 +100,7 @@ struct ContentView: View {
                         }) {
                             Image(systemName: "forward.fill")
                                 .font(.system(size: 16))
-                                .foregroundColor(.black)
+                                .foregroundColor(Color(red: 0.2, green: 0.17, blue: 0.0).opacity(0.92))
                                 .frame(width: 44, height: 44)
                         }
                         .disabled(false)
@@ -126,7 +126,8 @@ struct ContentView: View {
                         },
                         isInteracting: $isDialInteracting
                     )
-                    .frame(width: 240, height: 240)
+                    .frame(width: 228, height: 228)
+                    .offset(y: -10)
                 }
                 
                 Spacer()

@@ -155,7 +155,7 @@ struct StationDisplayView: View {
             
             VStack(spacing: 0) {
                 // Analog frequency scale
-                FrequencyScaleView(frequency: frequency, isDialInteracting: isDialInteracting)
+                FrequencyScaleView(frequency: frequency, isDialInteracting: isDialInteracting, isCountrySelectionMode: viewModel.isCountrySelectionMode)
                     .frame(height: 45)
                     .padding(.horizontal, 15)
                     .padding(.top, 18)  // 2픽셀 위로 (20 -> 18)
@@ -192,7 +192,7 @@ struct StationDisplayView: View {
                                     color: Color(red: 1.0, green: 0.7, blue: 0.3).opacity(0.5),
                                     radius: 4
                                 )
-                                .offset(x: -3, y: 0)
+                                .offset(x: -5, y: 0)
                         }
                         .disabled(viewModel.currentStation == nil)
                     }
