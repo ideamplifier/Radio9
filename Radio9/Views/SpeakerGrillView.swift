@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SpeakerGrillView: View {
-    let rows = 5
+    let rows = 6
     let columns = 24
     
     var body: some View {
