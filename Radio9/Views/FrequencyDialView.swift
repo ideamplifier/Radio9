@@ -9,6 +9,7 @@ struct FrequencyDialView: View {
     @State private var startFrequency: Double = 0
     @State private var startCountryIndex: Double = 0
     @State private var currentRotation: Double = 0
+    @State private var startRotation: Double = 0
     
     var body: some View {
         GeometryReader { geometry in
@@ -56,11 +57,11 @@ struct FrequencyDialView: View {
                             startLocation = value.startLocation
                             startFrequency = frequency
                             startCountryIndex = viewModel.countrySelectionIndex
-                            currentRotation = normalizedAngle  // Reset to current angle
+                            startRotation = currentRotation
                             UIImpactFeedbackGenerator(style: .light).impactOccurred()
                         }
                         
-                        // Calculate rotation based on drag - moved center calculation outside
+                        // Calculate rotation based on drag
                         let center = CGPoint(x: geometry.size.width/2, y: geometry.size.height/2)
                         let startAngle = atan2(startLocation.y - center.y, startLocation.x - center.x)
                         let currentAngle = atan2(value.location.y - center.y, value.location.x - center.x)
@@ -74,8 +75,8 @@ struct FrequencyDialView: View {
                             angleDelta += 360
                         }
                         
-                        // Update rotation immediately without affecting frequency
-                        currentRotation += angleDelta
+                        // Update rotation from start position
+                        currentRotation = startRotation + angleDelta
                         
                         if viewModel.isCountrySelectionMode {
                             // Country selection mode

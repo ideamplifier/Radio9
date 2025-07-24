@@ -2,6 +2,7 @@ import SwiftUI
 
 struct FrequencyScaleView: View {
     let frequency: Double
+    let isDialInteracting: Bool
     
     var body: some View {
         ZStack {
@@ -31,7 +32,7 @@ struct FrequencyScaleView: View {
                 }
                 
                 // Tuning needle
-                TuningNeedle(frequency: frequency, width: geometry.size.width)
+                TuningNeedle(frequency: frequency, width: geometry.size.width, isDialInteracting: isDialInteracting)
                     .allowsHitTesting(false)
             }
         }
@@ -76,6 +77,7 @@ struct ScaleMarks: View {
 struct TuningNeedle: View {
     let frequency: Double
     let width: CGFloat
+    let isDialInteracting: Bool
     
     var body: some View {
         ZStack {
@@ -91,22 +93,34 @@ struct TuningNeedle: View {
                 let xPosition = 10 + (geometry.size.width - 20) * clampedPosition
                 
                 
-                Rectangle()
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color(red: 1.0, green: 0.9, blue: 0.7),
-                                Color(red: 0.9, green: 0.7, blue: 0.4)
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
+                ZStack {
+                    // 바늘 아래쪽 노란빛 효과
+                    if isDialInteracting {
+                        Circle()
+                            .fill(Color(red: 1.0, green: 0.8, blue: 0.4).opacity(0.2))
+                            .frame(width: 30, height: 30)
+                            .blur(radius: 8)
+                    }
+                    
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color(red: 1.0, green: 0.9, blue: 0.7),
+                                    Color(red: 0.9, green: 0.7, blue: 0.4)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
                         )
-                    )
-                    .frame(width: 3, height: 35)
-                    .shadow(color: Color(red: 1.0, green: 0.8, blue: 0.4), radius: 5)
-                    .shadow(color: .black.opacity(0.3), radius: 2, x: 1, y: 1)
-                    .position(x: xPosition, y: geometry.size.height / 2)
-                    .animation(.none, value: frequency)  // 애니메이션 비활성화
+                        .frame(width: 3, height: 35)
+                        .shadow(color: Color(red: 1.0, green: 0.8, blue: 0.4).opacity(isDialInteracting ? 1.0 : 0.8), radius: isDialInteracting ? 10 : 5)
+                        .shadow(color: Color(red: 1.0, green: 0.6, blue: 0.2).opacity(isDialInteracting ? 0.6 : 0), radius: 15)
+                        .shadow(color: .black.opacity(0.3), radius: 2, x: 1, y: 1)
+                }
+                .position(x: xPosition, y: geometry.size.height / 2)
+                .animation(.none, value: frequency)  // 위치 애니메이션 비활성화
+                .animation(.easeInOut(duration: 0.3), value: isDialInteracting)  // 글로우 애니메이션만 활성화
             }
         }
         .frame(height: 45)

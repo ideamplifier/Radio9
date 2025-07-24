@@ -6,9 +6,9 @@ struct IndependentDialView: View {
     let countrySelectionIndex: Double
     let onFrequencyChange: (Double) -> Void
     let onCountryChange: (Double) -> Void
+    @Binding var isInteracting: Bool
     
     @State private var dialRotation: Double = 0
-    @State private var isInteracting = false
     @State private var lastAngle: Double = 0
     @State private var lastHapticRotation: Double = 0
     

@@ -219,20 +219,40 @@ extension Notification.Name {
 extension SongRecognitionService {
     // Parse timed metadata array
     func parseTimedMetadata(_ metadata: [AVMetadataItem]) async -> SongInfo? {
+        guard !metadata.isEmpty else { return nil }
+        
         var title: String?
         var artist: String?
         
         for item in metadata {
+            // Check for common key first
             if let key = item.commonKey?.rawValue {
-                switch key {
-                case "title":
-                    title = try? await item.load(.stringValue)
-                case "artist":
-                    artist = try? await item.load(.stringValue)
-                default:
-                    if let value = try? await item.load(.stringValue) {
-                        print("Metadata key: \(key), value: \(value)")
+                do {
+                    switch key {
+                    case "title":
+                        title = try await item.load(.stringValue)
+                    case "artist":
+                        artist = try await item.load(.stringValue)
+                    default:
+                        if let value = try await item.load(.stringValue) {
+                            print("Metadata key: \(key), value: \(value)")
+                        }
                     }
+                } catch {
+                    print("Error loading metadata value for key \(key): \(error)")
+                }
+            } else if let identifier = item.identifier {
+                // Some streams use different identifiers
+                do {
+                    if let stringValue = try await item.load(.stringValue) {
+                        print("Metadata identifier: \(identifier), value: \(stringValue)")
+                        // Common radio stream format
+                        if stringValue.contains(" - ") && title == nil {
+                            title = stringValue
+                        }
+                    }
+                } catch {
+                    print("Error loading metadata value: \(error)")
                 }
             }
         }

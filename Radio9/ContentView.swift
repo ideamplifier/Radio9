@@ -21,6 +21,7 @@ struct RoundedCorner: Shape {
 struct ContentView: View {
     @StateObject private var viewModel = RadioViewModel()
     @State private var showStationList = false
+    @State private var isDialInteracting = false
     
     var body: some View {
         ZStack {
@@ -47,7 +48,7 @@ struct ContentView: View {
                     }
                 }
                 .padding(.horizontal, 24)
-                .padding(.top, 50)
+                .padding(.top, 30)
                 .padding(.bottom, 20)
                 
                 // Speaker Grill
@@ -60,7 +61,8 @@ struct ContentView: View {
                     station: viewModel.currentStation,
                     frequency: viewModel.currentFrequency,
                     isPlaying: viewModel.isPlaying,
-                    viewModel: viewModel
+                    viewModel: viewModel,
+                    isDialInteracting: isDialInteracting
                 )
                 .padding(.horizontal, 17)  // 좌우 1픽셀씩 더 늘려 (18 -> 17)
                 .padding(.bottom, 30)
@@ -126,7 +128,8 @@ struct ContentView: View {
                         onCountryChange: { newIndex in
                             viewModel.countrySelectionIndex = newIndex
                             viewModel.selectCountryByIndex(newIndex)
-                        }
+                        },
+                        isInteracting: $isDialInteracting
                     )
                     .frame(width: 240, height: 240)
                 }
@@ -151,6 +154,9 @@ struct ContentView: View {
                         currentStation: viewModel.currentStation,
                         onSelect: { station in
                             viewModel.selectStation(station)
+                            if !viewModel.isPlaying {
+                                viewModel.play() // 재생 중이 아닐 때만 재생 시작
+                            }
                             showStationList = false
                             UIImpactFeedbackGenerator(style: .light).impactOccurred()
                         }

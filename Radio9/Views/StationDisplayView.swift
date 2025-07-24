@@ -72,6 +72,7 @@ struct StationDisplayView: View {
     let frequency: Double
     let isPlaying: Bool
     @ObservedObject var viewModel: RadioViewModel
+    let isDialInteracting: Bool
     @State private var showStationInfo = false
     
     var body: some View {
@@ -154,7 +155,7 @@ struct StationDisplayView: View {
             
             VStack(spacing: 0) {
                 // Analog frequency scale
-                FrequencyScaleView(frequency: frequency)
+                FrequencyScaleView(frequency: frequency, isDialInteracting: isDialInteracting)
                     .frame(height: 45)
                     .padding(.horizontal, 15)
                     .padding(.top, 18)  // 2픽셀 위로 (20 -> 18)
