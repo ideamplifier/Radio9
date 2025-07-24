@@ -187,7 +187,7 @@ struct StationDisplayView: View {
                         }) {
                             Image(systemName: "info.circle")
                                 .font(.system(size: 16))
-                                .foregroundColor(Color(red: 1.0, green: 0.9, blue: 0.7).opacity(viewModel.currentStation != nil ? 0.95 : 0.75))
+                                .foregroundColor(Color(red: 1.0, green: 0.9, blue: 0.7).opacity(viewModel.currentStation != nil ? 0.95 : 0.35))
                                 .shadow(
                                     color: Color(red: 1.0, green: 0.7, blue: 0.3).opacity(0.5),
                                     radius: 4
