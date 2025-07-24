@@ -37,7 +37,7 @@ struct ContentView: View {
                         .foregroundColor(Color(red: 0.15, green: 0.13, blue: 0.0).opacity(0.92))
                         .shadow(color: Color.white.opacity(0.1), radius: 2)
                         .tracking(-0.3)
-                        .offset(x: -1, y: -5)
+                        .offset(x: 2, y: -15)
                     
                     Spacer()
                 }
