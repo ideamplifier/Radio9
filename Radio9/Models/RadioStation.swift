@@ -98,11 +98,11 @@ extension RadioStation {
     static let koreanStations = [
         // 검증된 스트림들
         RadioStation(
-            name: "Seoul FM",
+            name: "KBS World Radio",
             frequency: 88.7,
-            streamURL: "https://stream.zeno.fm/h4ayqfkbeg8uv",
-            genre: .pop,
-            subGenre: "K-Pop & Hits",
+            streamURL: "https://wskbskrradiolive.akamaized.net/hls/live/2033874/KR_LSN01/master.m3u8",
+            genre: .news,
+            subGenre: "International",
             countryCode: "KR"
         ),
         RadioStation(
@@ -135,9 +135,9 @@ extension RadioStation {
             subGenre: "Alternative"
         ),
         RadioStation(
-            name: "Jazz 24",
+            name: "Jazz Radio",
             frequency: 88.5,
-            streamURL: "https://ais-sa2.cdnstream1.com/2366_128.mp3",
+            streamURL: "https://jazzradio.ice.infomaniak.ch/jazzradio-high.mp3",
             genre: .jazz,
             subGenre: "Jazz"
         ),
@@ -326,9 +326,9 @@ extension RadioStation {
             subGenre: "Classical"
         ),
         RadioStation(
-            name: "Jazz 24",
+            name: "Jazz Radio",
             frequency: 88.5,
-            streamURL: "https://ais-sa2.cdnstream1.com/2366_128.mp3",
+            streamURL: "https://jazzradio.ice.infomaniak.ch/jazzradio-high.mp3",
             genre: .jazz,
             subGenre: "Jazz"
         ),
