@@ -1226,30 +1226,36 @@ class RadioViewModel: NSObject, ObservableObject {
                 // 사용자가 다른 국가로 변경하지 않았는지 확인
                 if self.selectedCountry.code == loadingCountryCode && !apiStations.isEmpty {
                     // API 스테이션과 기본 스테이션을 병합
-                    // 기본 스테이션을 우선으로 유지하고, API 스테이션 추가
                     let defaultStations = self.stations // 현재 기본 스테이션들
-                    var mergedStations = defaultStations
                     
-                    // API 스테이션 중 기본 스테이션과 중복되지 않는 것만 추가
-                    for apiStation in apiStations {
-                        // 주파수가 겹치지 않는 스테이션만 추가 (0.2 MHz 이내는 중복으로 간주)
-                        let isDuplicate = mergedStations.contains { defaultStation in
-                            abs(defaultStation.frequency - apiStation.frequency) < 0.2
+                    // 기본 스테이션이 없으면 API 스테이션만 사용
+                    if defaultStations.isEmpty {
+                        self.stations = apiStations
+                    } else {
+                        // 기본 스테이션이 있으면 병합
+                        var mergedStations = defaultStations
+                        
+                        // API 스테이션 중 기본 스테이션과 중복되지 않는 것만 추가
+                        for apiStation in apiStations {
+                            // 주파수가 겹치지 않는 스테이션만 추가 (0.2 MHz 이내는 중복으로 간주)
+                            let isDuplicate = mergedStations.contains { defaultStation in
+                                abs(defaultStation.frequency - apiStation.frequency) < 0.2
+                            }
+                            
+                            if !isDuplicate {
+                                mergedStations.append(apiStation)
+                            }
                         }
                         
-                        if !isDuplicate {
-                            mergedStations.append(apiStation)
-                        }
+                        // 주파수 순으로 정렬
+                        mergedStations.sort { $0.frequency < $1.frequency }
+                        self.stations = mergedStations
                     }
                     
-                    // 주파수 순으로 정렬
-                    mergedStations.sort { $0.frequency < $1.frequency }
-                    
-                    self.stations = mergedStations
                     self.updateFilteredStations()
                     self.updateFastestStations()
                     
-                    print("📡 Merged stations: \(self.stations.count) total (\(defaultStations.count) default + \(mergedStations.count - defaultStations.count) API)")
+                    print("📡 Merged stations: \(self.stations.count) total (\(defaultStations.count) default + \(self.stations.count - defaultStations.count) API)")
                 }
             }
         }

@@ -113,9 +113,9 @@ extension RadioStation {
             subGenre: "Indie Pop"
         ),
         RadioStation(
-            name: "올드팝카페 OLDIES",
+            name: "올드팝카페",
             frequency: 92.4,
-            streamURL: "https://cast.oldpopcafe.com:8000/stream",
+            streamURL: "http://cast.oldpopcafe.net:7080/",
             genre: .pop,
             subGenre: "Oldies",
             countryCode: "KR"
