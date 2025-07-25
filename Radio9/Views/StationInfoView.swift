@@ -123,13 +123,13 @@ struct PowerIndicator: View {
     var body: some View {
         ZStack {
             Circle()
-                .fill(hasStation ? (isLoading ? Color(red: 0.2, green: 0.8, blue: 0.2) : (isPlaying ? Color(red: 0.2, green: 0.8, blue: 0.2) : Color(red: 0.3, green: 0.3, blue: 0.3))) : Color(red: 0.3, green: 0.3, blue: 0.3))
+                .fill(hasStation ? (isLoading ? Color(red: 0.2, green: 0.76, blue: 0.2) : (isPlaying ? Color(red: 0.2, green: 0.76, blue: 0.2) : Color(red: 0.3, green: 0.3, blue: 0.3))) : Color(red: 0.3, green: 0.3, blue: 0.3))
                 .frame(width: 9, height: 9)
                 .opacity(isLoading && hasStation ? (pulseAnimation ? 0.3 : 0.7) : 1.0)
             
             if hasStation && (isPlaying || isLoading) {
                 Circle()
-                    .fill(isLoading ? Color(red: 0.4, green: 1.0, blue: 0.4) : Color(red: 0.4, green: 1.0, blue: 0.4))
+                    .fill(isLoading ? Color(red: 0.38, green: 0.95, blue: 0.38) : Color(red: 0.38, green: 0.95, blue: 0.38))
                     .frame(width: 4.5, height: 4.5)
                     .blur(radius: 1)
                     .opacity(isLoading ? (pulseAnimation ? 0.2 : 0.7) : 1.0)

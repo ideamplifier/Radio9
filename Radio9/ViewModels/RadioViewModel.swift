@@ -12,7 +12,7 @@ class RadioViewModel: NSObject, ObservableObject {
     @Published var isPlaying = false
     @Published var volume: Float = 1.0  // Max volume for testing
     @Published var stations: [RadioStation] = RadioStation.sampleStations
-    @Published var currentFrequency: Double = 89.1
+    @Published var currentFrequency: Double = Country.defaultCountry().defaultFrequency
     @Published var selectedCountry: Country = Country.defaultCountry()
     @Published var isCountrySelectionMode = false
     @Published var countrySelectionIndex: Double = 0
@@ -85,7 +85,7 @@ class RadioViewModel: NSObject, ObservableObject {
         Task { @MainActor in
             setupAudioSession()
             setupNetworkMonitoring()
-            loadStationsForCountry()
+            loadStationsForCountry(isInitialLoad: true)
             updateFilteredStations()
             updateFastestStations()
             loadFavorites()
@@ -562,13 +562,14 @@ class RadioViewModel: NSObject, ObservableObject {
             print("🔄 Retrying previously failed station: \(station.name)")
         }
         
-        // Start background task for audio playback
-        if backgroundTaskID == .invalid {
-            backgroundTaskID = UIApplication.shared.beginBackgroundTask { [weak self] in
-                self?.endBackgroundTask()
-            }
-            print("📱 Started background task for audio playback")
+        // End previous background task if exists
+        endBackgroundTask()
+        
+        // Start new background task for audio playback
+        backgroundTaskID = UIApplication.shared.beginBackgroundTask { [weak self] in
+            self?.endBackgroundTask()
         }
+        print("📱 Started background task for audio playback")
         
         // Ensure audio session is active before playing
         do {
@@ -1061,12 +1062,22 @@ class RadioViewModel: NSObject, ObservableObject {
         
         guard !sortedStations.isEmpty else { return }
         
-        // 현재 주파수보다 높은 주파수의 첫 번째 스테이션 찾기
-        if let nextStation = sortedStations.first(where: { $0.frequency > currentFrequency }) {
-            selectStation(nextStation)
+        print("📻 Current station: \(currentStation?.name ?? "nil") at \(currentStation?.frequency ?? 0) MHz")
+        print("📻 Total stations: \(sortedStations.count)")
+        
+        // 현재 스테이션이 있을 경우 그 스테이션의 인덱스를 찾아서 다음 스테이션 선택
+        if let currentStation = currentStation,
+           let currentIndex = sortedStations.firstIndex(where: { $0.id == currentStation.id }) {
+            let nextIndex = (currentIndex + 1) % sortedStations.count
+            print("🔄 Current index: \(currentIndex), Next index: \(nextIndex)")
+            print("🔄 Next station: \(sortedStations[nextIndex].name) at \(sortedStations[nextIndex].frequency) MHz")
+            selectStation(sortedStations[nextIndex])
         } else {
-            // 더 높은 주파수가 없으면 가장 낮은 주파수로 순환
-            if let firstStation = sortedStations.first {
+            print("⚠️ Current station not found in list, using frequency-based selection")
+            // 현재 스테이션이 없으면 현재 주파수보다 높은 첫 번째 스테이션
+            if let nextStation = sortedStations.first(where: { $0.frequency > currentFrequency }) {
+                selectStation(nextStation)
+            } else if let firstStation = sortedStations.first {
                 selectStation(firstStation)
             }
         }
@@ -1078,12 +1089,22 @@ class RadioViewModel: NSObject, ObservableObject {
         
         guard !sortedStations.isEmpty else { return }
         
-        // 현재 주파수보다 낮은 주파수의 마지막 스테이션 찾기
-        if let previousStation = sortedStations.last(where: { $0.frequency < currentFrequency }) {
-            selectStation(previousStation)
+        print("📻 Current station: \(currentStation?.name ?? "nil") at \(currentStation?.frequency ?? 0) MHz")
+        print("📻 Total stations: \(sortedStations.count)")
+        
+        // 현재 스테이션이 있을 경우 그 스테이션의 인덱스를 찾아서 이전 스테이션 선택
+        if let currentStation = currentStation,
+           let currentIndex = sortedStations.firstIndex(where: { $0.id == currentStation.id }) {
+            let previousIndex = currentIndex > 0 ? currentIndex - 1 : sortedStations.count - 1
+            print("🔄 Current index: \(currentIndex), Previous index: \(previousIndex)")
+            print("🔄 Previous station: \(sortedStations[previousIndex].name) at \(sortedStations[previousIndex].frequency) MHz")
+            selectStation(sortedStations[previousIndex])
         } else {
-            // 더 낮은 주파수가 없으면 가장 높은 주파수로 순환
-            if let lastStation = sortedStations.last {
+            print("⚠️ Current station not found in list, using frequency-based selection")
+            // 현재 스테이션이 없으면 현재 주파수보다 낮은 마지막 스테이션
+            if let previousStation = sortedStations.last(where: { $0.frequency < currentFrequency }) {
+                selectStation(previousStation)
+            } else if let lastStation = sortedStations.last {
                 selectStation(lastStation)
             }
         }
@@ -1115,10 +1136,11 @@ class RadioViewModel: NSObject, ObservableObject {
         let countries = Country.countries
         let clampedIndex = Int(max(0, min(index, Double(countries.count - 1))))
         selectedCountry = countries[clampedIndex]
+        currentFrequency = selectedCountry.defaultFrequency
         loadStationsForCountry()
     }
     
-    private func loadStationsForCountry() {
+    private func loadStationsForCountry(isInitialLoad: Bool = false) {
         // 재생 상태 저장
         let wasPlaying = isPlaying
         
@@ -1148,12 +1170,26 @@ class RadioViewModel: NSObject, ObservableObject {
             self.updateFastestStations()
             
             // 초기 스테이션 선택
-            if let nearbyStation = self.filteredStations.first(where: { abs($0.frequency - self.currentFrequency) < 2.0 }) {
-                self.currentStation = nearbyStation
-                self.currentFrequency = nearbyStation.frequency
-            } else if let firstStation = self.filteredStations.first {
-                self.currentStation = firstStation
-                self.currentFrequency = firstStation.frequency
+            if isInitialLoad {
+                // 앱 첫 실행 시 - 국가의 기본 주파수에 정확히 맞는 스테이션 선택
+                self.currentFrequency = self.selectedCountry.defaultFrequency
+                if let defaultStation = self.filteredStations.first(where: { $0.frequency == self.selectedCountry.defaultFrequency }) {
+                    self.currentStation = defaultStation
+                    print("✅ Initial station set to: \(defaultStation.name) at \(defaultStation.frequency) MHz")
+                } else if let nearbyStation = self.filteredStations.first(where: { abs($0.frequency - self.selectedCountry.defaultFrequency) < 0.5 }) {
+                    self.currentStation = nearbyStation
+                    self.currentFrequency = nearbyStation.frequency
+                    print("✅ Initial station set to nearby: \(nearbyStation.name) at \(nearbyStation.frequency) MHz")
+                }
+            } else {
+                // 국가 변경 시 - 기본 주파수 근처 스테이션 선택
+                if let nearbyStation = self.filteredStations.first(where: { abs($0.frequency - self.currentFrequency) < 2.0 }) {
+                    self.currentStation = nearbyStation
+                    self.currentFrequency = nearbyStation.frequency
+                } else if let firstStation = self.filteredStations.first {
+                    self.currentStation = firstStation
+                    self.currentFrequency = firstStation.frequency
+                }
             }
         }
         
@@ -1170,21 +1206,31 @@ class RadioViewModel: NSObject, ObservableObject {
             await MainActor.run {
                 // 사용자가 다른 국가로 변경하지 않았는지 확인
                 if self.selectedCountry.code == loadingCountryCode && !apiStations.isEmpty {
-                    self.stations = apiStations
+                    // API 스테이션과 기본 스테이션을 병합
+                    // 기본 스테이션을 우선으로 유지하고, API 스테이션 추가
+                    let defaultStations = self.stations // 현재 기본 스테이션들
+                    var mergedStations = defaultStations
+                    
+                    // API 스테이션 중 기본 스테이션과 중복되지 않는 것만 추가
+                    for apiStation in apiStations {
+                        // 주파수가 겹치지 않는 스테이션만 추가 (0.2 MHz 이내는 중복으로 간주)
+                        let isDuplicate = mergedStations.contains { defaultStation in
+                            abs(defaultStation.frequency - apiStation.frequency) < 0.2
+                        }
+                        
+                        if !isDuplicate {
+                            mergedStations.append(apiStation)
+                        }
+                    }
+                    
+                    // 주파수 순으로 정렬
+                    mergedStations.sort { $0.frequency < $1.frequency }
+                    
+                    self.stations = mergedStations
                     self.updateFilteredStations()
                     self.updateFastestStations()
                     
-                    // 현재 주파수 근처 스테이션 찾기
-                    if let nearbyStation = self.filteredStations.first(where: { abs($0.frequency - self.currentFrequency) < 2.0 }) {
-                        if self.currentStation?.id != nearbyStation.id {
-                            self.currentStation = nearbyStation
-                            self.currentFrequency = nearbyStation.frequency
-                            // 재생 중이면 새 스테이션도 자동 재생
-                            if self.isPlaying {
-                                self.play()
-                            }
-                        }
-                    }
+                    print("📡 Merged stations: \(self.stations.count) total (\(defaultStations.count) default + \(mergedStations.count - defaultStations.count) API)")
                 }
             }
         }
@@ -1308,11 +1354,7 @@ class RadioViewModel: NSObject, ObservableObject {
                     } else if player.rate == 0 && self.isPlaying && !self.isLoading {
                         // Don't update isPlaying to false here - let user control it
                         print("⚠️ Playback stopped unexpectedly")
-                        // Try to resume if we're in background
-                        if UIApplication.shared.applicationState == .background {
-                            player.play()
-                            print("🔄 Attempting to resume in background")
-                        }
+                        // Don't try to resume automatically - it can cause issues
                     }
                 }
             }
@@ -1678,8 +1720,10 @@ class RadioViewModel: NSObject, ObservableObject {
         
         // End background task
         if backgroundTaskID != .invalid {
-            UIApplication.shared.endBackgroundTask(backgroundTaskID)
-            backgroundTaskID = .invalid
+            Task { @MainActor in
+                UIApplication.shared.endBackgroundTask(backgroundTaskID)
+                backgroundTaskID = .invalid
+            }
         }
     }
 }

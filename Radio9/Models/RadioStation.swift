@@ -232,7 +232,7 @@ extension RadioStation {
         RadioStation(
             name: "Japan Hits",
             frequency: 89.7,
-            streamURL: "https://rfcmedia.streamguys1.com/MusicPulse.mp3",
+            streamURL: "https://cast1.torontocast.com/JapanHits",
             genre: .pop,
             subGenre: "Contemporary"
         ),
