@@ -23,10 +23,10 @@ struct CountrySelectorButton: View {
                         radius: 8
                     )
                 
-                // Country code or check icon
+                // Country code or chevron icon
                 if viewModel.isCountrySelectionMode {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 14, weight: .bold))
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12.6, weight: .bold))  // 10% smaller (14 * 0.9)
                         .foregroundColor(Color(red: 1.0, green: 0.9, blue: 0.7))
                         .shadow(
                             color: Color(red: 1.0, green: 0.7, blue: 0.3),

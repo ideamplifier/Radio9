@@ -9,6 +9,7 @@ struct IndependentDialView: View {
     let onFavoritesButtonTap: () -> Void
     let onDialLongPress: () -> Void
     @Binding var isInteracting: Bool
+    let showFavoritesDot: Bool
     
     @State private var dialRotation: Double = 0
     @State private var lastAngle: Double = 0
@@ -16,6 +17,8 @@ struct IndependentDialView: View {
     @State private var isLongPressing = false
     @State private var accumulatedRotation: Double = 0  // Total rotation accumulated
     @State private var isInitialized = false
+    @State private var favoritesDotScale: CGFloat = 0.0
+    @State private var favoritesDotOpacity: Double = 0.0
     
     private let hapticGenerator = UIImpactFeedbackGenerator(style: .soft)
     private let hardStopHaptic = UIImpactFeedbackGenerator(style: .rigid)
@@ -75,33 +78,94 @@ struct IndependentDialView: View {
                         }
                 )
             )
+            .onChange(of: showFavoritesDot) { show in
+                if show {
+                    // Blink 3 times with slower animation
+                    favoritesDotScale = 1.0
+                    
+                    // First blink
+                    withAnimation(.easeInOut(duration: 0.4)) {
+                        favoritesDotOpacity = 0.9
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                        withAnimation(.easeInOut(duration: 0.4)) {
+                            favoritesDotOpacity = 0.0
+                        }
+                    }
+                    
+                    // Second blink
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                        withAnimation(.easeInOut(duration: 0.4)) {
+                            favoritesDotOpacity = 0.9
+                        }
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                        withAnimation(.easeInOut(duration: 0.4)) {
+                            favoritesDotOpacity = 0.0
+                        }
+                    }
+                    
+                    // Third blink
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) {
+                        withAnimation(.easeInOut(duration: 0.4)) {
+                            favoritesDotOpacity = 0.9
+                        }
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                        withAnimation(.easeInOut(duration: 0.4)) {
+                            favoritesDotOpacity = 0.0
+                        }
+                    }
+                } else {
+                    favoritesDotScale = 0.0
+                    favoritesDotOpacity = 0.0
+                }
+            }
             .overlay(
                 // Favorites button - Small skeuomorphic button
                 Button(action: {
                     onFavoritesButtonTap()
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                 }) {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    Color.white,
-                                    Color(red: 0.95, green: 0.95, blue: 0.95)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white,
+                                        Color(red: 0.95, green: 0.95, blue: 0.95)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
                             )
-                        )
-                        .frame(width: 22, height: 22)
-                        .overlay(
+                            .frame(width: 22, height: 22)
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
+                            )
+                            .shadow(color: .black.opacity(0.2), radius: 2, x: 1, y: 1)
+                            .shadow(color: .white.opacity(0.8), radius: 1, x: -0.5, y: -0.5)
+                        
+                        // Light gray dot always visible
+                        Circle()
+                            .fill(Color.gray.opacity(0.15))
+                            .frame(width: 7.26, height: 7.26)  // 10% larger (6.6 * 1.1)
+                            .shadow(color: .black.opacity(0.1), radius: 0.5, x: 0, y: 0.5)
+                        
+                        // Orange dot for animation (matching play button)
+                        if showFavoritesDot {
                             Circle()
-                                .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
-                        )
-                        .shadow(color: .black.opacity(0.2), radius: 2, x: 1, y: 1)
-                        .shadow(color: .white.opacity(0.8), radius: 1, x: -0.5, y: -0.5)
+                                .fill(Color.orange)
+                                .frame(width: 7.26, height: 7.26)  // Same size as gray dot
+                                .scaleEffect(favoritesDotScale)
+                                .opacity(favoritesDotOpacity)
+                        }
+                    }
                 }
+                .buttonStyle(PlainButtonStyle())  // Remove default button hover effects
                 .offset(
-                    x: 130,
+                    x: 135,  // 5 pixels to the right
                     y: -115
                 ),
                 alignment: .center

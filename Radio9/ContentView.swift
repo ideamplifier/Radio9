@@ -143,7 +143,8 @@ struct ContentView: View {
                                 viewModel.addToFavorites(station: station)
                             }
                         },
-                        isInteracting: $isDialInteracting
+                        isInteracting: $isDialInteracting,
+                        showFavoritesDot: viewModel.showFavoritesDotAnimation
                     )
                     .frame(width: 228, height: 228)
                     .offset(y: -10)
@@ -152,6 +153,15 @@ struct ContentView: View {
                 Spacer()
                     .frame(height: 40)
             }
+            
+            // Power Switch at bottom left
+            .overlay(
+                PowerSwitchView()
+                    .frame(width: 30, height: 70)
+                    .padding(.leading, 25)
+                    .padding(.bottom, 0),  // 50픽셀 아래로
+                alignment: .bottomLeading
+            )
             
             
             // Station List Modal

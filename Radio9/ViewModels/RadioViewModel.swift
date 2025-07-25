@@ -22,6 +22,8 @@ class RadioViewModel: NSObject, ObservableObject {
     @Published var filteredStations: [RadioStation] = []
     @Published var fastestStations: [RadioStation] = []
     @Published var favoriteStations: [RadioStation] = []
+    @Published var showAddedToFavoritesMessage = false
+    @Published var showFavoritesDotAnimation = false
     
     // Computed property for current country's favorites
     var currentCountryFavorites: [RadioStation] {
@@ -1328,6 +1330,24 @@ class RadioViewModel: NSObject, ObservableObject {
             favoriteStations.append(station)
             saveFavorites()
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            
+            // Show feedback
+            showAddedToFavoritesMessage = true
+            
+            // Hide message and start dot animation
+            Task {
+                // Start dot animation 0.5 seconds earlier (at 1.5 seconds)
+                try? await Task.sleep(nanoseconds: 1_500_000_000)
+                showFavoritesDotAnimation = true
+                
+                // Hide message after 2 seconds
+                try? await Task.sleep(nanoseconds: 500_000_000)
+                showAddedToFavoritesMessage = false
+                
+                // Stop dot animation after 3 blinks (about 2.4 seconds total)
+                try? await Task.sleep(nanoseconds: 2_400_000_000)
+                showFavoritesDotAnimation = false
+            }
         }
     }
     
