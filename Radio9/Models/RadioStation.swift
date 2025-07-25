@@ -98,6 +98,14 @@ extension RadioStation {
     static let koreanStations = [
         // 검증된 스트림들
         RadioStation(
+            name: "올드팝카페",
+            frequency: 88.7,
+            streamURL: "http://cast.oldpopcafe.com:8000/stream",
+            genre: .pop,
+            subGenre: "Oldies",
+            countryCode: "KR"
+        ),
+        RadioStation(
             name: "SomaFM Groove",
             frequency: 89.1,
             streamURL: "https://ice2.somafm.com/groovesalad-128-mp3",
