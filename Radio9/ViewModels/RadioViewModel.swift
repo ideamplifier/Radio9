@@ -1423,9 +1423,9 @@ class RadioViewModel: NSObject, ObservableObject {
                         self.isPlaying = true
                         print("📡 Playback started")
                     } else if player.rate == 0 && self.isPlaying && !self.isLoading {
-                        // Don't update isPlaying to false here - let user control it
                         print("⚠️ Playback stopped unexpectedly")
-                        // Don't try to resume automatically - it can cause issues
+                        // Stop audio analyzer when playback stops
+                        self.audioAnalyzer.stopAnalyzing()
                     }
                 }
             }
@@ -1488,10 +1488,13 @@ class RadioViewModel: NSObject, ObservableObject {
                         print("   💡 This appears to be an unsupported format error")
                     }
                     
-                    // 사용자가 일시정지하지 않았다면 isPlaying 상태 유지
-                    let _ = !self.isPlaying
+                    // 플레이어 실패 시 재생 중지
+                    self.isPlaying = false
                     isLoading = false
                     loadTimeoutTask?.cancel()
+                    
+                    // Stop audio analyzer
+                    self.audioAnalyzer.stopAnalyzing()
                     
                     // 스테이션 건강도 업데이트
                     if let station = self.currentStation {

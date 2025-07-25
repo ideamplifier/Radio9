@@ -292,20 +292,7 @@ extension RadioStation {
         ),
         
         // Entertainment
-        RadioStation(
-            name: "Tokyo Comedy",
-            frequency: 91.1,
-            streamURL: "https://stream.zeno.fm/comedy-tokyo",
-            genre: .entertainment,
-            subGenre: "Comedy"
-        ),
-        RadioStation(
-            name: "J-Sports",
-            frequency: 107.9,
-            streamURL: "https://stream.zeno.fm/sports-japan",
-            genre: .sports,
-            subGenre: "Sports"
-        )
+        // Tokyo Comedy와 J-Sports는 URL이 작동하지 않아 제거됨
     ]
     
     // US stations

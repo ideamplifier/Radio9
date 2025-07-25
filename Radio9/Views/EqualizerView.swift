@@ -118,7 +118,7 @@ struct EqualizerDot: View {
         Circle()
             .fill(isActive ? 
                 Color.orange.opacity(0.6 + intensity * 0.4) : 
-                Color.black.opacity(0.25))
+                Color.clear)  // 투명하게 변경 - 배경 점이 보이도록
             .frame(width: 4, height: 4)
             .scaleEffect(isActive ? 1.0 + intensity * 0.2 : 1.0)
             .animation(.easeInOut(duration: 0.1), value: isActive)

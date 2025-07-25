@@ -16,21 +16,15 @@ struct SpeakerGrillView: View {
                 ForEach(0..<rows, id: \.self) { row in
                     HStack(spacing: 6) {
                         ForEach(0..<columns, id: \.self) { column in
-                            if !showEqualizer {
-                                speakerDot(row: row, column: column)
-                            } else {
-                                Circle()
-                                    .fill(Color.black.opacity(0.25))
-                                    .frame(width: 4, height: 4)
-                            }
+                            speakerDot(row: row, column: column)
                         }
                     }
                 }
             }
             
             // Dynamic equalizer overlay
-            if showEqualizer && isPowerOn {
-                EqualizerView(audioAnalyzer: audioAnalyzer, isPlaying: $isPlaying.constant(isPlaying))
+            if showEqualizer && isPowerOn && isPlaying {
+                EqualizerView(audioAnalyzer: audioAnalyzer, isPlaying: .constant(isPlaying))
             }
         }
         .padding(.vertical, 12)
@@ -41,6 +35,9 @@ struct SpeakerGrillView: View {
         )
         .onChange(of: isPowerOn) { newValue in
             if newValue {
+                // Reset equalizer state first
+                showEqualizer = false
+                
                 // Animate rows filling up (0.3초) - easeOut으로 빠르게 시작
                 animationRow = 0
                 withAnimation(.easeOut(duration: 0.08)) {
@@ -79,7 +76,10 @@ struct SpeakerGrillView: View {
                     withAnimation(.easeOut(duration: 0.1)) {
                         animationRow = -1
                     }
-                    // Show equalizer after animation completes
+                }
+                
+                // Show equalizer after animation completes - 별도로 분리
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.6) {
                     showEqualizer = true
                 }
             } else {
@@ -93,7 +93,11 @@ struct SpeakerGrillView: View {
     @ViewBuilder
     private func speakerDot(row: Int, column: Int) -> some View {
         Circle()
-            .fill(row >= (rows - animationRow) && animationRow > 0 ? Color.orange : Color.black.opacity(0.25))
+            .fill(
+                showEqualizer ? 
+                Color.black.opacity(0.25) : 
+                (row >= (rows - animationRow) && animationRow > 0 ? Color.orange : Color.black.opacity(0.25))
+            )
             .frame(width: 4, height: 4)
             .animation(.easeInOut(duration: 0.1), value: animationRow)
     }
