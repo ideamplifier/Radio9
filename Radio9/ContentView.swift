@@ -184,15 +184,6 @@ struct ContentView: View {
             }
             
         }
-        .overlay(
-            // 우측 하단 세로 캡슐
-            Capsule()
-                .fill(Color.orange)
-                .frame(width: 30, height: 80)
-                .padding(.trailing, 30)
-                .padding(.bottom, 90), // 50픽셀 아래로 (40 + 50)
-            alignment: .bottomTrailing
-        )
         .sheet(isPresented: $showFavoritesModal) {
             FavoritesModalView(viewModel: viewModel)
         }
