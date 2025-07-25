@@ -94,7 +94,9 @@ struct ScaleMarks: View {
         HStack(spacing: 0) {
             ForEach(0..<41) { index in
                 Rectangle()
-                    .fill(Color(red: 1.0, green: 0.75, blue: 0.4))
+                    .fill(index == 20 ?  // 12시 방향 (중앙) 눈금
+                          Color(red: 0.15, green: 0.12, blue: 0.0) : // 플레이 버튼 색상
+                          Color(red: 1.0, green: 0.75, blue: 0.4))
                     .frame(width: index % 5 == 0 ? 2 : 1,
                            height: index % 5 == 0 ? 12 : 8)
                     .opacity(isCountrySelectionMode ? 0.3 : (index % 5 == 0 ? 1 : 0.6))

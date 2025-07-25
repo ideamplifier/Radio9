@@ -33,9 +33,7 @@ struct FrequencyDialView: View {
                 // Frequency markers
                 ForEach(0..<markerCount, id: \.self) { index in
                     Rectangle()
-                        .fill(index == 0 ? 
-                              Color(red: 0.15, green: 0.12, blue: 0.0) : // 12시 방향 플레이 버튼 색상
-                              Color.gray.opacity(index % 5 == 0 ? 0.7 : 0.4))
+                        .fill(Color.gray.opacity(index % 5 == 0 ? 0.7 : 0.4))
                         .frame(width: index % 5 == 0 ? 2 : 1, 
                                height: index % 5 == 0 ? 16 : 10)
                         .offset(y: -dialSize/2 + 35)
