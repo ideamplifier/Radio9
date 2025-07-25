@@ -18,7 +18,7 @@ struct Country: Identifiable, Equatable {
         Country(code: "ID", name: "Indonesia", flag: "🇮🇩", defaultFrequency: 87.6),  // Hard Rock FM
         Country(code: "IT", name: "Italy", flag: "🇮🇹", defaultFrequency: 105.0),    // Radio Italia
         Country(code: "JP", name: "Japan", flag: "🇯🇵", defaultFrequency: 89.7),     // Japan Hits
-        Country(code: "KR", name: "South Korea", flag: "🇰🇷", defaultFrequency: 101.9), // KBS Cool FM
+        Country(code: "KR", name: "South Korea", flag: "🇰🇷", defaultFrequency: 89.1), // SomaFM Groove
         Country(code: "MX", name: "Mexico", flag: "🇲🇽", defaultFrequency: 104.3),   // Los 40
         Country(code: "NL", name: "Netherlands", flag: "🇳🇱", defaultFrequency: 100.7), // Radio 538
         Country(code: "RU", name: "Russia", flag: "🇷🇺", defaultFrequency: 103.0),   // Europa Plus
@@ -28,7 +28,7 @@ struct Country: Identifiable, Equatable {
         Country(code: "TH", name: "Thailand", flag: "🇹🇭", defaultFrequency: 95.5),  // Virgin Hitz
         Country(code: "TR", name: "Turkey", flag: "🇹🇷", defaultFrequency: 97.4),    // Joy FM
         Country(code: "GB", name: "United Kingdom", flag: "🇬🇧", defaultFrequency: 95.8), // Capital FM
-        Country(code: "US", name: "United States", flag: "🇺🇸", defaultFrequency: 102.7), // KIIS FM
+        Country(code: "US", name: "United States", flag: "🇺🇸", defaultFrequency: 90.3), // KEXP Seattle
         Country(code: "VN", name: "Vietnam", flag: "🇻🇳", defaultFrequency: 99.9)    // VOV3
     ].sorted { $0.name < $1.name }
     

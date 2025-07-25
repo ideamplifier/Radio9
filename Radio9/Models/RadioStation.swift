@@ -554,7 +554,9 @@ extension RadioStation {
         case "GB":
             return ukStations
         default:
-            return koreanStations
+            // 스테이션이 정의되지 않은 국가는 빈 배열 반환
+            // API에서 스테이션을 가져올 수 있도록 함
+            return []
         }
     }
 }
