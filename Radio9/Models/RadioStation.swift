@@ -98,11 +98,11 @@ extension RadioStation {
     static let koreanStations = [
         // 검증된 스트림들
         RadioStation(
-            name: "올드팝카페",
+            name: "KBS Classic FM",
             frequency: 88.7,
-            streamURL: "https://stream.zeno.fm/oldpopcafe",
-            genre: .pop,
-            subGenre: "Oldies",
+            streamURL: "http://serpent0.duckdns.org:8088/kbsfm.pls",
+            genre: .classical,
+            subGenre: "Classical",
             countryCode: "KR"
         ),
         RadioStation(

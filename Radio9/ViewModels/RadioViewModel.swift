@@ -16,6 +16,7 @@ class RadioViewModel: NSObject, ObservableObject {
     @Published var selectedCountry: Country = Country.defaultCountry()
     @Published var isCountrySelectionMode = false
     @Published var countrySelectionIndex: Double = 0
+    private var tempSelectedCountry: Country?  // 임시 선택 국가
     @Published var isLoading = false
     @Published var selectedGenre: StationGenre = .all
     @Published var filteredStations: [RadioStation] = []
@@ -27,6 +28,14 @@ class RadioViewModel: NSObject, ObservableObject {
         favoriteStations.filter { station in
             station.countryCode == selectedCountry.code
         }
+    }
+    
+    // 국가 선택 모드에서 표시할 국가
+    var displayCountry: Country {
+        if isCountrySelectionMode, let temp = tempSelectedCountry {
+            return temp
+        }
+        return selectedCountry
     }
     @Published var latestSongInfo: SongInfo?
     
@@ -1125,19 +1134,27 @@ class RadioViewModel: NSObject, ObservableObject {
     func toggleCountrySelectionMode() {
         isCountrySelectionMode.toggle()
         if isCountrySelectionMode {
-            // Find current country index
+            // 국가 선택 모드 진입 - 현재 국가 인덱스 찾기
             if let index = Country.countries.firstIndex(where: { $0.code == selectedCountry.code }) {
                 countrySelectionIndex = Double(index)
             }
+            tempSelectedCountry = selectedCountry  // 현재 국가를 임시로 저장
+        } else {
+            // 완료 버튼 클릭 - 실제로 국가 변경
+            if let newCountry = tempSelectedCountry, newCountry.code != selectedCountry.code {
+                selectedCountry = newCountry
+                currentFrequency = selectedCountry.defaultFrequency
+                loadStationsForCountry()
+            }
+            tempSelectedCountry = nil
         }
     }
     
     func selectCountryByIndex(_ index: Double) {
         let countries = Country.countries
         let clampedIndex = Int(max(0, min(index, Double(countries.count - 1))))
-        selectedCountry = countries[clampedIndex]
-        currentFrequency = selectedCountry.defaultFrequency
-        loadStationsForCountry()
+        tempSelectedCountry = countries[clampedIndex]  // 임시로만 저장
+        // loadStationsForCountry() 호출하지 않음 - 재생 유지
     }
     
     private func loadStationsForCountry(isInitialLoad: Bool = false) {
@@ -1191,12 +1208,10 @@ class RadioViewModel: NSObject, ObservableObject {
                     self.currentFrequency = firstStation.frequency
                 }
             }
-        }
-        
-        // 국가 변경 전에 재생 중이었다면 새 스테이션도 자동 재생
-        if wasPlaying && currentStation != nil {
-            // 약간의 지연을 주어 UI가 업데이트되도록 함
-            Task { @MainActor in
+            
+            // 국가 변경 전에 재생 중이었다면 새 스테이션도 자동 재생
+            if wasPlaying && self.currentStation != nil {
+                // 약간의 지연을 주어 UI가 업데이트되도록 함
                 try? await Task.sleep(nanoseconds: 100_000_000) // 0.1초
                 self.play()
             }

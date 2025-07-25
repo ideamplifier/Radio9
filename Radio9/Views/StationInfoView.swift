@@ -13,7 +13,7 @@ struct StationInfoView: View {
             VStack(alignment: .leading, spacing: 2) {
                 if viewModel.isCountrySelectionMode {
                     // Country name
-                    Text(viewModel.selectedCountry.name)
+                    Text(viewModel.displayCountry.name)
                         .font(.system(size: 15.5, weight: .semibold, design: .monospaced))
                         .foregroundColor(Color(red: 1.0, green: 0.9, blue: 0.7))
                         .shadow(color: Color(red: 1.0, green: 0.7, blue: 0.3), radius: 6)
