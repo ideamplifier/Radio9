@@ -25,6 +25,9 @@ class RadioViewModel: NSObject, ObservableObject {
     @Published var showAddedToFavoritesMessage = false
     @Published var showFavoritesDotAnimation = false
     
+    // Audio analyzer for equalizer
+    let audioAnalyzer = AudioAnalyzer()
+    
     // Computed property for current country's favorites
     var currentCountryFavorites: [RadioStation] {
         favoriteStations.filter { station in
@@ -758,6 +761,11 @@ class RadioViewModel: NSObject, ObservableObject {
             addObserver()
             isPlaying = true
             
+            // Start audio analysis
+            if let player = player {
+                audioAnalyzer.startAnalyzing(player: player)
+            }
+            
             // Start buffer capture for next instant replay
             startBufferCapture(for: station)
         } else if station.streamURL.contains(".pls") || station.streamURL.contains(".m3u") {
@@ -790,6 +798,11 @@ class RadioViewModel: NSObject, ObservableObject {
                                 self.player?.play()
                                 self.addObserver()
                                 self.isPlaying = true
+                                
+                                // Start audio analysis
+                                if let player = self.player {
+                                    self.audioAnalyzer.startAnalyzing(player: player)
+                                }
                             }
                             return
                         }
@@ -805,6 +818,11 @@ class RadioViewModel: NSObject, ObservableObject {
                     self.player?.play()
                     self.isPlaying = true
                     self.addObserver()
+                    
+                    // Start audio analysis
+                    if let player = self.player {
+                        self.audioAnalyzer.startAnalyzing(player: player)
+                    }
                 }
             }
         } else {
@@ -881,6 +899,11 @@ class RadioViewModel: NSObject, ObservableObject {
             addObserver()
             isPlaying = true
             
+            // Start audio analysis
+            if let player = player {
+                audioAnalyzer.startAnalyzing(player: player)
+            }
+            
             // Start buffer capture for next instant replay
             startBufferCapture(for: station)
         }
@@ -894,6 +917,9 @@ class RadioViewModel: NSObject, ObservableObject {
         player?.pause()
         // Don't clear player reference - keep it for background
         // player = nil
+        
+        // Stop audio analysis
+        audioAnalyzer.stopAnalyzing()
         
         // Update Now Playing info
         updateNowPlayingInfo()

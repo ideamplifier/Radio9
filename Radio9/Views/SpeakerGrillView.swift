@@ -4,16 +4,33 @@ struct SpeakerGrillView: View {
     let rows = 6
     let columns = 28
     @Binding var isPowerOn: Bool
+    @ObservedObject var audioAnalyzer: AudioAnalyzer
+    let isPlaying: Bool
     @State private var animationRow = -1
+    @State private var showEqualizer = false
     
     var body: some View {
-        VStack(spacing: 6) {
-            ForEach(0..<rows, id: \.self) { row in
-                HStack(spacing: 6) {
-                    ForEach(0..<columns, id: \.self) { column in
-                        speakerDot(row: row, column: column)
+        ZStack {
+            // Static dots background
+            VStack(spacing: 6) {
+                ForEach(0..<rows, id: \.self) { row in
+                    HStack(spacing: 6) {
+                        ForEach(0..<columns, id: \.self) { column in
+                            if !showEqualizer {
+                                speakerDot(row: row, column: column)
+                            } else {
+                                Circle()
+                                    .fill(Color.black.opacity(0.25))
+                                    .frame(width: 4, height: 4)
+                            }
+                        }
                     }
                 }
+            }
+            
+            // Dynamic equalizer overlay
+            if showEqualizer && isPowerOn {
+                EqualizerView(audioAnalyzer: audioAnalyzer, isPlaying: $isPlaying.constant(isPlaying))
             }
         }
         .padding(.vertical, 12)
@@ -62,7 +79,13 @@ struct SpeakerGrillView: View {
                     withAnimation(.easeOut(duration: 0.1)) {
                         animationRow = -1
                     }
+                    // Show equalizer after animation completes
+                    showEqualizer = true
                 }
+            } else {
+                // Hide equalizer when power is off
+                showEqualizer = false
+                animationRow = -1
             }
         }
     }

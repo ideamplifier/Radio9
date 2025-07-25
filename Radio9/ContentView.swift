@@ -57,7 +57,7 @@ struct ContentView: View {
                 .padding(.bottom, 20)
                 
                 // Speaker Grill
-                SpeakerGrillView(isPowerOn: $isPowerOn)
+                SpeakerGrillView(isPowerOn: $isPowerOn, audioAnalyzer: viewModel.audioAnalyzer, isPlaying: viewModel.isPlaying)
                     .padding(.horizontal, 20)
                     .padding(.bottom, 20)
                 
