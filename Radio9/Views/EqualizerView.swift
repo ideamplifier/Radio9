@@ -4,10 +4,10 @@ struct EqualizerView: View {
     @ObservedObject var audioAnalyzer: AudioAnalyzer
     @Binding var isPlaying: Bool
     @State private var animatedBands: [CGFloat] = Array(repeating: 0.0, count: 28)
-    @State private var columnHeights: [[CGFloat]] = Array(repeating: Array(repeating: 0.0, count: 6), count: 28)
+    @State private var columnHeights: [[CGFloat]] = Array(repeating: Array(repeating: 0.0, count: 7), count: 28)
     
     let columns = 28
-    let rows = 6
+    let rows = 7
     
     // 각 열이 담당하는 주파수 대역 매핑
     private let columnToBandMapping: [Int] = {

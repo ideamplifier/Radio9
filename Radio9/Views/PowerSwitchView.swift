@@ -11,8 +11,8 @@ struct PowerSwitchView: View {
                     .fill(
                         LinearGradient(
                             colors: [
-                                Color.black.opacity(0.85),
-                                Color.black.opacity(0.65)
+                                Color(red: 0.2, green: 0.17, blue: 0.0).opacity(0.92),
+                                Color(red: 0.2, green: 0.17, blue: 0.0).opacity(0.75)
                             ],
                             startPoint: .top,
                             endPoint: .bottom
@@ -84,15 +84,10 @@ struct PowerSwitchView: View {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                     isPowerOn.toggle()
                     
-                    // Double haptic feedback for "click" feeling
+                    // Single haptic feedback
                     let haptic = UIImpactFeedbackGenerator(style: .light)
                     haptic.prepare()
                     haptic.impactOccurred(intensity: 0.83)
-                    
-                    // Second haptic after a tiny delay
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
-                        haptic.impactOccurred(intensity: 0.83)
-                    }
                 }
             }
         }

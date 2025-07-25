@@ -47,7 +47,7 @@ struct StationInfoView: View {
                                 .font(.system(size: 10, weight: .medium, design: .monospaced))
                                 .foregroundColor(Color(red: 1.0, green: 0.8, blue: 0.5).opacity(0.8))
                                 .shadow(color: Color(red: 1.0, green: 0.6, blue: 0.2).opacity(0.5), radius: 2)
-                                .transition(.opacity.combined(with: .scale))
+                                .transition(.opacity)  // 줌아웃 효과 제거, opacity만
                         } else if viewModel.showAddedToFavoritesMessage {
                             Text("Added to Favorites")
                                 .font(.system(size: 10, weight: .medium, design: .monospaced))

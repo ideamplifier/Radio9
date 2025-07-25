@@ -35,15 +35,15 @@ struct ContentView: View {
             VStack(spacing: 0) {
                 // Header with menu
                 HStack {
-                    VStack(alignment: .leading, spacing: -1.5) {
+                    VStack(alignment: .leading, spacing: -1.3) {
                         Text("HOSONO")
-                            .font(.system(size: 16, weight: .bold, design: .rounded))
+                            .font(.system(size: 16.4, weight: .bold, design: .rounded))
                             .foregroundColor(Color(red: 0.2, green: 0.17, blue: 0.0).opacity(0.92))
                             .shadow(color: Color.white.opacity(0.1), radius: 2)
                             .tracking(-0.3)
                         
                         Text("ラジオ")
-                            .font(.system(size: 14, weight: .regular, design: .rounded))
+                            .font(.system(size: 14.4, weight: .regular, design: .rounded))
                             .foregroundColor(.orange)
                             .shadow(color: Color.white.opacity(0.1), radius: 2)
                             .tracking(-0.2)
@@ -153,7 +153,7 @@ struct ContentView: View {
                         showFavoritesDot: viewModel.showFavoritesDotAnimation
                     )
                     .frame(width: 228, height: 228)
-                    .offset(y: -10)
+                    .offset(y: -14)
                 }
                 
                 Spacer()

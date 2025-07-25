@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SpeakerGrillView: View {
-    let rows = 6
+    let rows = 7
     let columns = 28
     @Binding var isPowerOn: Bool
     @ObservedObject var audioAnalyzer: AudioAnalyzer
@@ -56,7 +56,7 @@ struct SpeakerGrillView: View {
                 
                 // Hold for 0.7초 (0.3초 올라감 + 0.7초 머뭄 = 1.0초에 시작)
                 
-                // Animate rows clearing (1.2초) - easeIn으로 천천히 시작
+                // Animate rows clearing - easeIn으로 천천히 시작
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                     withAnimation(.easeIn(duration: 0.3)) {
                         animationRow = 2
@@ -68,11 +68,11 @@ struct SpeakerGrillView: View {
                     }
                 }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.7) {
-                    withAnimation(.easeInOut(duration: 0.8)) {  // 0.7 -> 0.8초로 변경
+                    withAnimation(.easeInOut(duration: 0.8)) {
                         animationRow = 0
                     }
                 }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {  // 2.4 -> 2.5초로 조정
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
                     withAnimation(.easeOut(duration: 0.1)) {
                         animationRow = -1
                     }
