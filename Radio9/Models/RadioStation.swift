@@ -100,7 +100,7 @@ extension RadioStation {
         RadioStation(
             name: "올드팝카페",
             frequency: 88.7,
-            streamURL: "http://cast.oldpopcafe.com:8000/stream",
+            streamURL: "https://stream.zeno.fm/oldpopcafe",
             genre: .pop,
             subGenre: "Oldies",
             countryCode: "KR"

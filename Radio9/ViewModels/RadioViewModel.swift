@@ -1141,21 +1141,21 @@ class RadioViewModel: NSObject, ObservableObject {
     }
     
     private func loadStationsForCountry(isInitialLoad: Bool = false) {
-        // 재생 상태 저장
+        // 재생 상태 저장 - isPlaying이 변경되기 전에 저장
         let wasPlaying = isPlaying
+        
+        // 플레이어 정지 (isPlaying 상태는 유지)
+        if player != nil {
+            player?.pause()
+            removeObserver()
+            player = nil
+        }
         
         // 국가 변경 시 즉시 모든 스테이션 정리
         currentStation = nil
         stations = []
         filteredStations = []
         fastestStations = []
-        
-        // 플레이어 정지
-        if player != nil {
-            player?.pause()
-            removeObserver()
-            player = nil
-        }
         
         // 비동기로 스테이션 로드하여 UI 블로킹 방지
         Task { @MainActor in
@@ -1195,7 +1195,11 @@ class RadioViewModel: NSObject, ObservableObject {
         
         // 국가 변경 전에 재생 중이었다면 새 스테이션도 자동 재생
         if wasPlaying && currentStation != nil {
-            play()
+            // 약간의 지연을 주어 UI가 업데이트되도록 함
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 100_000_000) // 0.1초
+                self.play()
+            }
         }
         
         // API에서 실제 스테이션 가져오기 (백그라운드에서)
