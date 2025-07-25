@@ -108,6 +108,7 @@ struct StationDisplayView: View {
     let isPlaying: Bool
     @ObservedObject var viewModel: RadioViewModel
     let isDialInteracting: Bool
+    @Binding var isPowerOn: Bool
     @State private var showStationInfo = false
     
     var body: some View {
@@ -190,7 +191,7 @@ struct StationDisplayView: View {
             
             VStack(spacing: 0) {
                 // Analog frequency scale
-                FrequencyScaleView(frequency: frequency, isDialInteracting: isDialInteracting, isCountrySelectionMode: viewModel.isCountrySelectionMode)
+                FrequencyScaleView(frequency: frequency, isDialInteracting: isDialInteracting, isCountrySelectionMode: viewModel.isCountrySelectionMode, isPowerOn: $isPowerOn)
                     .frame(height: 45)
                     .padding(.horizontal, 15)
                     .padding(.top, 18)  // 2픽셀 위로 (20 -> 18)
@@ -203,7 +204,8 @@ struct StationDisplayView: View {
                     frequency: frequency,
                     isPlaying: isPlaying,
                     isLoading: viewModel.isLoading,
-                    viewModel: viewModel
+                    viewModel: viewModel,
+                    isPowerOn: $isPowerOn
                 )
                 .frame(height: 50)  // 고정 높이
                 .id("\(station?.id.uuidString ?? "")_\(isPlaying)") // 상태별 고유 ID (로딩 상태 제외)

@@ -6,6 +6,8 @@ struct StationInfoView: View {
     let isPlaying: Bool
     let isLoading: Bool
     @ObservedObject var viewModel: RadioViewModel
+    @Binding var isPowerOn: Bool
+    @State private var showEqualizerMessage = false
     
     var body: some View {
         HStack(spacing: 15) {
@@ -40,7 +42,13 @@ struct StationInfoView: View {
                     
                     // 하단 텍스트 영역 - 항상 높이 확보
                     Group {
-                        if viewModel.showAddedToFavoritesMessage {
+                        if showEqualizerMessage {
+                            Text("EQUALIZER ON")
+                                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                                .foregroundColor(Color(red: 1.0, green: 0.8, blue: 0.5).opacity(0.8))
+                                .shadow(color: Color(red: 1.0, green: 0.6, blue: 0.2).opacity(0.5), radius: 2)
+                                .transition(.opacity.combined(with: .scale))
+                        } else if viewModel.showAddedToFavoritesMessage {
                             Text("Added to Favorites")
                                 .font(.system(size: 10, weight: .medium, design: .monospaced))
                                 .foregroundColor(Color(red: 1.0, green: 0.8, blue: 0.5).opacity(0.8))
@@ -87,6 +95,19 @@ struct StationInfoView: View {
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 65)  // 30픽셀 더 위로 (35 -> 65)
+        .onChange(of: isPowerOn) { newValue in
+            if newValue {
+                // Show equalizer message
+                showEqualizerMessage = true
+                
+                // Hide after 2 seconds
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                    withAnimation(.easeOut(duration: 0.3)) {
+                        showEqualizerMessage = false
+                    }
+                }
+            }
+        }
     }
 }
 

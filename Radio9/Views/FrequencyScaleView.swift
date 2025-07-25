@@ -4,6 +4,7 @@ struct FrequencyScaleView: View {
     let frequency: Double
     let isDialInteracting: Bool
     let isCountrySelectionMode: Bool
+    @Binding var isPowerOn: Bool
     
     var body: some View {
         ZStack {

@@ -67,7 +67,8 @@ struct ContentView: View {
                     frequency: viewModel.currentFrequency,
                     isPlaying: viewModel.isPlaying,
                     viewModel: viewModel,
-                    isDialInteracting: isDialInteracting
+                    isDialInteracting: isDialInteracting,
+                    isPowerOn: $isPowerOn
                 )
                 .padding(.horizontal, 17)  // 좌우 1픽셀씩 더 늘려 (18 -> 17)
                 .padding(.bottom, 30)
