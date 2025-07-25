@@ -187,11 +187,10 @@ struct ContentView: View {
         .overlay(
             // 우측 하단 세로 캡슐
             Capsule()
-                .fill(Color(red: 0.15, green: 0.12, blue: 0.0).opacity(0.95))
+                .fill(Color.orange)
                 .frame(width: 30, height: 80)
-                .shadow(color: .black.opacity(0.3), radius: 4, x: 2, y: 2)
                 .padding(.trailing, 30)
-                .padding(.bottom, 40),
+                .padding(.bottom, 90), // 50픽셀 아래로 (40 + 50)
             alignment: .bottomTrailing
         )
         .sheet(isPresented: $showFavoritesModal) {
