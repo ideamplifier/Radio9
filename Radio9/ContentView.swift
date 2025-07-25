@@ -23,6 +23,7 @@ struct ContentView: View {
     @State private var showStationList = false
     @State private var isDialInteracting = false
     @State private var showFavoritesModal = false
+    @Environment(\.scenePhase) var scenePhase
     
     var body: some View {
         ZStack {
@@ -33,12 +34,20 @@ struct ContentView: View {
             VStack(spacing: 0) {
                 // Header with menu
                 HStack {
-                    Text("HOSONO")
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
-                        .foregroundColor(Color(red: 0.2, green: 0.17, blue: 0.0).opacity(0.92))
-                        .shadow(color: Color.white.opacity(0.1), radius: 2)
-                        .tracking(-0.3)
-                        .offset(x: 2, y: -15)
+                    VStack(alignment: .leading, spacing: -2) {
+                        Text("HOSONO")
+                            .font(.system(size: 16, weight: .bold, design: .rounded))
+                            .foregroundColor(Color(red: 0.2, green: 0.17, blue: 0.0).opacity(0.92))
+                            .shadow(color: Color.white.opacity(0.1), radius: 2)
+                            .tracking(-0.3)
+                        
+                        Text("ラジオ")
+                            .font(.system(size: 14, weight: .light, design: .rounded))
+                            .foregroundColor(.orange)
+                            .shadow(color: Color.white.opacity(0.1), radius: 2)
+                            .tracking(-0.2)
+                    }
+                    .offset(x: 2, y: -15)
                     
                     Spacer()
                 }
@@ -144,6 +153,7 @@ struct ContentView: View {
                     .frame(height: 40)
             }
             
+            
             // Station List Modal
             if showStationList {
                 Color.black.opacity(0.4)
@@ -176,6 +186,22 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showFavoritesModal) {
             FavoritesModalView(viewModel: viewModel)
+        }
+        .onChange(of: scenePhase) { phase in
+            switch phase {
+            case .active:
+                print("📱 App is active")
+            case .inactive:
+                print("📱 App is inactive")
+            case .background:
+                print("📱 App is in background - audio should continue playing")
+                // Ensure audio continues in background
+                if viewModel.isPlaying {
+                    print("✅ Audio is playing, should continue in background")
+                }
+            @unknown default:
+                break
+            }
         }
     }
 }

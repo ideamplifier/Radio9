@@ -4,6 +4,7 @@ import AVKit
 import Combine
 import ShazamKit
 import UIKit
+import MediaPlayer
 
 @MainActor
 class RadioViewModel: NSObject, ObservableObject {
@@ -48,6 +49,9 @@ class RadioViewModel: NSObject, ObservableObject {
     private var failedStationResetTimer: Timer?
     private var failedStationCounts: [String: Int] = [:] // Track failure counts
     private var songRecognitionService = SongRecognitionService()
+    
+    // Background task for audio playback
+    private var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
     
     // 프리로드 우선순위 큐
     private let preloadQueue = DispatchQueue(label: "radio9.preload", qos: .userInitiated)
@@ -100,13 +104,77 @@ class RadioViewModel: NSObject, ObservableObject {
         let audioSession = AVAudioSession.sharedInstance()
         
         do {
-            // 가장 기본적인 설정만 사용하여 오류 -50 방지
-            try audioSession.setCategory(.playback)
+            // 백그라운드 재생을 위한 설정
+            // Set category for background playback
+            try audioSession.setCategory(.playback, mode: .default)
+            
+            // Activate session
             try audioSession.setActive(true)
             print("✅ Audio session setup successful")
+            print("   Category: \(audioSession.category.rawValue)")
+            print("   Mode: \(audioSession.mode.rawValue)")
+            
+            // Setup Remote Control Center
+            setupRemoteControls()
+            
+            // Enable background audio
+            UIApplication.shared.beginReceivingRemoteControlEvents()
         } catch {
-            print("Audio session setup error (non-critical): \(error)")
+            print("❌ Audio session setup error: \(error)")
+            print("   Error code: \((error as NSError).code)")
+            print("   Error domain: \((error as NSError).domain)")
         }
+    }
+    
+    private func setupRemoteControls() {
+        let commandCenter = MPRemoteCommandCenter.shared()
+        
+        // Play command
+        commandCenter.playCommand.addTarget { [weak self] _ in
+            self?.play()
+            return .success
+        }
+        
+        // Pause command
+        commandCenter.pauseCommand.addTarget { [weak self] _ in
+            self?.pause()
+            return .success
+        }
+        
+        // Next track
+        commandCenter.nextTrackCommand.addTarget { [weak self] _ in
+            self?.selectNextStation()
+            return .success
+        }
+        
+        // Previous track
+        commandCenter.previousTrackCommand.addTarget { [weak self] _ in
+            self?.selectPreviousStation()
+            return .success
+        }
+        
+        // Update Now Playing info
+        updateNowPlayingInfo()
+    }
+    
+    private func updateNowPlayingInfo() {
+        var nowPlayingInfo = [String: Any]()
+        
+        if let station = currentStation {
+            nowPlayingInfo[MPMediaItemPropertyTitle] = station.name
+            nowPlayingInfo[MPMediaItemPropertyArtist] = "FM \(station.formattedFrequency)"
+            
+            if let songInfo = latestSongInfo {
+                nowPlayingInfo[MPMediaItemPropertyTitle] = songInfo.title
+                nowPlayingInfo[MPMediaItemPropertyArtist] = songInfo.artist
+                nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = station.name
+            }
+        }
+        
+        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = isPlaying ? 1.0 : 0.0
+        nowPlayingInfo[MPNowPlayingInfoPropertyMediaType] = MPNowPlayingInfoMediaType.audio.rawValue
+        
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
     }
     
     private func setupNetworkMonitoring() {
@@ -117,10 +185,45 @@ class RadioViewModel: NSObject, ObservableObject {
             name: .AVPlayerItemFailedToPlayToEndTime,
             object: nil
         )
+        
+        // Monitor audio interruptions (phone calls, etc)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAudioInterruption),
+            name: AVAudioSession.interruptionNotification,
+            object: nil
+        )
+        
+        // Monitor route changes (headphones plugged/unplugged)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleRouteChange),
+            name: AVAudioSession.routeChangeNotification,
+            object: nil
+        )
+        
+        // Monitor app state changes
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAppDidEnterBackground),
+            name: UIApplication.didEnterBackgroundNotification,
+            object: nil
+        )
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAppWillEnterForeground),
+            name: UIApplication.willEnterForegroundNotification,
+            object: nil
+        )
     }
     
     private func removeNetworkMonitoring() {
         NotificationCenter.default.removeObserver(self, name: .AVPlayerItemFailedToPlayToEndTime, object: nil)
+        NotificationCenter.default.removeObserver(self, name: AVAudioSession.interruptionNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: AVAudioSession.routeChangeNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: UIApplication.didEnterBackgroundNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: UIApplication.willEnterForegroundNotification, object: nil)
     }
     
     @objc private func handleNetworkChange() {
@@ -128,6 +231,127 @@ class RadioViewModel: NSObject, ObservableObject {
         if currentStation != nil, isPlaying {
             print("Network changed, reconnecting...")
             play()
+        }
+    }
+    
+    @objc private func handleAudioInterruption(notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
+              let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
+            return
+        }
+        
+        switch type {
+        case .began:
+            // Interruption began, save state and pause
+            print("Audio interruption began")
+            // Don't change isPlaying state - we'll resume after interruption
+            
+        case .ended:
+            // Interruption ended, resume if we were playing
+            if let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt {
+                let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
+                if options.contains(.shouldResume) && isPlaying {
+                    print("Audio interruption ended, resuming playback")
+                    Task { @MainActor in
+                        // Wait a bit before resuming to avoid conflicts
+                        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+                        
+                        do {
+                            let audioSession = AVAudioSession.sharedInstance()
+                            try audioSession.setActive(true)
+                            self.player?.play()
+                            if #available(iOS 12.0, *) {
+                                self.player?.playImmediately(atRate: 1.0)
+                            }
+                            print("✅ Resumed after interruption")
+                        } catch {
+                            print("❌ Failed to resume after interruption: \(error)")
+                        }
+                    }
+                }
+            }
+            
+        @unknown default:
+            break
+        }
+    }
+    
+    @objc private func handleRouteChange(notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
+              let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else {
+            return
+        }
+        
+        switch reason {
+        case .oldDeviceUnavailable:
+            // Headphones were unplugged, pause playback
+            print("Audio route changed: old device unavailable")
+            if isPlaying {
+                pause()
+            }
+            
+        case .newDeviceAvailable:
+            // Headphones were plugged in
+            print("Audio route changed: new device available")
+            
+        default:
+            break
+        }
+    }
+    
+    @objc private func handleAppDidEnterBackground() {
+        print("📱 App entered background (from ViewModel)")
+        print("📱 App is in background - audio should continue playing")
+        
+        if isPlaying {
+            print("✅ Audio is playing, should continue in background")
+            
+            // Ensure background task is active
+            if backgroundTaskID == .invalid {
+                backgroundTaskID = UIApplication.shared.beginBackgroundTask { [weak self] in
+                    self?.endBackgroundTask()
+                }
+                print("📱 Started background task for ongoing playback")
+            }
+            
+            // Re-activate audio session
+            do {
+                let audioSession = AVAudioSession.sharedInstance()
+                try audioSession.setActive(true)
+                print("✅ Audio session re-activated for background")
+            } catch {
+                print("❌ Failed to re-activate audio session: \(error)")
+            }
+            
+            // Force player to continue if it stopped
+            Task { @MainActor in
+                if let player = self.player {
+                    if player.rate == 0 {
+                        player.play()
+                        print("▶️ Forced player to continue in background")
+                    }
+                    // Set audio session priority
+                    player.audiovisualBackgroundPlaybackPolicy = .continuesIfPossible
+                }
+            }
+        }
+    }
+    
+    @objc private func handleAppWillEnterForeground() {
+        print("📱 App will enter foreground")
+        // Check player state and sync UI
+        if let player = player {
+            let playerRate = player.rate
+            if playerRate > 0 {
+                Task { @MainActor in
+                    self.isPlaying = true
+                }
+            } else if isPlaying {
+                // Player stopped while in background, restart
+                player.play()
+            }
         }
     }
     
@@ -309,6 +533,8 @@ class RadioViewModel: NSObject, ObservableObject {
         currentFrequency = station.frequency
         // Clear cached song info when changing station
         latestSongInfo = nil
+        // Update Now Playing info
+        updateNowPlayingInfo()
         // 이미 재생 중이면 새 스테이션도 자동 재생
         if isPlaying {
             play()
@@ -328,21 +554,33 @@ class RadioViewModel: NSObject, ObservableObject {
     func play() {
         guard let station = currentStation else { return }
         
-        // Skip recently failed stations silently
-        if recentlyFailedStations.contains(stationKey(station)) {
-            // Silently skip without logging to reduce spam
-            return
+        // Remove from failed stations when trying again
+        let key = stationKey(station)
+        if recentlyFailedStations.contains(key) {
+            recentlyFailedStations.remove(key)
+            failedStationCounts[key] = 0
+            print("🔄 Retrying previously failed station: \(station.name)")
+        }
+        
+        // Start background task for audio playback
+        if backgroundTaskID == .invalid {
+            backgroundTaskID = UIApplication.shared.beginBackgroundTask { [weak self] in
+                self?.endBackgroundTask()
+            }
+            print("📱 Started background task for audio playback")
         }
         
         // Ensure audio session is active before playing
         do {
             let audioSession = AVAudioSession.sharedInstance()
             if audioSession.category != .playback {
-                try audioSession.setCategory(.playback)
+                try audioSession.setCategory(.playback, mode: .default)
             }
             try audioSession.setActive(true)
+            print("✅ Audio session activated for playback")
         } catch {
-            print("Failed to activate audio session: \(error)")
+            print("❌ Failed to activate audio session: \(error)")
+            print("   Error code: \((error as NSError).code)")
         }
         
         let _ = stationKey(station)
@@ -412,9 +650,10 @@ class RadioViewModel: NSObject, ObservableObject {
         loadTimeoutTask?.cancel()
         isLoading = true
         
-        // Set timeout
+        // Set timeout - longer timeout for better compatibility
+        let timeoutDuration: UInt64 = UIApplication.shared.applicationState == .background ? 60_000_000_000 : 20_000_000_000 // 60초/20초
         loadTimeoutTask = Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 5_000_000_000) // 5초 타임아웃으로 단축
+            try? await Task.sleep(nanoseconds: timeoutDuration)
             if self.isLoading {
                 self.isLoading = false
                 self.player?.pause()
@@ -459,6 +698,11 @@ class RadioViewModel: NSObject, ObservableObject {
             playerItem.preferredForwardBufferDuration = 1.0 // 1초 버퍼 for stability
             playerItem.canUseNetworkResourcesForLiveStreamingWhilePaused = true
             
+            // Enable background playback
+            if #available(iOS 9.0, *) {
+                playerItem.preferredForwardBufferDuration = TimeInterval(1.0)
+            }
+            
             // 버퍼 언더런 방지를 위한 설정
             if #available(iOS 14.0, *) {
                 playerItem.startsOnFirstEligibleVariant = true // 첫 가능한 스트림으로 즉시 시작
@@ -477,14 +721,26 @@ class RadioViewModel: NSObject, ObservableObject {
             
             player = AVPlayer(playerItem: playerItem)
             player?.automaticallyWaitsToMinimizeStalling = false  // Don't wait for buffer
-            player?.rate = 1.0
+            player?.allowsExternalPlayback = true
+            player?.usesExternalPlaybackWhileExternalScreenIsActive = true
+            
+            // Enable background playback
+            if #available(iOS 15.0, *) {
+                player?.audiovisualBackgroundPlaybackPolicy = .continuesIfPossible
+            }
+            
+            // Prevent sleep and ensure background playback
+            if #available(iOS 12.0, *) {
+                player?.preventsDisplaySleepDuringVideoPlayback = false // We're audio only
+            }
+            
+            // Enable background playback
+            if #available(iOS 15.0, *) {
+                player?.audiovisualBackgroundPlaybackPolicy = .continuesIfPossible
+            }
+            
             player?.volume = volume
             player?.play()
-            
-            // Force immediate playback
-            if #available(iOS 12.0, *) {
-                player?.playImmediately(atRate: 1.0)
-            }
             
             print("Playing HLS stream: \(station.streamURL)")
             addObserver()
@@ -570,6 +826,11 @@ class RadioViewModel: NSObject, ObservableObject {
             playerItem.preferredForwardBufferDuration = 1.0 // 1초 버퍼 for stability
             playerItem.canUseNetworkResourcesForLiveStreamingWhilePaused = true
             
+            // Enable background playback
+            if #available(iOS 9.0, *) {
+                playerItem.preferredForwardBufferDuration = TimeInterval(1.0)
+            }
+            
             // 스트림 시작 최적화
             if #available(iOS 14.0, *) {
                 playerItem.startsOnFirstEligibleVariant = true
@@ -583,14 +844,26 @@ class RadioViewModel: NSObject, ObservableObject {
             
             player = AVPlayer(playerItem: playerItem)
             player?.automaticallyWaitsToMinimizeStalling = false  // Don't wait for buffer
-            player?.rate = 1.0
+            player?.allowsExternalPlayback = true
+            player?.usesExternalPlaybackWhileExternalScreenIsActive = true
+            
+            // Enable background playback
+            if #available(iOS 15.0, *) {
+                player?.audiovisualBackgroundPlaybackPolicy = .continuesIfPossible
+            }
+            
+            // Prevent sleep and ensure background playback
+            if #available(iOS 12.0, *) {
+                player?.preventsDisplaySleepDuringVideoPlayback = false // We're audio only
+            }
+            
+            // Enable background playback
+            if #available(iOS 15.0, *) {
+                player?.audiovisualBackgroundPlaybackPolicy = .continuesIfPossible
+            }
+            
             player?.volume = volume
             player?.play()
-            
-            // Force immediate playback
-            if #available(iOS 12.0, *) {
-                player?.playImmediately(atRate: 1.0)
-            }
             
             print("🎧 Playing direct stream: \(station.streamURL)")
             addObserver()
@@ -607,7 +880,22 @@ class RadioViewModel: NSObject, ObservableObject {
         isLoading = false
         removeObserver()
         player?.pause()
-        player = nil  // Clear player reference
+        // Don't clear player reference - keep it for background
+        // player = nil
+        
+        // Update Now Playing info
+        updateNowPlayingInfo()
+        
+        // End background task when pausing
+        endBackgroundTask()
+    }
+    
+    private func endBackgroundTask() {
+        if backgroundTaskID != .invalid {
+            UIApplication.shared.endBackgroundTask(backgroundTaskID)
+            backgroundTaskID = .invalid
+            print("📱 Ended background task")
+        }
     }
     
     private func addObserver() {
@@ -620,9 +908,14 @@ class RadioViewModel: NSObject, ObservableObject {
         
         playerItem.addObserver(self, forKeyPath: "status", options: [.new], context: nil)
         playerItem.addObserver(self, forKeyPath: "timedMetadata", options: [.new], context: nil)
+        
+        // Also observe player rate to detect when playback stops
+        player?.addObserver(self, forKeyPath: "rate", options: [.new], context: nil)
+        player?.addObserver(self, forKeyPath: "timeControlStatus", options: [.new], context: nil)
+        
         observedPlayerItem = playerItem
         isObserving = true
-        print("Observer added for status and timedMetadata")
+        print("Observer added for status, timedMetadata, rate, and timeControlStatus")
     }
     
     private func removeObserver() {
@@ -635,6 +928,11 @@ class RadioViewModel: NSObject, ObservableObject {
         // Only remove observer from the exact item we added it to
         observedItem.removeObserver(self, forKeyPath: "status", context: nil)
         observedItem.removeObserver(self, forKeyPath: "timedMetadata", context: nil)
+        
+        // Remove player observers
+        player?.removeObserver(self, forKeyPath: "rate", context: nil)
+        player?.removeObserver(self, forKeyPath: "timeControlStatus", context: nil)
+        
         isObserving = false
         observedPlayerItem = nil
         print("Observer removed successfully")
@@ -999,7 +1297,46 @@ class RadioViewModel: NSObject, ObservableObject {
     }
     
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-        if keyPath == "timedMetadata" {
+        if keyPath == "rate" {
+            if let player = object as? AVPlayer {
+                print("🎵 Player rate changed to: \(player.rate)")
+                Task { @MainActor in
+                    // Update UI state based on actual player state
+                    if player.rate > 0 && !self.isPlaying {
+                        self.isPlaying = true
+                        print("📡 Playback started")
+                    } else if player.rate == 0 && self.isPlaying && !self.isLoading {
+                        // Don't update isPlaying to false here - let user control it
+                        print("⚠️ Playback stopped unexpectedly")
+                        // Try to resume if we're in background
+                        if UIApplication.shared.applicationState == .background {
+                            player.play()
+                            print("🔄 Attempting to resume in background")
+                        }
+                    }
+                }
+            }
+        } else if keyPath == "timeControlStatus" {
+            if let player = object as? AVPlayer {
+                if #available(iOS 10.0, *) {
+                    switch player.timeControlStatus {
+                    case .paused:
+                        print("⏸ Player is paused")
+                    case .waitingToPlayAtSpecifiedRate:
+                        print("⏳ Player is waiting to play (buffering)")
+                    case .playing:
+                        print("▶️ Player is playing")
+                        Task { @MainActor in
+                            if !self.isPlaying {
+                                self.isPlaying = true
+                            }
+                        }
+                    @unknown default:
+                        break
+                    }
+                }
+            }
+        } else if keyPath == "timedMetadata" {
             if let playerItem = object as? AVPlayerItem {
                 // Safely handle timedMetadata - check if it's actually an array
                 guard let timedMetadata = playerItem.timedMetadata else { return }
@@ -1015,6 +1352,8 @@ class RadioViewModel: NSObject, ObservableObject {
                                 print("Real-time metadata found: \(songInfo.title)")
                                 // Store the latest metadata
                                 self.latestSongInfo = songInfo
+                                // Update Now Playing info with song metadata
+                                self.updateNowPlayingInfo()
                             }
                         }
                     }
@@ -1085,13 +1424,7 @@ class RadioViewModel: NSObject, ObservableObject {
                     
                     // Force play again if not playing
                     if player?.rate == 0 {
-                        // Ensure audio session is active
-                        try? AVAudioSession.sharedInstance().setActive(true)
-                        
                         player?.play()
-                        if #available(iOS 12.0, *) {
-                            player?.playImmediately(atRate: 1.0)
-                        }
                         print("Forcing play after ready state")
                     }
                     // Ensure isPlaying is set to true on main thread
@@ -1167,10 +1500,10 @@ class RadioViewModel: NSObject, ObservableObject {
         }
     }
     
-    // Reset failed stations after 30 seconds (reduced from 5 minutes)
+    // Reset failed stations after 10 seconds for quicker retry
     private func scheduleFailedStationReset() {
         failedStationResetTimer?.invalidate()
-        failedStationResetTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: false) { [weak self] _ in
+        failedStationResetTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: false) { [weak self] _ in
             Task { @MainActor in
                 self?.recentlyFailedStations.removeAll()
                 self?.failedStationCounts.removeAll() // Clear counts too
@@ -1327,13 +1660,26 @@ class RadioViewModel: NSObject, ObservableObject {
         failedStationResetTimer?.invalidate()
         
         // Ensure observer is removed from the exact item
-        if isObserving, let observedItem = observedPlayerItem {
-            observedItem.removeObserver(self, forKeyPath: "status", context: nil)
-            observedItem.removeObserver(self, forKeyPath: "timedMetadata", context: nil)
+        if isObserving {
+            if let observedItem = observedPlayerItem {
+                observedItem.removeObserver(self, forKeyPath: "status", context: nil)
+                observedItem.removeObserver(self, forKeyPath: "timedMetadata", context: nil)
+            }
+            // Remove player observers if player still exists
+            if player != nil {
+                player?.removeObserver(self, forKeyPath: "rate", context: nil)
+                player?.removeObserver(self, forKeyPath: "timeControlStatus", context: nil)
+            }
             isObserving = false
             observedPlayerItem = nil
         }
         // Clean up network monitoring
         NotificationCenter.default.removeObserver(self)
+        
+        // End background task
+        if backgroundTaskID != .invalid {
+            UIApplication.shared.endBackgroundTask(backgroundTaskID)
+            backgroundTaskID = .invalid
+        }
     }
 }

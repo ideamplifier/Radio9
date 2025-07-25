@@ -6,6 +6,21 @@ struct StationInfoModal: View {
     let isPlaying: Bool
     @Environment(\.dismiss) var dismiss
     
+    private func openInAppleMusic(title: String, artist: String) {
+        // Create search query
+        let searchQuery = "\(title) \(artist)"
+            .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        
+        // Try Apple Music URL scheme first
+        if let musicURL = URL(string: "music://music.apple.com/search?term=\(searchQuery)"),
+           UIApplication.shared.canOpenURL(musicURL) {
+            UIApplication.shared.open(musicURL)
+        } else if let webURL = URL(string: "https://music.apple.com/search?term=\(searchQuery)") {
+            // Fallback to web URL
+            UIApplication.shared.open(webURL)
+        }
+    }
+    
     var body: some View {
         VStack(spacing: 20) {
             // Header
@@ -46,6 +61,26 @@ struct StationInfoModal: View {
                         .multilineTextAlignment(.center)
                 }
                 .padding(.horizontal)
+                
+                // Apple Music button
+                Button(action: {
+                    openInAppleMusic(title: songInfo.title, artist: songInfo.artist)
+                }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "music.note")
+                            .font(.system(size: 14))
+                        Text("애플뮤직에서 보기")
+                            .font(.system(size: 14, weight: .medium))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color(red: 0.15, green: 0.12, blue: 0.0).opacity(0.95))
+                    )
+                }
+                .padding(.top, 8)
             } else if isPlaying {
                 Text("No song information available")
                     .font(.system(size: 16))
