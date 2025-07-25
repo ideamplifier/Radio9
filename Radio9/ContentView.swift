@@ -34,7 +34,7 @@ struct ContentView: View {
             VStack(spacing: 0) {
                 // Header with menu
                 HStack {
-                    VStack(alignment: .leading, spacing: -2) {
+                    VStack(alignment: .leading, spacing: -1.5) {
                         Text("HOSONO")
                             .font(.system(size: 16, weight: .bold, design: .rounded))
                             .foregroundColor(Color(red: 0.2, green: 0.17, blue: 0.0).opacity(0.92))
@@ -42,7 +42,7 @@ struct ContentView: View {
                             .tracking(-0.3)
                         
                         Text("ラジオ")
-                            .font(.system(size: 14, weight: .light, design: .rounded))
+                            .font(.system(size: 14, weight: .regular, design: .rounded))
                             .foregroundColor(.orange)
                             .shadow(color: Color.white.opacity(0.1), radius: 2)
                             .tracking(-0.2)

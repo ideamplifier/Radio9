@@ -17,6 +17,30 @@ struct FrequencyScaleView: View {
                 )
                 .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: -1)
             
+            // Glossy effect - diagonal highlight
+            GeometryReader { geometry in
+                Path { path in
+                    // Create diagonal split from top-right corner to bottom-left (shifted 50px right)
+                    path.move(to: CGPoint(x: 0, y: 0))
+                    path.addLine(to: CGPoint(x: geometry.size.width + 3, y: 0))
+                    path.addLine(to: CGPoint(x: 50, y: geometry.size.height))
+                    path.addLine(to: CGPoint(x: 0, y: geometry.size.height))
+                    path.closeSubpath()
+                }
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(0.10),
+                            Color.white.opacity(0.02)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .blur(radius: 1)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+            }
+            
             GeometryReader { geometry in
                 VStack(spacing: 0) {
                     // Frequency labels

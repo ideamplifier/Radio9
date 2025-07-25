@@ -14,10 +14,14 @@ struct IndependentDialView: View {
     @State private var lastAngle: Double = 0
     @State private var lastHapticRotation: Double = 0
     @State private var isLongPressing = false
+    @State private var accumulatedRotation: Double = 0  // Total rotation accumulated
+    @State private var isInitialized = false
     
     private let hapticGenerator = UIImpactFeedbackGenerator(style: .soft)
+    private let hardStopHaptic = UIImpactFeedbackGenerator(style: .rigid)
     
     let range: ClosedRange<Double> = 88.0...108.0
+    private let degreesPerMHz: Double = 36.0  // 720 degrees (2 full rotations) for 20MHz range
     
     var body: some View {
         GeometryReader { geometry in
@@ -30,6 +34,16 @@ struct IndependentDialView: View {
                 // Markers
                 DialMarkers(size: size, isCountrySelectionMode: isCountrySelectionMode)
                     .rotationEffect(.degrees(dialRotation))
+                    .onAppear {
+                        if !isInitialized {
+                            // Initialize accumulated rotation based on current frequency
+                            let frequencyRange = range.upperBound - range.lowerBound
+                            let normalizedFreq = (frequency - range.lowerBound) / frequencyRange
+                            accumulatedRotation = normalizedFreq * frequencyRange * degreesPerMHz
+                            dialRotation = accumulatedRotation
+                            isInitialized = true
+                        }
+                    }
                 
                 // Center
                 Circle()
@@ -104,6 +118,7 @@ struct IndependentDialView: View {
             lastAngle = angle
             lastHapticRotation = dialRotation
             hapticGenerator.prepare()
+            hardStopHaptic.prepare()
             hapticGenerator.impactOccurred(intensity: 0.7)
             return
         }
@@ -117,8 +132,41 @@ struct IndependentDialView: View {
             deltaAngle += 2 * .pi
         }
         
-        // Update rotation
-        dialRotation += deltaAngle * 180 / .pi
+        let deltaDegrees = deltaAngle * 180 / .pi
+        
+        if !isCountrySelectionMode {
+            // Calculate the new accumulated rotation
+            let newAccumulatedRotation = accumulatedRotation + deltaDegrees
+            
+            // Calculate min and max rotation limits
+            let minRotation = 0.0
+            let maxRotation = (range.upperBound - range.lowerBound) * degreesPerMHz
+            
+            // Check if we're hitting the limits
+            if newAccumulatedRotation < minRotation {
+                // Hit lower limit
+                hapticGenerator.impactOccurred(intensity: 0.5)
+                accumulatedRotation = minRotation
+                // Still allow visual rotation for realism
+                dialRotation += deltaDegrees
+                lastAngle = angle
+                return
+            } else if newAccumulatedRotation > maxRotation {
+                // Hit upper limit
+                hapticGenerator.impactOccurred(intensity: 0.5)
+                accumulatedRotation = maxRotation
+                // Still allow visual rotation for realism
+                dialRotation += deltaDegrees
+                lastAngle = angle
+                return
+            } else {
+                // Normal rotation within limits
+                accumulatedRotation = newAccumulatedRotation
+            }
+        }
+        
+        // Update visual rotation
+        dialRotation += deltaDegrees
         lastAngle = angle
         
         // Haptic feedback every 5 degrees
@@ -128,25 +176,17 @@ struct IndependentDialView: View {
             lastHapticRotation = dialRotation
         }
         
-        // Calculate value from rotation
-        let rotations = dialRotation / 360.0
-        
         if isCountrySelectionMode {
+            // Country selection remains unlimited
+            let rotations = dialRotation / 360.0
             let countryCount = Double(Country.countries.count)
             var newIndex = (rotations.truncatingRemainder(dividingBy: 1) + 1) * countryCount
             if newIndex < 0 { newIndex += countryCount }
             onCountryChange(newIndex.truncatingRemainder(dividingBy: countryCount))
         } else {
+            // Calculate frequency from accumulated rotation
             let frequencyRange = range.upperBound - range.lowerBound
-            var newFrequency = range.lowerBound + (rotations.truncatingRemainder(dividingBy: 1) + 1) * frequencyRange
-            
-            while newFrequency > range.upperBound {
-                newFrequency -= frequencyRange
-            }
-            while newFrequency < range.lowerBound {
-                newFrequency += frequencyRange
-            }
-            
+            let newFrequency = range.lowerBound + (accumulatedRotation / degreesPerMHz / frequencyRange) * frequencyRange
             onFrequencyChange(newFrequency)
         }
     }

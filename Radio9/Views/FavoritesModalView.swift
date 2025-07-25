@@ -78,7 +78,7 @@ struct FavoritesModalView: View {
                 .scrollContentBackground(.hidden)
             }
         }
-        .presentationDetents([.height(375)])
+        .presentationDetents([.height(370)])
         .presentationDragIndicator(.hidden)
         .presentationCornerRadius(30)
     }
