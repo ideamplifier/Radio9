@@ -135,11 +135,11 @@ extension RadioStation {
             subGenre: "Alternative"
         ),
         RadioStation(
-            name: "Jazz Radio",
+            name: "Smooth Jazz",
             frequency: 88.5,
-            streamURL: "https://jazzradio.ice.infomaniak.ch/jazzradio-high.mp3",
+            streamURL: "https://smoothjazz.cdnstream1.com/2585_320.mp3",
             genre: .jazz,
-            subGenre: "Jazz"
+            subGenre: "Smooth Jazz"
         ),
         RadioStation(
             name: "Classical KUSC",
@@ -172,7 +172,7 @@ extension RadioStation {
         RadioStation(
             name: "KCRW",
             frequency: 89.9,
-            streamURL: "https://kcrw.streamguys1.com/kcrw_192k_mp3_on_air",
+            streamURL: "https://media.kcrw.com/live/kcrwlive.m3u8",
             genre: .music,
             subGenre: "Eclectic"
         ),
@@ -326,11 +326,11 @@ extension RadioStation {
             subGenre: "Classical"
         ),
         RadioStation(
-            name: "Jazz Radio",
+            name: "Smooth Jazz",
             frequency: 88.5,
-            streamURL: "https://jazzradio.ice.infomaniak.ch/jazzradio-high.mp3",
+            streamURL: "https://smoothjazz.cdnstream1.com/2585_320.mp3",
             genre: .jazz,
-            subGenre: "Jazz"
+            subGenre: "Smooth Jazz"
         ),
         RadioStation(
             name: "SomaFM Groove",
@@ -472,7 +472,7 @@ extension RadioStation {
         RadioStation(
             name: "Jazz FM",
             frequency: 102.2,
-            streamURL: "https://stream.jazzhttps://playerservices.streamtheworld.com/api/livestream-redirect/JAZZFM.mp3",
+            streamURL: "https://edge-bauerall-01-gos2.sharp-stream.com/jazzfm.mp3",
             genre: .jazz,
             subGenre: "Jazz"
         ),
@@ -547,6 +547,319 @@ extension RadioStation {
         )
     ]
     
+    // Brazil stations
+    static let brazilStations = [
+        RadioStation(
+            name: "Radio Globo",
+            frequency: 89.1,
+            streamURL: "https://medias.sgr.globo.com/hls/aRGloboRJ/aRGloboRJ.m3u8",
+            genre: .pop,
+            subGenre: "Brazilian Pop",
+            countryCode: "BR"
+        ),
+        RadioStation(
+            name: "Mix FM",
+            frequency: 106.3,
+            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/MIXFM_SAOPAULO.mp3",
+            genre: .pop,
+            subGenre: "Pop Mix"
+        ),
+        RadioStation(
+            name: "Radio Bandeirantes",
+            frequency: 90.9,
+            streamURL: "https://evp.mm.uol.com.br/band_rodeio/band.m3u8",
+            genre: .news,
+            subGenre: "News/Talk"
+        ),
+        RadioStation(
+            name: "Antena 1",
+            frequency: 94.7,
+            streamURL: "https://antenaone.crossradio.com.br/stream/1",
+            genre: .rock,
+            subGenre: "Classic Rock"
+        ),
+        RadioStation(
+            name: "Alpha FM",
+            frequency: 101.7,
+            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/ALPHAFM_ADP.mp3",
+            genre: .rock,
+            subGenre: "Rock"
+        )
+    ]
+    
+    // Spain stations
+    static let spainStations = [
+        RadioStation(
+            name: "Cadena 100",
+            frequency: 100.0,
+            streamURL: "https://server8.emitironline.com:2020/stream",
+            genre: .pop,
+            subGenre: "Spanish Pop"
+        ),
+        RadioStation(
+            name: "Los 40",
+            frequency: 104.3,
+            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/LOS40.mp3",
+            genre: .pop,
+            subGenre: "Top 40"
+        ),
+        RadioStation(
+            name: "Europa FM",
+            frequency: 91.0,
+            streamURL: "https://livefastly-webs.europafm.com/europafm/audio/master.m3u8",
+            genre: .pop,
+            subGenre: "Dance"
+        ),
+        RadioStation(
+            name: "RNE Radio Nacional",
+            frequency: 88.2,
+            streamURL: "https://dispatcher.rndfnk.com/rne/rne1/main/mp3/high",
+            genre: .news,
+            subGenre: "Public Radio"
+        ),
+        RadioStation(
+            name: "Kiss FM",
+            frequency: 102.7,
+            streamURL: "https://kissfm.kissfmradio.cires21.com/kissfm.mp3",
+            genre: .music,
+            subGenre: "Dance"
+        )
+    ]
+    
+    // France stations
+    static let franceStations = [
+        RadioStation(
+            name: "NRJ",
+            frequency: 100.3,
+            streamURL: "https://scdn.nrjaudio.fm/adwz2/fr/30001/mp3_128.mp3",
+            genre: .pop,
+            subGenre: "Hit Music"
+        ),
+        RadioStation(
+            name: "RTL",
+            frequency: 104.3,
+            streamURL: "https://streaming.radio.rtl.fr/rtl-1-44-128",
+            genre: .news,
+            subGenre: "News/Talk"
+        ),
+        RadioStation(
+            name: "Europe 1",
+            frequency: 104.7,
+            streamURL: "https://europe1.lmn.fm/europe1.mp3",
+            genre: .news,
+            subGenre: "News"
+        ),
+        RadioStation(
+            name: "Nostalgie",
+            frequency: 105.1,
+            streamURL: "https://scdn.nrjaudio.fm/adwz2/fr/30601/mp3_128.mp3",
+            genre: .pop,
+            subGenre: "Oldies"
+        ),
+        RadioStation(
+            name: "FIP",
+            frequency: 105.1,
+            streamURL: "https://icecast.radiofrance.fr/fip-hifi.aac",
+            genre: .music,
+            subGenre: "Eclectic"
+        )
+    ]
+    
+    // Germany stations
+    static let germanyStations = [
+        RadioStation(
+            name: "Antenne Bayern",
+            frequency: 103.7,
+            streamURL: "https://s1-webradio.webradio.de/antenne",
+            genre: .pop,
+            subGenre: "Pop/Rock"
+        ),
+        RadioStation(
+            name: "Bayern 3",
+            frequency: 97.3,
+            streamURL: "https://dispatcher.rndfnk.com/br/br3/live/mp3/mid",
+            genre: .pop,
+            subGenre: "Pop"
+        ),
+        RadioStation(
+            name: "WDR 2",
+            frequency: 99.2,
+            streamURL: "https://wdr-wdr2-ruhrgebiet.icecastssl.wdr.de/wdr/wdr2/ruhrgebiet/mp3/128/stream.mp3",
+            genre: .pop,
+            subGenre: "Adult Contemporary"
+        ),
+        RadioStation(
+            name: "Deutschlandfunk",
+            frequency: 97.7,
+            streamURL: "https://st01.sslstream.dlf.de/dlf/01/high/aac/stream.aac",
+            genre: .news,
+            subGenre: "Public Radio"
+        ),
+        RadioStation(
+            name: "SWR3",
+            frequency: 96.4,
+            streamURL: "https://liveradio.swr.de/sw282p3/swr3/play.mp3",
+            genre: .pop,
+            subGenre: "Pop/Rock"
+        )
+    ]
+    
+    // Italy stations
+    static let italyStations = [
+        RadioStation(
+            name: "Radio Italia",
+            frequency: 105.0,
+            streamURL: "https://radioitaliasmi.akamaized.net/hls/live/2093120/RISMI/master.m3u8",
+            genre: .pop,
+            subGenre: "Italian Pop"
+        ),
+        RadioStation(
+            name: "RTL 102.5",
+            frequency: 102.5,
+            streamURL: "https://streamingv2.shoutcast.com/rtl-1025",
+            genre: .pop,
+            subGenre: "Hit Radio"
+        ),
+        RadioStation(
+            name: "Radio Deejay",
+            frequency: 106.0,
+            streamURL: "https://radiodeejay-lh.akamaihd.net/i/RadioDeejay_Live_1@189857/master.m3u8",
+            genre: .pop,
+            subGenre: "Dance"
+        ),
+        RadioStation(
+            name: "Virgin Radio",
+            frequency: 104.5,
+            streamURL: "https://icecast.unitedradio.it/Virgin.mp3",
+            genre: .rock,
+            subGenre: "Rock"
+        ),
+        RadioStation(
+            name: "RDS",
+            frequency: 103.3,
+            streamURL: "https://icstream.rds.radio/rds",
+            genre: .pop,
+            subGenre: "Pop"
+        )
+    ]
+    
+    // Australia stations
+    static let australiaStations = [
+        RadioStation(
+            name: "Triple J",
+            frequency: 104.1,
+            streamURL: "https://live-radio02.mediahubaustralia.com/2TJW/mp3/",
+            genre: .rock,
+            subGenre: "Alternative"
+        ),
+        RadioStation(
+            name: "Nova 96.9",
+            frequency: 96.9,
+            streamURL: "https://streaming.novaentertainment.com.au/nova969",
+            genre: .pop,
+            subGenre: "Hit Music"
+        ),
+        RadioStation(
+            name: "2GB Sydney",
+            frequency: 873.0,
+            streamURL: "https://21363.live.streamtheworld.com/2GB.mp3",
+            genre: .news,
+            subGenre: "Talk"
+        ),
+        RadioStation(
+            name: "KIIS 106.5",
+            frequency: 106.5,
+            streamURL: "https://kiis1065.akamaized.net/hls/live/2111556/KIIS1065/master.m3u8",
+            genre: .pop,
+            subGenre: "Top 40"
+        ),
+        RadioStation(
+            name: "ABC Classic",
+            frequency: 92.9,
+            streamURL: "https://live-radio01.mediahubaustralia.com/2FMW/mp3/",
+            genre: .classical,
+            subGenre: "Classical"
+        )
+    ]
+    
+    // Canada stations
+    static let canadaStations = [
+        RadioStation(
+            name: "Virgin Radio",
+            frequency: 99.9,
+            streamURL: "https://rogers-hls.leanstream.co/rogers/tor999.stream/playlist.m3u8",
+            genre: .pop,
+            subGenre: "Hit Music"
+        ),
+        RadioStation(
+            name: "CBC Radio One",
+            frequency: 99.1,
+            streamURL: "https://cbcliveradio-lh.akamaihd.net/i/CBCR1_TOR@118420/master.m3u8",
+            genre: .news,
+            subGenre: "Public Radio"
+        ),
+        RadioStation(
+            name: "CHUM FM",
+            frequency: 104.5,
+            streamURL: "https://rogers-hls.leanstream.co/rogers/tor1045.stream/playlist.m3u8",
+            genre: .pop,
+            subGenre: "Adult Contemporary"
+        ),
+        RadioStation(
+            name: "Q107",
+            frequency: 107.0,
+            streamURL: "https://corus.leanstream.co/CILQFM-MP3",
+            genre: .rock,
+            subGenre: "Classic Rock"
+        ),
+        RadioStation(
+            name: "98.1 CHFI",
+            frequency: 98.1,
+            streamURL: "https://rogers-hls.leanstream.co/rogers/tor981.stream/playlist.m3u8",
+            genre: .pop,
+            subGenre: "Adult Contemporary"
+        )
+    ]
+    
+    // Mexico stations
+    static let mexicoStations = [
+        RadioStation(
+            name: "Los 40 Mexico",
+            frequency: 104.3,
+            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/LOS40_MEXICO.mp3",
+            genre: .pop,
+            subGenre: "Top 40"
+        ),
+        RadioStation(
+            name: "Exa FM",
+            frequency: 104.9,
+            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/XHEXA_FM.mp3",
+            genre: .pop,
+            subGenre: "Pop"
+        ),
+        RadioStation(
+            name: "Radio Fórmula",
+            frequency: 103.3,
+            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/XERFR_AM.mp3",
+            genre: .news,
+            subGenre: "News/Talk"
+        ),
+        RadioStation(
+            name: "Stereo Cien",
+            frequency: 100.1,
+            streamURL: "https://stream.zeno.fm/stereocien",
+            genre: .music,
+            subGenre: "Mexican Music"
+        ),
+        RadioStation(
+            name: "La Z",
+            frequency: 107.3,
+            streamURL: "https://stream.zeno.fm/laz1073",
+            genre: .music,
+            subGenre: "Regional Mexican"
+        )
+    ]
+    
     // Default stations (same as Korean for backwards compatibility)
     static let sampleStations = koreanStations
     
@@ -561,10 +874,25 @@ extension RadioStation {
             return usStations
         case "GB":
             return ukStations
+        case "BR":
+            return brazilStations
+        case "ES":
+            return spainStations
+        case "FR":
+            return franceStations
+        case "DE":
+            return germanyStations
+        case "IT":
+            return italyStations
+        case "AU":
+            return australiaStations
+        case "CA":
+            return canadaStations
+        case "MX":
+            return mexicoStations
         default:
-            // 스테이션이 정의되지 않은 국가는 빈 배열 반환
-            // API에서 스테이션을 가져올 수 있도록 함
-            return []
+            // 그 외 국가들은 일단 미국 스테이션 사용
+            return usStations
         }
     }
 }

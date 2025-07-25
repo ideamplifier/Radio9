@@ -48,7 +48,7 @@ class RadioViewModel: NSObject, ObservableObject {
     // Performance optimization
     private var preloadedPlayers: [String: AVPlayer] = [:]
     private var connectionPool: [String: URLSession] = [:]
-    private let maxPreloadedPlayers = 1  // 초기 재생 속도를 위해 1개로 제한
+    private let maxPreloadedPlayers = 5  // 인접 5개 스테이션 프리로드
     private var networkReachability = true
     private var stationHealthScores: [String: Double] = [:]
     private var streamAnalyzer = StreamAnalyzer()
@@ -99,11 +99,11 @@ class RadioViewModel: NSObject, ObservableObject {
             updateFastestStations()
             loadFavorites()
             
-            // 프리로드 비활성화 - 초기 재생 속도 개선
-            // Task {
-            //     try? await Task.sleep(nanoseconds: 500_000_000)
-            //     await preloadNearbyStations(frequency: currentFrequency)
-            // }
+            // 프리로드 활성화 - 빠른 채널 전환
+            Task {
+                try? await Task.sleep(nanoseconds: 100_000_000) // 0.1초 후
+                await preloadNearbyStations(frequency: currentFrequency)
+            }
             // Connection warming은 일단 비활성화
             // startConnectionWarming()
         }
@@ -660,8 +660,8 @@ class RadioViewModel: NSObject, ObservableObject {
         loadTimeoutTask?.cancel()
         isLoading = true
         
-        // Set timeout - longer timeout for better compatibility
-        let timeoutDuration: UInt64 = UIApplication.shared.applicationState == .background ? 60_000_000_000 : 20_000_000_000 // 60초/20초
+        // Set timeout - 빠른 응답을 위해 5초로 단축
+        let timeoutDuration: UInt64 = 5_000_000_000 // 5초
         loadTimeoutTask = Task { @MainActor in
             try? await Task.sleep(nanoseconds: timeoutDuration)
             if self.isLoading {
@@ -704,8 +704,8 @@ class RadioViewModel: NSObject, ObservableObject {
             let asset = AVURLAsset(url: url, options: options)
             let playerItem = AVPlayerItem(asset: asset)
             
-            // Balanced buffering for stability
-            playerItem.preferredForwardBufferDuration = 1.0 // 1초 버퍼 for stability
+            // 빠른 시작을 위한 최소 버퍼
+            playerItem.preferredForwardBufferDuration = 0.3 // 0.3초 버퍼
             playerItem.canUseNetworkResourcesForLiveStreamingWhilePaused = true
             
             // Enable background playback
@@ -832,8 +832,8 @@ class RadioViewModel: NSObject, ObservableObject {
             
             let playerItem = AVPlayerItem(asset: asset)
             
-            // Balanced buffering for stability
-            playerItem.preferredForwardBufferDuration = 1.0 // 1초 버퍼 for stability
+            // 빠른 시작을 위한 최소 버퍼
+            playerItem.preferredForwardBufferDuration = 0.3 // 0.3초 버퍼
             playerItem.canUseNetworkResourcesForLiveStreamingWhilePaused = true
             
             // Enable background playback
