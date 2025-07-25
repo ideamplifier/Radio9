@@ -23,6 +23,7 @@ struct ContentView: View {
     @State private var showStationList = false
     @State private var isDialInteracting = false
     @State private var showFavoritesModal = false
+    @State private var isPowerOn = false
     @Environment(\.scenePhase) var scenePhase
     
     var body: some View {
@@ -56,7 +57,7 @@ struct ContentView: View {
                 .padding(.bottom, 20)
                 
                 // Speaker Grill
-                SpeakerGrillView()
+                SpeakerGrillView(isPowerOn: $isPowerOn)
                     .padding(.horizontal, 20)
                     .padding(.bottom, 20)
                 
@@ -156,10 +157,10 @@ struct ContentView: View {
             
             // Power Switch at bottom left
             .overlay(
-                PowerSwitchView()
+                PowerSwitchView(isPowerOn: $isPowerOn)
                     .frame(width: 30, height: 70)
                     .padding(.leading, 25)
-                    .padding(.bottom, 0),  // 50픽셀 아래로
+                    .padding(.bottom, -10),  // 10픽셀 더 아래로
                 alignment: .bottomLeading
             )
             
