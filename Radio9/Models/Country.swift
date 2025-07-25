@@ -18,7 +18,7 @@ struct Country: Identifiable, Equatable {
         Country(code: "ID", name: "Indonesia", flag: "🇮🇩", defaultFrequency: 87.6),  // Hard Rock FM
         Country(code: "IT", name: "Italy", flag: "🇮🇹", defaultFrequency: 105.0),    // Radio Italia
         Country(code: "JP", name: "Japan", flag: "🇯🇵", defaultFrequency: 89.7),     // Japan Hits
-        Country(code: "KR", name: "South Korea", flag: "🇰🇷", defaultFrequency: 89.1), // SomaFM Groove (확실히 작동하는 스테이션)
+        Country(code: "KR", name: "South Korea", flag: "🇰🇷", defaultFrequency: 92.4), // 올드팝카페 OLDIES
         Country(code: "MX", name: "Mexico", flag: "🇲🇽", defaultFrequency: 104.3),   // Los 40
         Country(code: "NL", name: "Netherlands", flag: "🇳🇱", defaultFrequency: 100.7), // Radio 538
         Country(code: "RU", name: "Russia", flag: "🇷🇺", defaultFrequency: 103.0),   // Europa Plus

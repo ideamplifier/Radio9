@@ -98,14 +98,6 @@ extension RadioStation {
     static let koreanStations = [
         // 검증된 스트림들
         RadioStation(
-            name: "KBS World Radio",
-            frequency: 88.7,
-            streamURL: "https://wskbskrradiolive.akamaized.net/hls/live/2033874/KR_LSN01/master.m3u8",
-            genre: .news,
-            subGenre: "International",
-            countryCode: "KR"
-        ),
-        RadioStation(
             name: "SomaFM Groove",
             frequency: 89.1,
             streamURL: "https://ice2.somafm.com/groovesalad-128-mp3",
@@ -119,6 +111,14 @@ extension RadioStation {
             streamURL: "https://ice2.somafm.com/indiepop-128-mp3",
             genre: .pop,
             subGenre: "Indie Pop"
+        ),
+        RadioStation(
+            name: "올드팝카페 OLDIES",
+            frequency: 92.4,
+            streamURL: "https://cast.oldpopcafe.com:8000/stream",
+            genre: .pop,
+            subGenre: "Oldies",
+            countryCode: "KR"
         ),
         RadioStation(
             name: "NPR News",
