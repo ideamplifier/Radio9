@@ -57,16 +57,9 @@ class AudioAnalyzer: ObservableObject {
     }
     
     private func determineContentType() {
-        // For demo, randomly determine or base on time of day
+        // Always use music pattern for better visual effect
         // Real implementation would analyze audio characteristics
-        let hour = Calendar.current.component(.hour, from: Date())
-        
-        // Morning/evening hours more likely to be talk radio
-        if (6...9).contains(hour) || (17...19).contains(hour) {
-            contentType = .speech
-        } else {
-            contentType = .music
-        }
+        contentType = .music
     }
     
     private func startAnimation() {
@@ -102,47 +95,48 @@ class AudioAnalyzer: ObservableObject {
     }
     
     private func animateMusicPattern() {
-        // Dynamic patterns for music
+        // Dynamic patterns for music - more varied and energetic
         let time = Date().timeIntervalSinceReferenceDate
         
-        // Simulate bass kick (bands 0-1)
-        let kickPattern = sin(time * 4.0) > 0.7
+        // Bass frequencies (bands 0-1) - strong beats
+        let bassPhase = sin(time * 3.5)
+        let kickPattern = bassPhase > 0.6 || sin(time * 7.0) > 0.8
+        
         if kickPattern {
-            frequencyBands[0] = Float.random(in: 0.7...0.9)
-            frequencyBands[1] = Float.random(in: 0.6...0.8)
+            frequencyBands[0] = Float.random(in: 0.6...1.0)
+            frequencyBands[1] = Float.random(in: 0.5...0.9)
             
             // Trigger beat detection
-            if !beatDetected {
+            if !beatDetected && bassPhase > 0.8 {
                 beatDetected = true
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
                     self.beatDetected = false
                 }
             }
         } else {
-            frequencyBands[0] *= 0.85
-            frequencyBands[1] *= 0.85
+            frequencyBands[0] = max(0.2, frequencyBands[0] * 0.88)
+            frequencyBands[1] = max(0.15, frequencyBands[1] * 0.86)
         }
         
-        // Mid frequencies (bands 2-3) - melodic content
-        for i in 2...3 {
-            let phase = Double(i - 2) * 1.5
-            let melody = sin(time * 3.0 + phase) * 0.4 + 0.3
-            frequencyBands[i] = Float(melody) + Float.random(in: -0.1...0.1)
-        }
+        // Mid-low frequencies (band 2) - groove
+        let groove = sin(time * 5.0) * 0.3 + 0.4
+        frequencyBands[2] = Float(groove) + Float.random(in: -0.1...0.2)
         
-        // High frequencies (bands 4-5) - hi-hats, cymbals
-        for i in 4...5 {
-            let hihat = sin(time * 8.0) > 0.5
-            if hihat {
-                frequencyBands[i] = Float.random(in: 0.3...0.5)
-            } else {
-                frequencyBands[i] *= 0.7
-            }
-        }
+        // Mid frequencies (band 3) - melody range
+        let melody = sin(time * 8.0 + 1.0) * 0.25 + cos(time * 3.0) * 0.15 + 0.35
+        frequencyBands[3] = Float(melody) + Float.random(in: -0.05...0.15)
         
-        // Ensure all values are in valid range
+        // High-mid frequencies (band 4) - harmonics
+        let harmonics = sin(time * 12.0) * 0.2 + cos(time * 6.5) * 0.15 + 0.3
+        frequencyBands[4] = Float(harmonics) + Float.random(in: -0.1...0.2)
+        
+        // High frequencies (band 5) - shimmer
+        let shimmer = abs(sin(time * 15.0)) * 0.3 + 0.2
+        frequencyBands[5] = Float(shimmer) + Float.random(in: -0.05...0.25)
+        
+        // Ensure all bands stay within valid range
         for i in 0..<6 {
-            frequencyBands[i] = max(0, min(1, frequencyBands[i]))
+            frequencyBands[i] = min(1.0, max(0.0, frequencyBands[i]))
         }
     }
     
