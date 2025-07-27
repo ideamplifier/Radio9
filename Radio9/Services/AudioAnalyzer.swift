@@ -70,7 +70,8 @@ class AudioAnalyzer: ObservableObject {
     }
     
     private func startAnimation() {
-        updateTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
+        // 업데이트 주기를 0.1초(10Hz)로 감소하여 rate-limit 문제 해결
+        updateTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
             guard let self = self else { return }
             
             DispatchQueue.main.async {

@@ -24,6 +24,8 @@ struct ContentView: View {
     @State private var isDialInteracting = false
     @State private var showFavoritesModal = false
     @State private var isPowerOn = false
+    @State private var showSettingsModal = false
+    @State private var showSleepTimerModal = false
     @Environment(\.scenePhase) var scenePhase
     
     var body: some View {
@@ -85,7 +87,7 @@ struct ContentView: View {
                         // Previous Station Button
                         Button(action: {
                             viewModel.selectPreviousStation()
-                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            HapticManager.shared.impact(style: .light)
                         }) {
                             Image(systemName: "backward.fill")
                                 .font(.system(size: 16))
@@ -98,7 +100,7 @@ struct ContentView: View {
                         // Main Play/Pause Button
                         Button(action: { 
                             viewModel.togglePlayPause()
-                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                            HapticManager.shared.impact(style: .medium)
                         }) {
                             Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
                                 .font(.system(size: 24))
@@ -112,7 +114,7 @@ struct ContentView: View {
                         // Next Station Button
                         Button(action: {
                             viewModel.selectNextStation()
-                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            HapticManager.shared.impact(style: .light)
                         }) {
                             Image(systemName: "forward.fill")
                                 .font(.system(size: 16))
@@ -153,7 +155,7 @@ struct ContentView: View {
                         showFavoritesDot: viewModel.showFavoritesDotAnimation
                     )
                     .frame(width: 228, height: 228)
-                    .offset(y: -14)
+                    .offset(y: -16)  // -14 -> -16 (아래로 2픽셀)
                 }
                 
                 Spacer()
@@ -165,8 +167,45 @@ struct ContentView: View {
                 PowerSwitchView(isPowerOn: $isPowerOn)
                     .frame(width: 30, height: 70)
                     .padding(.leading, 25)
-                    .padding(.bottom, -10),  // 10픽셀 더 아래로
+                    .padding(.bottom, -20),  // 20픽셀 더 아래로 (18 -> 20)
                 alignment: .bottomLeading
+            )
+            
+            // Sleep timer and Version plate at bottom right
+            .overlay(
+                HStack(spacing: 12) {
+                    // Sleep Timer Button
+                    Button(action: {
+                        showSleepTimerModal = true
+                        HapticManager.shared.impact(style: .light)
+                    }) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(
+                                    viewModel.isSleepTimerActive ?
+                                    Color.gray.opacity(0.12) :
+                                    Color.white.opacity(0.7)
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color.gray.opacity(0.5), lineWidth: 0.5)
+                                )
+                            
+                            Text("⏝ ⏝")
+                                .font(.system(size: 10.5, weight: .medium))
+                                .foregroundColor(Color.black.opacity(0.92))
+                        }
+                        .opacity(0.7)
+                        .frame(width: 29, height: 24)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    
+                    // Version Button
+                    VersionPlateView(showSettings: $showSettingsModal)
+                }
+                .padding(.trailing, 23)  // 25 -> 23 (오른쪽으로 2픽셀)
+                .padding(.bottom, 12),  // 1픽셀 더 아래로 (13 -> 12)
+                alignment: .bottomTrailing
             )
             
             
@@ -190,7 +229,7 @@ struct ContentView: View {
                                 viewModel.play() // 재생 중이 아닐 때만 재생 시작
                             }
                             showStationList = false
-                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            HapticManager.shared.impact(style: .light)
                         }
                     )
                     .padding(.horizontal, 16)
@@ -202,6 +241,12 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showFavoritesModal) {
             FavoritesModalView(viewModel: viewModel)
+        }
+        .sheet(isPresented: $showSettingsModal) {
+            SettingsModalView(viewModel: viewModel)
+        }
+        .sheet(isPresented: $showSleepTimerModal) {
+            SleepTimerModalView(viewModel: viewModel)
         }
         .onChange(of: scenePhase) { phase in
             switch phase {

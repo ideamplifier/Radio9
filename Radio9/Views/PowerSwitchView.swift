@@ -11,14 +11,14 @@ struct PowerSwitchView: View {
                     .fill(
                         LinearGradient(
                             colors: [
-                                Color(red: 0.2, green: 0.17, blue: 0.0).opacity(0.92),
-                                Color(red: 0.2, green: 0.17, blue: 0.0).opacity(0.75)
+                                Color(red: 0.25, green: 0.22, blue: 0.05).opacity(0.9),
+                                Color(red: 0.23, green: 0.2, blue: 0.03).opacity(0.8)
                             ],
                             startPoint: .top,
                             endPoint: .bottom
                         )
                     )
-                    .frame(width: 6, height: geometry.size.height * 0.5)  // Shorter groove
+                    .frame(width: 5, height: geometry.size.height * 0.5)  // Shorter groove
                     .overlay(
                         // Inner shadow effect - top edge
                         VStack {
@@ -60,16 +60,7 @@ struct PowerSwitchView: View {
                 
                 // Switch handle
                 RoundedRectangle(cornerRadius: 4)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color(red: 0.97, green: 0.97, blue: 0.97),
-                                Color(red: 0.92, green: 0.92, blue: 0.92)
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
+                    .fill(Color.white)
                     .frame(width: 20, height: 14)  // Smaller handle
                     .overlay(
                         RoundedRectangle(cornerRadius: 4)
@@ -81,13 +72,11 @@ struct PowerSwitchView: View {
                 .offset(y: isPowerOn ? -(geometry.size.height * 0.12) : (geometry.size.height * 0.12))
             }
             .onTapGesture {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
                     isPowerOn.toggle()
                     
                     // Single haptic feedback
-                    let haptic = UIImpactFeedbackGenerator(style: .light)
-                    haptic.prepare()
-                    haptic.impactOccurred(intensity: 0.83)
+                    HapticManager.shared.impact(style: .light, intensity: 0.83)
                 }
             }
         }

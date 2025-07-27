@@ -58,7 +58,7 @@ struct IsolatedDialView: View {
                             isInteracting = true
                             startLocation = value.startLocation
                             startAngle = dialAngle
-                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            HapticManager.shared.impact(style: .light)
                         }
                         
                         // Calculate rotation based on drag

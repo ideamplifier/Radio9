@@ -1,0 +1,31 @@
+/* 
+  Localizable.strings
+  Radio9
+*/
+
+/* Settings Modal */
+"settings" = "設定";
+"suggest_radio_channel" = "ラジオチャンネルを提案";
+"haptic_feedback" = "触覚フィードバック";
+"version" = "バージョン";
+
+/* Sleep Timer Modal */
+"sleep_timer" = "スリープタイマー";
+"minutes_format" = "%d分";
+"timer_on" = "タイマーオン";
+"timer_off" = "タイマーオフ";
+
+/* Favorites Modal */
+"favorites" = "お気に入り";
+"tap_hold_dial_message" = "お気に入りに追加するにはダイヤルを長押しします";
+"added_to_favorites" = "お気に入りに追加";
+
+/* Station Info View */
+"turn_dial_select_country" = "ダイヤルを回して国を選択";
+"loading" = "読み込み中...";
+"equalizer_on" = "イコライザーオン";
+
+/* Station Info Modal */
+"now_playing" = "再生中";
+"no_song_information" = "曲情報なし";
+"view_in_apple_music" = "Apple Musicで見る";

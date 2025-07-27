@@ -1,0 +1,31 @@
+/* 
+  Localizable.strings
+  Radio9
+*/
+
+/* Settings Modal */
+"settings" = "Settings";
+"suggest_radio_channel" = "Suggest Radio Channel";
+"haptic_feedback" = "Haptic Feedback";
+"version" = "Version";
+
+/* Sleep Timer Modal */
+"sleep_timer" = "Sleep Timer";
+"minutes_format" = "%d min";
+"timer_on" = "Timer On";
+"timer_off" = "Timer Off";
+
+/* Favorites Modal */
+"favorites" = "Favorites";
+"tap_hold_dial_message" = "Tap & hold the dial to add your favorite stations";
+"added_to_favorites" = "Added to favorites";
+
+/* Station Info View */
+"turn_dial_select_country" = "Turn the dial to select a country";
+"loading" = "loading...";
+"equalizer_on" = "EQUALIZER ON";
+
+/* Station Info Modal */
+"now_playing" = "NOW PLAYING";
+"no_song_information" = "No song information";
+"view_in_apple_music" = "View in Apple Music";

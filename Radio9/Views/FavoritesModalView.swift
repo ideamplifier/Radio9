@@ -8,7 +8,7 @@ struct FavoritesModalView: View {
         VStack(spacing: 0) {
             // Header with minimal design
             VStack(spacing: 2) {
-                Text("Favorites")
+                Text(LocalizationHelper.getLocalizedString(for: "favorites"))
                     .font(.system(size: 18, weight: .medium))
                     .foregroundColor(.primary)
                 
@@ -25,7 +25,7 @@ struct FavoritesModalView: View {
                     Spacer()
                     
                     
-                    Text("Tap & hold the dial to add your favorite stations")
+                    Text(LocalizationHelper.getLocalizedString(for: "tap_hold_dial_message"))
                         .font(.system(size: 14, weight: .regular))
                         .foregroundColor(.secondary.opacity(0.8))
                         .multilineTextAlignment(.center)
@@ -58,7 +58,7 @@ struct FavoritesModalView: View {
                                     viewModel.play()
                                 }
                                 dismiss()
-                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                HapticManager.shared.impact(style: .light)
                             }) {
                                 Image(systemName: viewModel.currentStation?.id == station.id && viewModel.isPlaying ? "pause.circle.fill" : "play.circle.fill")
                                     .font(.system(size: 28))
@@ -78,7 +78,7 @@ struct FavoritesModalView: View {
                 .scrollContentBackground(.hidden)
             }
         }
-        .presentationDetents([.height(370)])
+        .presentationDetents([.height(360)])
         .presentationDragIndicator(.hidden)
         .presentationCornerRadius(30)
     }

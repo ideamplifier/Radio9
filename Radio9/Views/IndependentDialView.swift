@@ -20,8 +20,7 @@ struct IndependentDialView: View {
     @State private var favoritesDotScale: CGFloat = 0.0
     @State private var favoritesDotOpacity: Double = 0.0
     
-    private let hapticGenerator = UIImpactFeedbackGenerator(style: .soft)
-    private let hardStopHaptic = UIImpactFeedbackGenerator(style: .rigid)
+    // Haptic feedback is now managed by HapticManager
     
     let range: ClosedRange<Double> = 88.0...108.0
     private let degreesPerMHz: Double = 36.0  // 720 degrees (2 full rotations) for 20MHz range
@@ -125,7 +124,7 @@ struct IndependentDialView: View {
                 // Favorites button - Small skeuomorphic button
                 Button(action: {
                     onFavoritesButtonTap()
-                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    HapticManager.shared.impact(style: .light)
                 }) {
                     ZStack {
                         Circle()
@@ -181,9 +180,7 @@ struct IndependentDialView: View {
             isInteracting = true
             lastAngle = angle
             lastHapticRotation = dialRotation
-            hapticGenerator.prepare()
-            hardStopHaptic.prepare()
-            hapticGenerator.impactOccurred(intensity: 0.7)
+            HapticManager.shared.impact(style: .soft, intensity: 0.7)
             return
         }
         
@@ -209,7 +206,7 @@ struct IndependentDialView: View {
             // Check if we're hitting the limits
             if newAccumulatedRotation < minRotation {
                 // Hit lower limit
-                hapticGenerator.impactOccurred(intensity: 0.5)
+                HapticManager.shared.impact(style: .soft, intensity: 0.5)
                 accumulatedRotation = minRotation
                 // Still allow visual rotation for realism
                 dialRotation += deltaDegrees
@@ -217,7 +214,7 @@ struct IndependentDialView: View {
                 return
             } else if newAccumulatedRotation > maxRotation {
                 // Hit upper limit
-                hapticGenerator.impactOccurred(intensity: 0.5)
+                HapticManager.shared.impact(style: .soft, intensity: 0.5)
                 accumulatedRotation = maxRotation
                 // Still allow visual rotation for realism
                 dialRotation += deltaDegrees
@@ -233,10 +230,10 @@ struct IndependentDialView: View {
         dialRotation += deltaDegrees
         lastAngle = angle
         
-        // Haptic feedback every 5 degrees
+        // Haptic feedback every 10 degrees (reduced from 5 to prevent rate-limit)
         let rotationDiff = abs(dialRotation - lastHapticRotation)
-        if rotationDiff >= 5.0 {
-            hapticGenerator.impactOccurred(intensity: 0.7)
+        if rotationDiff >= 10.0 {
+            HapticManager.shared.impact(style: .soft, intensity: 0.7)
             lastHapticRotation = dialRotation
         }
         
@@ -292,7 +289,7 @@ struct DialMarkers: View {
                 Rectangle()
                     .fill(
                         isCountrySelectionMode ?
-                        Color(red: 1.0, green: 0.8, blue: 0.4).opacity(index % 5 == 0 ? 0.8 : 0.5) :
+                        Color.orange.opacity(index % 5 == 0 ? 0.8 : 0.5) :
                         Color.gray.opacity(index % 5 == 0 ? 0.7 : 0.4)
                     )
                     .frame(width: index % 5 == 0 ? 2 : 1, 

@@ -12,7 +12,7 @@ struct GenreSelectorView: View {
                         isSelected: viewModel.selectedGenre == genre,
                         action: {
                             viewModel.selectGenre(genre)
-                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            HapticManager.shared.impact(style: .light)
                         }
                     )
                 }

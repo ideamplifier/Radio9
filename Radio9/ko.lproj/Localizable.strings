@@ -1,0 +1,31 @@
+/* 
+  Localizable.strings
+  Radio9
+*/
+
+/* Settings Modal */
+"settings" = "설정";
+"suggest_radio_channel" = "라디오 채널 제안하기";
+"haptic_feedback" = "진동 피드백";
+"version" = "버전";
+
+/* Sleep Timer Modal */
+"sleep_timer" = "슬립 타이머";
+"minutes_format" = "%d분";
+"timer_on" = "타이머 켜짐";
+"timer_off" = "타이머 꺼짐";
+
+/* Favorites Modal */
+"favorites" = "즐겨찾기";
+"tap_hold_dial_message" = "즐겨찾기에 추가하려면 다이얼을 길게 누르세요";
+"added_to_favorites" = "즐겨찾기에 추가됨";
+
+/* Station Info View */
+"turn_dial_select_country" = "다이얼을 돌려 국가를 선택하세요";
+"loading" = "로딩중...";
+"equalizer_on" = "이퀄라이저 켜짐";
+
+/* Station Info Modal */
+"now_playing" = "지금 재생 중";
+"no_song_information" = "곡 정보 없음";
+"view_in_apple_music" = "애플뮤직에서 보기";

@@ -5,6 +5,7 @@ struct EqualizerView: View {
     @Binding var isPlaying: Bool
     @State private var animatedBands: [CGFloat] = Array(repeating: 0.0, count: 28)
     @State private var columnHeights: [[CGFloat]] = Array(repeating: Array(repeating: 0.0, count: 7), count: 28)
+    @State private var lastUpdateTime = Date()
     
     let columns = 28
     let rows = 7
@@ -32,6 +33,7 @@ struct EqualizerView: View {
                             isActive: shouldActivateDot(row: row, column: column),
                             intensity: getDotIntensity(row: row, column: column)
                         )
+                        .animation(.easeInOut(duration: 0.3), value: shouldActivateDot(row: row, column: column))
                     }
                 }
             }
@@ -47,6 +49,11 @@ struct EqualizerView: View {
     }
     
     private func updateVisualization(bands: [Float]) {
+        // Throttle updates to prevent rate-limit issues
+        let now = Date()
+        guard now.timeIntervalSince(lastUpdateTime) >= 0.1 else { return }
+        lastUpdateTime = now
+        
         guard isPlaying else {
             // Clear visualization when not playing
             withAnimation(.easeOut(duration: 0.5)) {
@@ -70,10 +77,8 @@ struct EqualizerView: View {
             let maxRows = audioAnalyzer.contentType == .speech ? 3 : 6
             let targetHeight = adjustedLevel * CGFloat(maxRows)
             
-            // Smooth animation
-            withAnimation(.easeInOut(duration: audioAnalyzer.contentType == .speech ? 0.3 : 0.1)) {
-                updateColumnHeight(column: column, targetHeight: targetHeight)
-            }
+            // Smooth animation - duration 증가로 부하 감소
+            updateColumnHeight(column: column, targetHeight: targetHeight)
         }
     }
     
@@ -121,7 +126,7 @@ struct EqualizerDot: View {
                 Color.clear)  // 투명하게 변경 - 배경 점이 보이도록
             .frame(width: 4, height: 4)
             .scaleEffect(isActive ? 1.0 + intensity * 0.2 : 1.0)
-            .animation(.easeInOut(duration: 0.1), value: isActive)
-            .animation(.easeInOut(duration: 0.1), value: intensity)
+            // 애니메이션 단일화로 성능 개선
+            .animation(.easeInOut(duration: 0.2), value: isActive)
     }
 }

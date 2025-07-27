@@ -58,7 +58,7 @@ struct FrequencyDialView: View {
                             startFrequency = frequency
                             startCountryIndex = viewModel.countrySelectionIndex
                             startRotation = currentRotation
-                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            HapticManager.shared.impact(style: .light)
                         }
                         
                         // Calculate rotation based on drag
@@ -90,7 +90,7 @@ struct FrequencyDialView: View {
                             
                             // Haptic feedback when changing country
                             if oldIndex != Int(viewModel.countrySelectionIndex) {
-                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                HapticManager.shared.impact(style: .light)
                             }
                         } else {
                             // Normal frequency tuning mode
@@ -112,7 +112,7 @@ struct FrequencyDialView: View {
                             
                             // Haptic feedback at major frequencies
                             if Int(oldFrequency) != Int(frequency) {
-                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                HapticManager.shared.impact(style: .light)
                             }
                         }
                     }

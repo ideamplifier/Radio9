@@ -24,7 +24,7 @@ struct StationInfoView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
                     // Select Country text
-                    Text("Turn the dial to select a country")
+                    Text(LocalizationHelper.getLocalizedString(for: "turn_dial_select_country"))
                         .font(.system(size: 10, weight: .medium, design: .monospaced))
                         .foregroundColor(Color(red: 1.0, green: 0.8, blue: 0.5).opacity(0.7))
                         .shadow(color: Color(red: 1.0, green: 0.6, blue: 0.2).opacity(0.5), radius: 2)
@@ -43,19 +43,19 @@ struct StationInfoView: View {
                     // 하단 텍스트 영역 - 항상 높이 확보
                     Group {
                         if showEqualizerMessage {
-                            Text("EQUALIZER ON")
+                            Text(LocalizationHelper.getLocalizedString(for: "equalizer_on"))
                                 .font(.system(size: 10, weight: .medium, design: .monospaced))
                                 .foregroundColor(Color(red: 1.0, green: 0.8, blue: 0.5).opacity(0.8))
                                 .shadow(color: Color(red: 1.0, green: 0.6, blue: 0.2).opacity(0.5), radius: 2)
                                 .transition(.opacity)  // 줌아웃 효과 제거, opacity만
                         } else if viewModel.showAddedToFavoritesMessage {
-                            Text("Added to Favorites")
+                            Text(LocalizationHelper.getLocalizedString(for: "added_to_favorites"))
                                 .font(.system(size: 10, weight: .medium, design: .monospaced))
                                 .foregroundColor(Color(red: 1.0, green: 0.8, blue: 0.5).opacity(0.8))
                                 .shadow(color: Color(red: 1.0, green: 0.6, blue: 0.2).opacity(0.5), radius: 2)
                                 .transition(.opacity.combined(with: .scale))
                         } else if isLoading {
-                            Text("loading...")
+                            Text(LocalizationHelper.getLocalizedString(for: "loading"))
                                 .font(.system(size: 8.5, weight: .medium, design: .monospaced))
                                 .foregroundColor(Color(red: 1.0, green: 0.8, blue: 0.5).opacity(0.5))
                                 .shadow(color: Color(red: 1.0, green: 0.6, blue: 0.2).opacity(0.3), radius: 1)

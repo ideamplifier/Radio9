@@ -24,7 +24,7 @@ struct StationInfoModal: View {
     var body: some View {
         VStack(spacing: 20) {
             // Header
-            Text("NOW PLAYING")
+            Text(LocalizationHelper.getLocalizedString(for: "now_playing"))
                 .font(.system(size: 12, weight: .medium, design: .monospaced))
                 .foregroundColor(.secondary)
                 .padding(.top, 30)
@@ -69,7 +69,7 @@ struct StationInfoModal: View {
                     HStack(spacing: 6) {
                         Image(systemName: "music.note")
                             .font(.system(size: 14))
-                        Text("애플뮤직에서 보기")
+                        Text(LocalizationHelper.getLocalizedString(for: "view_in_apple_music"))
                             .font(.system(size: 14, weight: .medium))
                     }
                     .foregroundColor(.white)
@@ -82,7 +82,7 @@ struct StationInfoModal: View {
                 }
                 .padding(.top, 8)
             } else if isPlaying {
-                Text("No song information available")
+                Text(LocalizationHelper.getLocalizedString(for: "no_song_information"))
                     .font(.system(size: 16))
                     .foregroundColor(.secondary)
                     .italic()
@@ -110,6 +110,12 @@ struct StationDisplayView: View {
     let isDialInteracting: Bool
     @Binding var isPowerOn: Bool
     @State private var showStationInfo = false
+    
+    private func formatTime(_ seconds: Int) -> String {
+        let minutes = seconds / 60
+        let remainingSeconds = seconds % 60
+        return String(format: "%d:%02d", minutes, remainingSeconds)
+    }
     
     var body: some View {
         ZStack {
@@ -211,6 +217,33 @@ struct StationDisplayView: View {
                 .id("\(station?.id.uuidString ?? "")_\(isPlaying)") // 상태별 고유 ID (로딩 상태 제외)
                 
             }
+            // Sleep timer countdown or message at bottom left
+            .overlay(
+                Group {
+                    if let message = viewModel.sleepTimerMessage {
+                        Text(message)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(Color(red: 1.0, green: 0.9, blue: 0.7).opacity(0.8))
+                            .shadow(
+                                color: Color(red: 1.0, green: 0.7, blue: 0.3).opacity(0.3),
+                                radius: 2
+                            )
+                            .padding(.leading, 22)
+                            .padding(.bottom, 18)
+                    } else if let remainingTime = viewModel.sleepTimerRemainingTime {
+                        Text(formatTime(remainingTime))
+                            .font(.system(size: 11, weight: .medium, design: .monospaced))
+                            .foregroundColor(Color(red: 1.0, green: 0.9, blue: 0.7).opacity(0.8))
+                            .shadow(
+                                color: Color(red: 1.0, green: 0.7, blue: 0.3).opacity(0.3),
+                                radius: 2
+                            )
+                            .padding(.leading, 22)
+                            .padding(.bottom, 18)
+                    }
+                },
+                alignment: .bottomLeading
+            )
             // Country selector button and info button - overlay로 위치 고정
             .overlay(
                 HStack(spacing: 10) {
@@ -219,7 +252,7 @@ struct StationDisplayView: View {
                         Button(action: {
                             if viewModel.currentStation != nil {
                                 showStationInfo.toggle()
-                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                HapticManager.shared.impact(style: .light)
                             }
                         }) {
                             Image(systemName: "info.circle")

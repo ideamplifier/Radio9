@@ -11,7 +11,7 @@ class RadioViewModel: NSObject, ObservableObject {
     @Published var currentStation: RadioStation?
     @Published var isPlaying = false
     @Published var volume: Float = 1.0  // Max volume for testing
-    @Published var stations: [RadioStation] = RadioStation.sampleStations
+    @Published var stations: [RadioStation] = RadioStation.stations(for: Country.defaultCountry().code)
     @Published var currentFrequency: Double = Country.defaultCountry().defaultFrequency
     @Published var selectedCountry: Country = Country.defaultCountry()
     @Published var isCountrySelectionMode = false
@@ -24,6 +24,13 @@ class RadioViewModel: NSObject, ObservableObject {
     @Published var favoriteStations: [RadioStation] = []
     @Published var showAddedToFavoritesMessage = false
     @Published var showFavoritesDotAnimation = false
+    
+    // Sleep Timer
+    @Published var isSleepTimerActive = false
+    @Published var sleepTimerMinutes: Int = 0
+    @Published var sleepTimerRemainingTime: Int? = nil
+    @Published var sleepTimerMessage: String? = nil
+    private var sleepTimer: Timer?
     
     // Audio analyzer for equalizer
     let audioAnalyzer = AudioAnalyzer()
@@ -91,9 +98,11 @@ class RadioViewModel: NSObject, ObservableObject {
     override init() {
         super.init()
         
-        // Initialize with default data first
-        self.filteredStations = RadioStation.sampleStations
-        self.stations = RadioStation.sampleStations
+        // Initialize with default data first based on system country
+        let defaultCountry = Country.defaultCountry()
+        let countryStations = RadioStation.stations(for: defaultCountry.code)
+        self.filteredStations = countryStations
+        self.stations = countryStations
         
         // Perform heavy operations asynchronously
         Task { @MainActor in
@@ -1245,6 +1254,11 @@ class RadioViewModel: NSObject, ObservableObject {
             }
         }
         
+        // API 스테이션 로드 활성화 - 최대한 많은 채널 로드
+        let enableAPIStations = true
+        
+        guard enableAPIStations else { return }
+        
         // API에서 실제 스테이션 가져오기 (백그라운드에서)
         let loadingCountryCode = selectedCountry.code
         Task {
@@ -1355,19 +1369,19 @@ class RadioViewModel: NSObject, ObservableObject {
         if !favoriteStations.contains(where: { $0.id == station.id }) {
             favoriteStations.append(station)
             saveFavorites()
-            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            HapticManager.shared.impact(style: .medium)
             
             // Show feedback
             showAddedToFavoritesMessage = true
             
             // Hide message and start dot animation
             Task {
-                // Start dot animation 0.5 seconds earlier (at 1.5 seconds)
-                try? await Task.sleep(nanoseconds: 1_500_000_000)
+                // Start dot animation at 0.7 seconds
+                try? await Task.sleep(nanoseconds: 700_000_000)
                 showFavoritesDotAnimation = true
                 
-                // Hide message after 2 seconds
-                try? await Task.sleep(nanoseconds: 500_000_000)
+                // Hide message after 2 seconds total (2 - 0.7 = 1.3 seconds more)
+                try? await Task.sleep(nanoseconds: 1_300_000_000)
                 showAddedToFavoritesMessage = false
                 
                 // Stop dot animation after 3 blinks (about 2.4 seconds total)
@@ -1391,6 +1405,58 @@ class RadioViewModel: NSObject, ObservableObject {
             }
         }
         saveFavorites()
+    }
+    
+    // MARK: - Sleep Timer
+    
+    func setSleepTimer(minutes: Int) {
+        // Cancel existing timer
+        sleepTimer?.invalidate()
+        
+        // Set new timer
+        sleepTimerMinutes = minutes
+        isSleepTimerActive = true
+        
+        // Show "Timer On" message
+        sleepTimerMessage = LocalizationHelper.getLocalizedString(for: "timer_on")
+        
+        // After 1.5 seconds, start showing the countdown
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+            guard let self = self else { return }
+            self.sleepTimerMessage = nil
+            self.sleepTimerRemainingTime = minutes * 60
+        }
+        
+        // Start countdown
+        sleepTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            
+            if let remaining = self.sleepTimerRemainingTime {
+                if remaining > 0 {
+                    self.sleepTimerRemainingTime = remaining - 1
+                } else {
+                    // Timer finished - stop playback
+                    self.pause()
+                    self.cancelSleepTimer()
+                }
+            }
+        }
+    }
+    
+    func cancelSleepTimer() {
+        sleepTimer?.invalidate()
+        sleepTimer = nil
+        isSleepTimerActive = false
+        sleepTimerMinutes = 0
+        sleepTimerRemainingTime = nil
+        
+        // Show "Timer Off" message
+        sleepTimerMessage = LocalizationHelper.getLocalizedString(for: "timer_off")
+        
+        // Clear message after 1.5 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+            self?.sleepTimerMessage = nil
+        }
     }
     
     func isFavorite(station: RadioStation) -> Bool {

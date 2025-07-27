@@ -6,7 +6,7 @@ struct CountrySelectorButton: View {
     var body: some View {
         Button(action: {
             viewModel.toggleCountrySelectionMode()
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            HapticManager.shared.impact(style: .light)
         }) {
             ZStack {
                 // Button background with warm glow when active
@@ -25,8 +25,8 @@ struct CountrySelectorButton: View {
                 
                 // Country code or chevron icon
                 if viewModel.isCountrySelectionMode {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 12.6, weight: .bold))  // 10% smaller (14 * 0.9)
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 11.34, weight: .bold))  // 20% smaller (14 * 0.81)
                         .foregroundColor(Color(red: 1.0, green: 0.9, blue: 0.7))
                         .shadow(
                             color: Color(red: 1.0, green: 0.7, blue: 0.3),

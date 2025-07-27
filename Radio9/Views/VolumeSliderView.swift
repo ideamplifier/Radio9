@@ -34,7 +34,7 @@ struct VolumeSliderView: View {
                                 .onChanged { value in
                                     if !isDragging {
                                         isDragging = true
-                                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                        HapticManager.shared.impact(style: .light)
                                     }
                                     let newVolume = Float(value.location.x / geometry.size.width)
                                     volume = min(max(newVolume, 0), 1)
