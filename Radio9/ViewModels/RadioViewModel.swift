@@ -1255,7 +1255,7 @@ class RadioViewModel: NSObject, ObservableObject {
         }
         
         // API 스테이션 로드 활성화 - 최대한 많은 채널 로드
-        let enableAPIStations = true
+        let enableAPIStations = false
         
         guard enableAPIStations else { return }
         
