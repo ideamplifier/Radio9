@@ -29,3 +29,7 @@
 "now_playing" = "NOW PLAYING";
 "no_song_information" = "No song information";
 "view_in_apple_music" = "View in Apple Music";
+
+/* Legal */
+"legal_notice" = "Legal Notice";
+"disclaimer_text" = "This app provides access to publicly available internet radio streams. All content is provided by third-party broadcasters. We do not host or control any content.";

@@ -29,3 +29,7 @@
 "now_playing" = "지금 재생 중";
 "no_song_information" = "곡 정보 없음";
 "view_in_apple_music" = "애플뮤직에서 보기";
+
+/* Legal */
+"legal_notice" = "법적 고지";
+"disclaimer_text" = "이 앱은 공개적으로 이용 가능한 인터넷 라디오 스트림에 대한 접근을 제공합니다. 모든 콘텐츠는 제3자 방송사에 의해 제공됩니다. 저희는 어떠한 콘텐츠도 호스팅하거나 관리하지 않습니다.";

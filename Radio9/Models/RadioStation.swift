@@ -141,14 +141,6 @@ extension RadioStation {
         
         // 실제 작동하는 방송국들
         RadioStation(
-            name: "SBS Love FM",
-            frequency: 95.6,
-            streamURL: "https://radiolive.sbs.co.kr/lovepc/lovefm.stream/playlist.m3u8",
-            genre: .music,
-            subGenre: "Music",
-            countryCode: "KR"
-        ),
-        RadioStation(
             name: "Classic Odyssey",
             frequency: 96.8,
             streamURL: "http://live07.inlive.co.kr:21110/",
@@ -771,35 +763,11 @@ extension RadioStation {
             countryCode: "UK"
         ),
         RadioStation(
-            name: "Capital FM",
-            frequency: 95.8,
-            streamURL: "https://media-ssl.musicradio.com/CapitalMP3",
-            genre: .pop,
-            subGenre: "Pop",
-            countryCode: "UK"
-        ),
-        RadioStation(
-            name: "Classic FM",
-            frequency: 100.9,
-            streamURL: "https://media-ssl.musicradio.com/ClassicFMMP3",
-            genre: .classical,
-            subGenre: "Classical",
-            countryCode: "UK"
-        ),
-        RadioStation(
             name: "Jazz FM",
             frequency: 102.2,
             streamURL: "https://edge-bauerall-01-gos2.sharp-stream.com/jazzfm.mp3",
             genre: .jazz,
             subGenre: "Jazz",
-            countryCode: "UK"
-        ),
-        RadioStation(
-            name: "Kiss FM",
-            frequency: 100.0,
-            streamURL: "https://stream-kiss.planetradio.co.uk/kissnational.mp3",
-            genre: .music,
-            subGenre: "Dance",
             countryCode: "UK"
         ),
         
@@ -818,14 +786,6 @@ extension RadioStation {
             streamURL: "https://stream.live.vc.bbcmedia.co.uk/bbc_radio_five_live",
             genre: .sports,
             subGenre: "Sports/News",
-            countryCode: "UK"
-        ),
-        RadioStation(
-            name: "LBC News",
-            frequency: 97.3,
-            streamURL: "https://media-ssl.musicradio.com/LBCUK",
-            genre: .news,
-            subGenre: "Talk",
             countryCode: "UK"
         ),
         RadioStation(
@@ -865,14 +825,6 @@ extension RadioStation {
             countryCode: "UK"
         ),
         RadioStation(
-            name: "Heart FM",
-            frequency: 106.2,
-            streamURL: "https://media-ssl.musicradio.com/HeartLondonMP3",
-            genre: .pop,
-            subGenre: "Pop",
-            countryCode: "UK"
-        ),
-        RadioStation(
             name: "BBC Radio Scotland",
             frequency: 92.5,
             streamURL: "https://stream.live.vc.bbcmedia.co.uk/bbc_radio_scotland_fm",
@@ -897,67 +849,11 @@ extension RadioStation {
             countryCode: "UK"
         ),
         RadioStation(
-            name: "Smooth Radio",
-            frequency: 102.2,
-            streamURL: "https://media-ice.musicradio.com/SmoothLondonMP3",
-            genre: .music,
-            subGenre: "Easy Listening",
-            countryCode: "UK"
-        ),
-        RadioStation(
-            name: "Magic Radio",
-            frequency: 105.4,
-            streamURL: "https://stream-mz.planetradio.co.uk/magicnational.mp3",
-            genre: .music,
-            subGenre: "Adult Contemporary",
-            countryCode: "UK"
-        ),
-        RadioStation(
             name: "BBC Radio 1Xtra",
             frequency: 96.0,
             streamURL: "https://stream.live.vc.bbcmedia.co.uk/bbc_1xtra",
             genre: .music,
             subGenre: "Hip Hop/R&B",
-            countryCode: "UK"
-        ),
-        RadioStation(
-            name: "Gold Radio",
-            frequency: 104.9,
-            streamURL: "https://media-ssl.musicradio.com/GoldLondonMP3",
-            genre: .music,
-            subGenre: "Oldies",
-            countryCode: "UK"
-        ),
-        RadioStation(
-            name: "LBC Radio",
-            frequency: 97.3,
-            streamURL: "https://media-ssl.musicradio.com/LBCUKMP3",
-            genre: .talk,
-            subGenre: "Talk Radio",
-            countryCode: "UK"
-        ),
-        RadioStation(
-            name: "Radio X",
-            frequency: 104.9,
-            streamURL: "https://stream-radiox.planetradio.co.uk/radiox.mp3",
-            genre: .rock,
-            subGenre: "Alternative Rock",
-            countryCode: "UK"
-        ),
-        RadioStation(
-            name: "Planet Rock",
-            frequency: 105.6,
-            streamURL: "https://stream-planetrock.planetradio.co.uk/planetrock.mp3",
-            genre: .rock,
-            subGenre: "Classic Rock",
-            countryCode: "UK"
-        ),
-        RadioStation(
-            name: "Kerrang! Radio",
-            frequency: 105.2,
-            streamURL: "https://stream-kerrang.planetradio.co.uk/kerrang.mp3",
-            genre: .rock,
-            subGenre: "Metal/Rock",
             countryCode: "UK"
         ),
         RadioStation(
@@ -974,14 +870,6 @@ extension RadioStation {
             streamURL: "https://stream.funkidslive.com/funkids.mp3",
             genre: .entertainment,
             subGenre: "Children's Radio",
-            countryCode: "UK"
-        ),
-        RadioStation(
-            name: "Rock FM",
-            frequency: 97.4,
-            streamURL: "https://stream.rockfm.co.uk/rockfm.mp3",
-            genre: .rock,
-            subGenre: "Rock Hits",
             countryCode: "UK"
         ),
         RadioStation(
@@ -1004,130 +892,10 @@ extension RadioStation {
             subGenre: "Brazilian Pop",
             countryCode: "BR"
         ),
-        RadioStation(
-            name: "Mix FM",
-            frequency: 106.3,
-            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/MIXFM_SAOPAULO.mp3",
-            genre: .pop,
-            subGenre: "Pop Mix",
-            countryCode: "BR"
-        ),
-        RadioStation(
-            name: "Radio Bandeirantes",
-            frequency: 90.9,
-            streamURL: "https://evp.mm.uol.com.br/band_rodeio/band.m3u8",
-            genre: .news,
-            subGenre: "News/Talk",
-            countryCode: "BR"
-        ),
-        RadioStation(
-            name: "Antena 1",
-            frequency: 94.7,
-            streamURL: "https://antenaone.crossradio.com.br/stream/1",
-            genre: .rock,
-            subGenre: "Classic Rock",
-            countryCode: "BR"
-        ),
-        RadioStation(
-            name: "Alpha FM",
-            frequency: 101.7,
-            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/ALPHAFM_ADP.mp3",
-            genre: .rock,
-            subGenre: "Rock",
-            countryCode: "BR"
-        ),
-        RadioStation(
-            name: "Jovem Pan FM",
-            frequency: 105.7,
-            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/JP_SP.mp3",
-            genre: .rock,
-            subGenre: "Pop/Rock",
-            countryCode: "BR"
-        ),
-        RadioStation(
-            name: "Radio Transcontinental",
-            frequency: 104.7,
-            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/TRANSCONTINENTAL_FM.mp3",
-            genre: .music,
-            subGenre: "MPB",
-            countryCode: "BR"
-        ),
-        RadioStation(
-            name: "Nova Brasil FM",
-            frequency: 89.7,
-            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/NOVABRASILFMAAC.aac",
-            genre: .music,
-            subGenre: "Brazilian Music",
-            countryCode: "BR"
-        ),
-        RadioStation(
-            name: "Radio Nativa",
-            frequency: 95.3,
-            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/NATIVA_SP.mp3",
-            genre: .music,
-            subGenre: "Sertanejo",
-            countryCode: "BR"
-        ),
-        RadioStation(
-            name: "89 FM",
-            frequency: 89.1,
-            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/RADIO_89FM.mp3",
-            genre: .rock,
-            subGenre: "Rock",
-            countryCode: "BR"
-        )
     ]
     
     // Spain stations
     static let spainStations = [
-        RadioStation(
-            name: "Los 40",
-            frequency: 104.3,
-            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/LOS40.mp3",
-            genre: .pop,
-            subGenre: "Top 40",
-            countryCode: "ES"
-        ),
-        RadioStation(
-            name: "Kiss FM",
-            frequency: 102.7,
-            streamURL: "https://kissfm.kissfmradio.cires21.com/kissfm.mp3",
-            genre: .music,
-            subGenre: "Dance",
-            countryCode: "ES"
-        ),
-        RadioStation(
-            name: "Cadena SER",
-            frequency: 105.4,
-            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/CADENASER.mp3",
-            genre: .news,
-            subGenre: "News/Talk",
-            countryCode: "ES"
-        ),
-        RadioStation(
-            name: "COPE",
-            frequency: 106.3,
-            streamURL: "https://net1-cope-rrcast.flumotion.com/cope/net1.mp3",
-            genre: .news,
-            subGenre: "News/Talk",
-            countryCode: "ES"
-        ),
-        RadioStation(
-            name: "Rock FM",
-            frequency: 101.7,
-            streamURL: "https://rockfm-cope.flumotion.com/playlist.m3u8",
-            genre: .rock,
-            subGenre: "Rock",
-            countryCode: "ES"
-        ),
-        RadioStation(
-            name: "Radio Marca",
-            frequency: 103.5,
-            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/RADIOMARCA_NACIONAL.mp3",
-            genre: .sports,
-            subGenre: "Sports",
-            countryCode: "ES"
-        ),
         RadioStation(
             name: "Catalunya Radio",
             frequency: 102.8,
@@ -1142,46 +910,6 @@ extension RadioStation {
             streamURL: "https://icecast-streaming.nice264.com/melodiafm",
             genre: .music,
             subGenre: "Adult Contemporary",
-            countryCode: "ES"
-        ),
-        RadioStation(
-            name: "Los 40 Principales",
-            frequency: 93.9,
-            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/LOS40_SC",
-            genre: .pop,
-            subGenre: "Top 40",
-            countryCode: "ES"
-        ),
-        RadioStation(
-            name: "Cadena Dial",
-            frequency: 91.7,
-            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/CADENADIAL_SC",
-            genre: .pop,
-            subGenre: "Spanish Pop",
-            countryCode: "ES"
-        ),
-        RadioStation(
-            name: "Europa FM",
-            frequency: 91.3,
-            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/EUROPAFM_SC",
-            genre: .pop,
-            subGenre: "Contemporary",
-            countryCode: "ES"
-        ),
-        RadioStation(
-            name: "Kiss FM España",
-            frequency: 102.7,
-            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/KISSFM_SC",
-            genre: .music,
-            subGenre: "Dance/Electronic",
-            countryCode: "ES"
-        ),
-        RadioStation(
-            name: "Rock FM España",
-            frequency: 96.3,
-            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/ROCKFM_SC",
-            genre: .rock,
-            subGenre: "Rock",
             countryCode: "ES"
         ),
         RadioStation(
@@ -1201,22 +929,6 @@ extension RadioStation {
             countryCode: "ES"
         ),
         RadioStation(
-            name: "Onda Cero",
-            frequency: 89.6,
-            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/ONDACERO_SC",
-            genre: .news,
-            subGenre: "News/Talk",
-            countryCode: "ES"
-        ),
-        RadioStation(
-            name: "esRadio",
-            frequency: 107.6,
-            streamURL: "https://libertaddigital-radio-live1.flumotion.com/libertaddigital/radio.mp3",
-            genre: .news,
-            subGenre: "Talk Radio",
-            countryCode: "ES"
-        ),
-        RadioStation(
             name: "Radio Clásica",
             frequency: 96.5,
             streamURL: "https://rtvehlsvodlive.secure2.footprint.net/rtvehls/radioclasica_main.m3u8",
@@ -1233,22 +945,6 @@ extension RadioStation {
             countryCode: "ES"
         ),
         RadioStation(
-            name: "M80 Radio",
-            frequency: 89.0,
-            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/M80_SC",
-            genre: .rock,
-            subGenre: "80s Rock",
-            countryCode: "ES"
-        ),
-        RadioStation(
-            name: "Máxima FM",
-            frequency: 104.2,
-            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/MAXIMAFM_SC",
-            genre: .music,
-            subGenre: "Electronic/Dance",
-            countryCode: "ES"
-        ),
-        RadioStation(
             name: "Canal Fiesta Radio",
             frequency: 88.6,
             streamURL: "https://streaming.enacast.com/canalfiesta",
@@ -1256,66 +952,10 @@ extension RadioStation {
             subGenre: "Latin/Party",
             countryCode: "ES"
         ),
-        RadioStation(
-            name: "Loca FM",
-            frequency: 90.2,
-            streamURL: "https://streaming.locafm.com/stream",
-            genre: .music,
-            subGenre: "Dance/Electronic",
-            countryCode: "ES"
-        ),
-        RadioStation(
-            name: "Radio Marca",
-            frequency: 103.2,
-            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/RADIOMARCA_SC",
-            genre: .sports,
-            subGenre: "Sports",
-            countryCode: "ES"
-        ),
-        RadioStation(
-            name: "Hit FM",
-            frequency: 103.9,
-            streamURL: "https://streaming.hitfm.es/hitfm",
-            genre: .pop,
-            subGenre: "Top Hits",
-            countryCode: "ES"
-        ),
     ]
     
     // France stations
     static let franceStations = [
-        RadioStation(
-            name: "NRJ",
-            frequency: 100.3,
-            streamURL: "https://scdn.nrjaudio.fm/adwz2/fr/30001/mp3_128.mp3",
-            genre: .pop,
-            subGenre: "Hit Music",
-            countryCode: "FR"
-        ),
-        RadioStation(
-            name: "RTL",
-            frequency: 104.3,
-            streamURL: "https://streaming.radio.rtl.fr/rtl-1-44-128",
-            genre: .news,
-            subGenre: "News/Talk",
-            countryCode: "FR"
-        ),
-        RadioStation(
-            name: "Europe 1",
-            frequency: 104.7,
-            streamURL: "https://europe1.lmn.fm/europe1.mp3",
-            genre: .news,
-            subGenre: "News",
-            countryCode: "FR"
-        ),
-        RadioStation(
-            name: "Nostalgie",
-            frequency: 105.1,
-            streamURL: "https://scdn.nrjaudio.fm/adwz2/fr/30601/mp3_128.mp3",
-            genre: .pop,
-            subGenre: "Oldies",
-            countryCode: "FR"
-        ),
         RadioStation(
             name: "FIP",
             frequency: 105.1,
@@ -1328,46 +968,6 @@ extension RadioStation {
             name: "France Inter",
             frequency: 87.8,
             streamURL: "https://icecast.radiofrance.fr/franceinter-hifi.aac",
-            genre: .news,
-            subGenre: "News/Talk",
-            countryCode: "FR"
-        ),
-        RadioStation(
-            name: "RFM",
-            frequency: 103.9,
-            streamURL: "https://ais-live.cloud-services.paris/rfm.mp3",
-            genre: .pop,
-            subGenre: "Pop/Rock",
-            countryCode: "FR"
-        ),
-        RadioStation(
-            name: "Skyrock",
-            frequency: 96.0,
-            streamURL: "https://icecast.skyrock.net/s/natio_mp3_128k",
-            genre: .music,
-            subGenre: "Hip Hop/R&B",
-            countryCode: "FR"
-        ),
-        RadioStation(
-            name: "Virgin Radio France",
-            frequency: 103.5,
-            streamURL: "https://stream.virginradio.fr/virgin.mp3",
-            genre: .rock,
-            subGenre: "Rock/Pop",
-            countryCode: "FR"
-        ),
-        RadioStation(
-            name: "Chérie FM",
-            frequency: 91.3,
-            streamURL: "https://scdn.nrjaudio.fm/fr/30201/mp3_128.mp3",
-            genre: .pop,
-            subGenre: "Adult Contemporary",
-            countryCode: "FR"
-        ),
-        RadioStation(
-            name: "RMC",
-            frequency: 103.1,
-            streamURL: "https://chai5she.cdn.dvmr.fr/rmcinfo",
             genre: .news,
             subGenre: "News/Talk",
             countryCode: "FR"
@@ -1386,22 +986,6 @@ extension RadioStation {
             streamURL: "https://icecast.radiofrance.fr/mouv-hifi.aac",
             genre: .music,
             subGenre: "Urban/Hip Hop",
-            countryCode: "FR"
-        ),
-        RadioStation(
-            name: "Fun Radio",
-            frequency: 101.9,
-            streamURL: "https://streaming.radio.funradio.fr/fun-1-44-128",
-            genre: .music,
-            subGenre: "Dance/Electronic",
-            countryCode: "FR"
-        ),
-        RadioStation(
-            name: "RTL 2",
-            frequency: 105.9,
-            streamURL: "https://streaming.radio.rtl2.fr/rtl2-1-44-128",
-            genre: .pop,
-            subGenre: "Pop Rock",
             countryCode: "FR"
         ),
         RadioStation(
@@ -1513,14 +1097,6 @@ extension RadioStation {
     // Germany stations
     static let germanyStations = [
         RadioStation(
-            name: "Antenne Bayern",
-            frequency: 103.7,
-            streamURL: "https://s1-webradio.webradio.de/antenne",
-            genre: .pop,
-            subGenre: "Pop/Rock",
-            countryCode: "DE"
-        ),
-        RadioStation(
             name: "Bayern 3",
             frequency: 97.3,
             streamURL: "https://dispatcher.rndfnk.com/br/br3/live/mp3/mid",
@@ -1569,35 +1145,11 @@ extension RadioStation {
             countryCode: "DE"
         ),
         RadioStation(
-            name: "Radio FFH",
-            frequency: 105.9,
-            streamURL: "https://mp3.ffh.de/radioffh/hqlivestream.mp3",
-            genre: .pop,
-            subGenre: "Hit Music",
-            countryCode: "DE"
-        ),
-        RadioStation(
-            name: "Radio Energy",
-            frequency: 103.4,
-            streamURL: "https://stream.104.6rtl.com/rtl-live/mp3-128",
-            genre: .music,
-            subGenre: "Dance/Electronic",
-            countryCode: "DE"
-        ),
-        RadioStation(
             name: "Radio Eins",
             frequency: 95.8,
             streamURL: "https://radioeins.de/stream",
             genre: .rock,
             subGenre: "Alternative/Indie",
-            countryCode: "DE"
-        ),
-        RadioStation(
-            name: "bigFM",
-            frequency: 89.0,
-            streamURL: "https://streams.bigfm.de/bigfm-deutschland-128-mp3",
-            genre: .pop,
-            subGenre: "Hit Music",
             countryCode: "DE"
         ),
         RadioStation(
@@ -1633,54 +1185,6 @@ extension RadioStation {
             countryCode: "DE"
         ),
         RadioStation(
-            name: "Radio Regenbogen",
-            frequency: 102.8,
-            streamURL: "https://streams.regenbogen.de/rr-mannheim-128-mp3",
-            genre: .pop,
-            subGenre: "Pop Hits",
-            countryCode: "DE"
-        ),
-        RadioStation(
-            name: "sunshine live",
-            frequency: 103.8,
-            streamURL: "https://stream.sunshine-live.de/hq/mp3-192/radioplayer/",
-            genre: .music,
-            subGenre: "Electronic/Dance",
-            countryCode: "DE"
-        ),
-        RadioStation(
-            name: "Energy Deutschland",
-            frequency: 104.2,
-            streamURL: "https://streams.nrjaudio.fm/adwz1/de/55148/mp3_128.mp3",
-            genre: .music,
-            subGenre: "Dance/Pop",
-            countryCode: "DE"
-        ),
-        RadioStation(
-            name: "Rock Antenne",
-            frequency: 107.1,
-            streamURL: "https://stream.rockantenne.de/rockantenne/stream/mp3",
-            genre: .rock,
-            subGenre: "Rock",
-            countryCode: "DE"
-        ),
-        RadioStation(
-            name: "89.0 RTL",
-            frequency: 89.0,
-            streamURL: "https://streams.89.0rtl.de/rtl-live/mp3-128/konsole/",
-            genre: .pop,
-            subGenre: "Pop Hits",
-            countryCode: "DE"
-        ),
-        RadioStation(
-            name: "Radio PSR",
-            frequency: 103.4,
-            streamURL: "https://streams.radiopsr.de/psr-live/mp3-192/radioplayer/",
-            genre: .pop,
-            subGenre: "Saxony Pop",
-            countryCode: "DE"
-        ),
-        RadioStation(
             name: "Hit Radio FFH",
             frequency: 105.9,
             streamURL: "https://mp3.ffh.de/radioffh/hqlivestream.mp3",
@@ -1709,46 +1213,6 @@ extension RadioStation {
             countryCode: "IT"
         ),
         RadioStation(
-            name: "RTL 102.5",
-            frequency: 102.5,
-            streamURL: "https://streamingv2.shoutcast.com/rtl-1025",
-            genre: .pop,
-            subGenre: "Hit Radio",
-            countryCode: "IT"
-        ),
-        RadioStation(
-            name: "Radio Deejay",
-            frequency: 106.0,
-            streamURL: "https://radiodeejay-lh.akamaihd.net/i/RadioDeejay_Live_1@189857/master.m3u8",
-            genre: .pop,
-            subGenre: "Dance",
-            countryCode: "IT"
-        ),
-        RadioStation(
-            name: "Virgin Radio",
-            frequency: 104.5,
-            streamURL: "https://icecast.unitedradio.it/Virgin.mp3",
-            genre: .rock,
-            subGenre: "Rock",
-            countryCode: "IT"
-        ),
-        RadioStation(
-            name: "RDS",
-            frequency: 103.3,
-            streamURL: "https://icstream.rds.radio/rds",
-            genre: .pop,
-            subGenre: "Pop",
-            countryCode: "IT"
-        ),
-        RadioStation(
-            name: "Radio 105",
-            frequency: 105.0,
-            streamURL: "https://icecast.unitedradio.it/Radio105.mp3",
-            genre: .pop,
-            subGenre: "Hit Music",
-            countryCode: "IT"
-        ),
-        RadioStation(
             name: "Rai Radio 1",
             frequency: 89.7,
             streamURL: "https://icestreaming.rai.it/1.mp3",
@@ -1757,91 +1221,11 @@ extension RadioStation {
             countryCode: "IT"
         ),
         RadioStation(
-            name: "Radio Capital",
-            frequency: 95.1,
-            streamURL: "https://streamingv2.shoutcast.com/radiocapital",
-            genre: .rock,
-            subGenre: "Rock/Alternative",
-            countryCode: "IT"
-        ),
-        RadioStation(
-            name: "Radio m2o",
-            frequency: 90.5,
-            streamURL: "https://streamingv2.shoutcast.com/m2o",
-            genre: .music,
-            subGenre: "Dance/Electronic",
-            countryCode: "IT"
-        ),
-        RadioStation(
-            name: "Radio Kiss Kiss",
-            frequency: 97.6,
-            streamURL: "https://kisskiss.fluidstream.eu/KissKiss.aac",
-            genre: .pop,
-            subGenre: "Pop",
-            countryCode: "IT"
-        ),
-        RadioStation(
-            name: "Virgin Radio Italy",
-            frequency: 104.5,
-            streamURL: "https://icy.unitedradio.it/Virgin.mp3",
-            genre: .rock,
-            subGenre: "Rock",
-            countryCode: "IT"
-        ),
-        RadioStation(
-            name: "RDS",
-            frequency: 107.0,
-            streamURL: "https://stream.rds.it/RDS_mp3",
-            genre: .pop,
-            subGenre: "Contemporary",
-            countryCode: "IT"
-        ),
-        RadioStation(
-            name: "Radio Zeta",
-            frequency: 102.3,
-            streamURL: "https://live-radio02.mediahubaustralia.com/2RNW/mp3/",
-            genre: .music,
-            subGenre: "Easy Listening",
-            countryCode: "IT"
-        ),
-        RadioStation(
-            name: "M2O",
-            frequency: 90.2,
-            streamURL: "https://radiom2o-lh.akamaihd.net/i/m2oradio_1@568748/master.m3u8",
-            genre: .music,
-            subGenre: "Electronic/Dance",
-            countryCode: "IT"
-        ),
-        RadioStation(
-            name: "Radio Capital",
-            frequency: 101.2,
-            streamURL: "https://radiocapital-lh.akamaihd.net/i/RadioCapital_Live_1@196312/master.m3u8",
-            genre: .rock,
-            subGenre: "Classic Rock",
-            countryCode: "IT"
-        ),
-        RadioStation(
-            name: "Radio Dimensione Suono",
-            frequency: 100.7,
-            streamURL: "https://www.radiosmorfiadigitale.com/player/rds.m3u",
-            genre: .pop,
-            subGenre: "Italian Hits",
-            countryCode: "IT"
-        ),
-        RadioStation(
             name: "Rai Radio 2",
             frequency: 91.7,
             streamURL: "https://radiodue-lh.akamaihd.net/i/radiodue_1@325223/master.m3u8",
             genre: .music,
             subGenre: "Variety",
-            countryCode: "IT"
-        ),
-        RadioStation(
-            name: "Radio 24",
-            frequency: 103.0,
-            streamURL: "https://shoutcast.radio24.it:8010/",
-            genre: .news,
-            subGenre: "Business News",
             countryCode: "IT"
         ),
         RadioStation(
@@ -1881,67 +1265,11 @@ extension RadioStation {
             countryCode: "AU"
         ),
         RadioStation(
-            name: "Nova 96.9",
-            frequency: 96.9,
-            streamURL: "https://streaming.novaentertainment.com.au/nova969",
-            genre: .pop,
-            subGenre: "Hit Music",
-            countryCode: "AU"
-        ),
-        RadioStation(
-            name: "2GB Sydney",
-            frequency: 873.0,
-            streamURL: "https://21363.live.streamtheworld.com/2GB.mp3",
-            genre: .news,
-            subGenre: "Talk",
-            countryCode: "AU"
-        ),
-        RadioStation(
-            name: "KIIS 106.5",
-            frequency: 106.5,
-            streamURL: "https://kiis1065.akamaized.net/hls/live/2111556/KIIS1065/master.m3u8",
-            genre: .pop,
-            subGenre: "Top 40",
-            countryCode: "AU"
-        ),
-        RadioStation(
             name: "ABC Classic",
             frequency: 92.9,
             streamURL: "https://live-radio01.mediahubaustralia.com/2FMW/mp3/",
             genre: .classical,
             subGenre: "Classical",
-            countryCode: "AU"
-        ),
-        RadioStation(
-            name: "smooth 91.5",
-            frequency: 91.5,
-            streamURL: "https://21293.live.streamtheworld.com/SMOOTH915.mp3",
-            genre: .music,
-            subGenre: "Easy Listening",
-            countryCode: "AU"
-        ),
-        RadioStation(
-            name: "Gold 104.3",
-            frequency: 104.3,
-            streamURL: "https://21353.live.streamtheworld.com/GOLD1043.mp3",
-            genre: .pop,
-            subGenre: "Classic Hits",
-            countryCode: "AU"
-        ),
-        RadioStation(
-            name: "Fox FM",
-            frequency: 101.9,
-            streamURL: "https://21353.live.streamtheworld.com/FOX_1019.mp3",
-            genre: .pop,
-            subGenre: "Hit Music",
-            countryCode: "AU"
-        ),
-        RadioStation(
-            name: "3AW",
-            frequency: 693.0,
-            streamURL: "https://21363.live.streamtheworld.com/3AW.mp3",
-            genre: .news,
-            subGenre: "News/Talk",
             countryCode: "AU"
         ),
         RadioStation(
@@ -1957,14 +1285,6 @@ extension RadioStation {
     // Canada stations
     static let canadaStations = [
         RadioStation(
-            name: "Virgin Radio",
-            frequency: 99.9,
-            streamURL: "https://rogers-hls.leanstream.co/rogers/tor999.stream/playlist.m3u8",
-            genre: .pop,
-            subGenre: "Hit Music",
-            countryCode: "CA"
-        ),
-        RadioStation(
             name: "CBC Radio One",
             frequency: 99.1,
             streamURL: "https://cbcliveradio-lh.akamaihd.net/i/CBCR1_TOR@118420/master.m3u8",
@@ -1973,59 +1293,11 @@ extension RadioStation {
             countryCode: "CA"
         ),
         RadioStation(
-            name: "CHUM FM",
-            frequency: 104.5,
-            streamURL: "https://rogers-hls.leanstream.co/rogers/tor1045.stream/playlist.m3u8",
-            genre: .pop,
-            subGenre: "Adult Contemporary",
-            countryCode: "CA"
-        ),
-        RadioStation(
-            name: "Q107",
-            frequency: 107.0,
-            streamURL: "https://corus.leanstream.co/CILQFM-MP3",
-            genre: .rock,
-            subGenre: "Classic Rock",
-            countryCode: "CA"
-        ),
-        RadioStation(
-            name: "98.1 CHFI",
-            frequency: 98.1,
-            streamURL: "https://rogers-hls.leanstream.co/rogers/tor981.stream/playlist.m3u8",
-            genre: .pop,
-            subGenre: "Adult Contemporary",
-            countryCode: "CA"
-        ),
-        RadioStation(
-            name: "CJAD 800",
-            frequency: 800.0,
-            streamURL: "https://corus.leanstream.co/CJADAMMP3",
-            genre: .news,
-            subGenre: "News/Talk",
-            countryCode: "CA"
-        ),
-        RadioStation(
             name: "The Beat 92.5",
             frequency: 92.5,
             streamURL: "https://rogers-hls.leanstream.co/rogers/mtl925.stream/playlist.m3u8",
             genre: .music,
             subGenre: "Urban/Hip Hop",
-            countryCode: "CA"
-        ),
-        RadioStation(
-            name: "Boom 97.3",
-            frequency: 97.3,
-            streamURL: "https://stingray.leanstream.co/CFGQFM-MP3",
-            genre: .pop,
-            subGenre: "Classic Hits",
-            countryCode: "CA"
-        ),
-        RadioStation(
-            name: "TSN Radio",
-            frequency: 1050.0,
-            streamURL: "https://rogers-hls.leanstream.co/rogers/tor1050.stream/playlist.m3u8",
-            genre: .sports,
-            subGenre: "Sports",
             countryCode: "CA"
         ),
         RadioStation(
@@ -2041,30 +1313,6 @@ extension RadioStation {
     // Mexico stations
     static let mexicoStations = [
         RadioStation(
-            name: "Los 40 Mexico",
-            frequency: 104.3,
-            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/LOS40_MEXICO.mp3",
-            genre: .pop,
-            subGenre: "Top 40",
-            countryCode: "MX"
-        ),
-        RadioStation(
-            name: "Exa FM",
-            frequency: 104.9,
-            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/XHEXA_FM.mp3",
-            genre: .pop,
-            subGenre: "Pop",
-            countryCode: "MX"
-        ),
-        RadioStation(
-            name: "Radio Fórmula",
-            frequency: 103.3,
-            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/XERFR_AM.mp3",
-            genre: .news,
-            subGenre: "News/Talk",
-            countryCode: "MX"
-        ),
-        RadioStation(
             name: "Stereo Cien",
             frequency: 100.1,
             streamURL: "https://stream.zeno.fm/stereocien",
@@ -2078,38 +1326,6 @@ extension RadioStation {
             streamURL: "https://stream.zeno.fm/laz1073",
             genre: .music,
             subGenre: "Regional Mexican",
-            countryCode: "MX"
-        ),
-        RadioStation(
-            name: "Radio Felicidad",
-            frequency: 1180.0,
-            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/XEPH_AM.mp3",
-            genre: .music,
-            subGenre: "Traditional Mexican",
-            countryCode: "MX"
-        ),
-        RadioStation(
-            name: "Reactor 105.7",
-            frequency: 105.7,
-            streamURL: "https://reactor.radiomiled.com/stream",
-            genre: .rock,
-            subGenre: "Rock",
-            countryCode: "MX"
-        ),
-        RadioStation(
-            name: "Beat 100.9",
-            frequency: 100.9,
-            streamURL: "https://playerservices.streamtheworld.com/api/livestream-redirect/XHSON_FM.mp3",
-            genre: .music,
-            subGenre: "Electronic/Dance",
-            countryCode: "MX"
-        ),
-        RadioStation(
-            name: "Universal Stereo",
-            frequency: 92.1,
-            streamURL: "https://stream.zeno.fm/universal921",
-            genre: .pop,
-            subGenre: "Pop",
             countryCode: "MX"
         ),
         RadioStation(
@@ -2130,22 +1346,6 @@ extension RadioStation {
             streamURL: "https://sverigesradio.se/topsy/direkt/164-hi-mp3.m3u",
             genre: .music,
             subGenre: "Pop/Rock",
-            countryCode: "SE"
-        ),
-        RadioStation(
-            name: "Mix Megapol",
-            frequency: 104.3,
-            streamURL: "https://live-bauerse-fm.sharp-stream.com/mixmegapol_instream_se_mp3",
-            genre: .pop,
-            subGenre: "Hit Music",
-            countryCode: "SE"
-        ),
-        RadioStation(
-            name: "NRJ Sweden",
-            frequency: 105.1,
-            streamURL: "https://live-bauerse-fm.sharp-stream.com/nrj_instreamtest_se_mp3",
-            genre: .pop,
-            subGenre: "Contemporary",
             countryCode: "SE"
         ),
         RadioStation(

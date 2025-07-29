@@ -29,3 +29,7 @@
 "now_playing" = "再生中";
 "no_song_information" = "曲情報なし";
 "view_in_apple_music" = "Apple Musicで見る";
+
+/* Legal */
+"legal_notice" = "法的通知";
+"disclaimer_text" = "このアプリは公開されているインターネットラジオストリームへのアクセスを提供します。すべてのコンテンツは第三者の放送局によって提供されています。私たちはコンテンツをホストまたは管理していません。";

@@ -81,6 +81,28 @@ struct SettingsModalView: View {
             .padding(.horizontal, 20)
             .padding(.top, 16)
             
+            // Legal Notice
+            VStack(alignment: .leading, spacing: 12) {
+                Text(LocalizationHelper.getLocalizedString(for: "legal_notice"))
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.secondary)
+                
+                Text(LocalizationHelper.getLocalizedString(for: "disclaimer_text"))
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundColor(.secondary.opacity(0.8))
+                    .lineSpacing(4)
+                    .multilineTextAlignment(.leading)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.gray.opacity(0.08))
+            )
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
+            
             Spacer()
             
             // App info - 인스타그램 연결
@@ -107,7 +129,7 @@ struct SettingsModalView: View {
             .buttonStyle(PlainButtonStyle())
             .padding(.bottom, 30)
         }
-        .presentationDetents([.height(360)])
+        .presentationDetents([.height(480)])
         .presentationDragIndicator(.hidden)
         .presentationCornerRadius(30)
     }
