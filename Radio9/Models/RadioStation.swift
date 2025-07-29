@@ -181,14 +181,6 @@ extension RadioStation {
             countryCode: "KR"
         ),
         RadioStation(
-            name: "BBS 불교방송",
-            frequency: 101.9,
-            streamURL: "http://bbslive.clouducs.com:1935/bbsradio-live/livestream/playlist.m3u8",
-            genre: .culture,
-            subGenre: "Buddhist",
-            countryCode: "KR"
-        ),
-        RadioStation(
             name: "EBS FM",
             frequency: 104.5,
             streamURL: "http://ebsonairiosaod.ebs.co.kr/fmradiofamilypc/familypc1m/playlist.m3u8",
