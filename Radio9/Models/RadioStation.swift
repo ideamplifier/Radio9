@@ -641,36 +641,12 @@ extension RadioStation {
     // UK stations
     static let ukStations = [
         // Music stations
-        RadioStation(
-            name: "Jazz FM",
-            frequency: 102.2,
-            streamURL: "https://edge-bauerall-01-gos2.sharp-stream.com/jazzfm.mp3",
-            genre: .jazz,
-            subGenre: "Jazz",
-            countryCode: "UK"
-        ),
         
         // News stations
-        RadioStation(
-            name: "Times Radio",
-            frequency: 104.9,
-            streamURL: "https://timesradio.wireless.radio/stream",
-            genre: .news,
-            subGenre: "News/Talk",
-            countryCode: "UK"
-        ),
         
         // Education/Culture
         
         // Entertainment
-        RadioStation(
-            name: "Absolute Radio",
-            frequency: 105.8,
-            streamURL: "https://stream.absoluteradio.co.uk/absolute",
-            genre: .rock,
-            subGenre: "Rock",
-            countryCode: "UK"
-        ),
         RadioStation(
             name: "Fun Kids",
             frequency: 106.7,
@@ -682,16 +658,7 @@ extension RadioStation {
     ]
     
     // Brazil stations
-    static let brazilStations = [
-        RadioStation(
-            name: "Radio Globo",
-            frequency: 89.1,
-            streamURL: "https://medias.sgr.globo.com/hls/aRGloboRJ/aRGloboRJ.m3u8",
-            genre: .pop,
-            subGenre: "Brazilian Pop",
-            countryCode: "BR"
-        ),
-    ]
+    static let brazilStations: [RadioStation] = []
     
     // Spain stations
     static let spainStations = [
@@ -704,27 +671,11 @@ extension RadioStation {
             countryCode: "ES"
         ),
         RadioStation(
-            name: "Melodia FM",
-            frequency: 98.4,
-            streamURL: "https://icecast-streaming.nice264.com/melodiafm",
-            genre: .music,
-            subGenre: "Adult Contemporary",
-            countryCode: "ES"
-        ),
-        RadioStation(
             name: "Radio Nacional",
             frequency: 88.2,
             streamURL: "https://rtvehlsvodlive.secure2.footprint.net/rtvehls/rne1_main.m3u8",
             genre: .news,
             subGenre: "Public Radio",
-            countryCode: "ES"
-        ),
-        RadioStation(
-            name: "COPE",
-            frequency: 100.7,
-            streamURL: "https://flucast-m04-06.flumotion.com/cope/net1.mp3",
-            genre: .news,
-            subGenre: "News/Talk",
             countryCode: "ES"
         ),
         RadioStation(
@@ -741,14 +692,6 @@ extension RadioStation {
             streamURL: "https://rtvehlsvodlive.secure2.footprint.net/rtvehls/radio3_main.m3u8",
             genre: .music,
             subGenre: "Alternative/Indie",
-            countryCode: "ES"
-        ),
-        RadioStation(
-            name: "Canal Fiesta Radio",
-            frequency: 88.6,
-            streamURL: "https://streaming.enacast.com/canalfiesta",
-            genre: .music,
-            subGenre: "Latin/Party",
             countryCode: "ES"
         ),
     ]
@@ -804,59 +747,11 @@ extension RadioStation {
             countryCode: "FR"
         ),
         RadioStation(
-            name: "Rire & Chansons",
-            frequency: 97.4,
-            streamURL: "https://scdn.nrjaudio.fm/adwz2/fr/30401/mp3_128.mp3",
-            genre: .entertainment,
-            subGenre: "Comedy/Music",
-            countryCode: "FR"
-        ),
-        RadioStation(
-            name: "Radio Nova",
-            frequency: 101.5,
-            streamURL: "https://novazz.ice.infomaniak.ch/novazz-128.mp3",
-            genre: .music,
-            subGenre: "Alternative",
-            countryCode: "FR"
-        ),
-        RadioStation(
-            name: "TSF Jazz",
-            frequency: 89.9,
-            streamURL: "https://tsfjazz.ice.infomaniak.ch/tsfjazz-high.mp3",
-            genre: .jazz,
-            subGenre: "Jazz",
-            countryCode: "FR"
-        ),
-        RadioStation(
-            name: "M Radio",
-            frequency: 88.6,
-            streamURL: "https://mfm.ice.infomaniak.ch/mfm-128.mp3",
-            genre: .pop,
-            subGenre: "French Hits",
-            countryCode: "FR"
-        ),
-        RadioStation(
             name: "Oui FM",
             frequency: 102.3,
             streamURL: "https://ouifm.ice.infomaniak.ch/ouifm-high.mp3",
             genre: .rock,
             subGenre: "Rock",
-            countryCode: "FR"
-        ),
-        RadioStation(
-            name: "Radio Classique",
-            frequency: 101.1,
-            streamURL: "https://radioclassique.ice.infomaniak.ch/radioclassique-high.mp3",
-            genre: .classical,
-            subGenre: "Classical",
-            countryCode: "FR"
-        ),
-        RadioStation(
-            name: "BFM Business",
-            frequency: 96.4,
-            streamURL: "https://bfmbusiness.scdn.arkena.com/bfmbusiness.mp3",
-            genre: .news,
-            subGenre: "Business News",
             countryCode: "FR"
         ),
         RadioStation(
@@ -1004,14 +899,6 @@ extension RadioStation {
     // Italy stations
     static let italyStations = [
         RadioStation(
-            name: "Radio Italia",
-            frequency: 105.0,
-            streamURL: "https://radioitaliasmi.akamaized.net/hls/live/2093120/RISMI/master.m3u8",
-            genre: .pop,
-            subGenre: "Italian Pop",
-            countryCode: "IT"
-        ),
-        RadioStation(
             name: "Rai Radio 1",
             frequency: 89.7,
             streamURL: "https://icestreaming.rai.it/1.mp3",
@@ -1035,22 +922,6 @@ extension RadioStation {
             subGenre: "Alternative News",
             countryCode: "IT"
         ),
-        RadioStation(
-            name: "Radio Freccia",
-            frequency: 100.8,
-            streamURL: "https://radiofreccia-lh.akamaihd.net/i/RadioFreccia_1@196312/master.m3u8",
-            genre: .rock,
-            subGenre: "Classic Rock",
-            countryCode: "IT"
-        ),
-        RadioStation(
-            name: "Radio Bruno",
-            frequency: 93.3,
-            streamURL: "https://onair15.xdevel.com:8007/stream",
-            genre: .pop,
-            subGenre: "Regional Pop",
-            countryCode: "IT"
-        )
     ]
     
     // Australia stations
