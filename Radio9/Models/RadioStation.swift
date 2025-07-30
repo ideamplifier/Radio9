@@ -105,65 +105,8 @@ extension RadioStation {
             subGenre: "Oldies",
             countryCode: "KR"
         ),
-        // TBN 교통방송 (실제 작동)
-        RadioStation(
-            name: "TBN 부산교통방송",
-            frequency: 94.9,
-            streamURL: "http://radio2.tbn.or.kr:1935/busan/myStream/playlist.m3u8",
-            genre: .news,
-            subGenre: "Traffic/News",
-            countryCode: "KR"
-        ),
-        RadioStation(
-            name: "TBN 교통방송",
-            frequency: 96.4,
-            streamURL: "http://radio2.tbn.or.kr:1935/gyeongin/myStream/playlist.m3u8",
-            genre: .news,
-            subGenre: "Traffic/News",
-            countryCode: "KR"
-        ),
-        RadioStation(
-            name: "TBN 대구교통방송",
-            frequency: 102.3,
-            streamURL: "http://radio2.tbn.or.kr:1935/daegu/myStream/playlist.m3u8",
-            genre: .news,
-            subGenre: "Traffic/News",
-            countryCode: "KR"
-        ),
-        RadioStation(
-            name: "TBN 울산교통방송",
-            frequency: 105.6,
-            streamURL: "http://radio2.tbn.or.kr:1935/ulsan/myStream/playlist.m3u8",
-            genre: .news,
-            subGenre: "Traffic/News",
-            countryCode: "KR"
-        ),
         
         // 실제 작동하는 방송국들
-        RadioStation(
-            name: "Classic Odyssey",
-            frequency: 96.8,
-            streamURL: "http://live07.inlive.co.kr:21110/",
-            genre: .classical,
-            subGenre: "Classical",
-            countryCode: "KR"
-        ),
-        RadioStation(
-            name: "평양FM",
-            frequency: 97.6,
-            streamURL: "https://listen7.myradio24.com/69366",
-            genre: .culture,
-            subGenre: "North Korean Music",
-            countryCode: "KR"
-        ),
-        RadioStation(
-            name: "OBS 라디오",
-            frequency: 98.0,
-            streamURL: "https://vod3.obs.co.kr:444/live/obsstream1/radio.stream/playlist.m3u8",
-            genre: .music,
-            subGenre: "Regional",
-            countryCode: "KR"
-        ),
         RadioStation(
             name: "Arirang Radio",
             frequency: 88.1,
@@ -183,7 +126,7 @@ extension RadioStation {
         RadioStation(
             name: "EBS FM",
             frequency: 104.5,
-            streamURL: "http://ebsonairiosaod.ebs.co.kr/fmradiofamilypc/familypc1m/playlist.m3u8",
+            streamURL: "https://ebsonairiosaod.ebs.co.kr/fmradiofamilypc/familypc1m/playlist.m3u8",
             genre: .education,
             subGenre: "Education",
             countryCode: "KR"
@@ -191,29 +134,13 @@ extension RadioStation {
         RadioStation(
             name: "EBS TV-Kids",
             frequency: 104.8,
-            streamURL: "http://ebsonairios.ebs.co.kr/ebsufamilypc/familypc1m/playlist.m3u8",
+            streamURL: "https://ebsonairios.ebs.co.kr/ebsufamilypc/familypc1m/playlist.m3u8",
             genre: .education,
             subGenre: "Kids Education",
             countryCode: "KR"
         ),
-        RadioStation(
-            name: "SoneFM (SuwonFM)",
-            frequency: 106.4,
-            streamURL: "http://115.85.182.39/sonefm",
-            genre: .music,
-            subGenre: "Local FM",
-            countryCode: "KR"
-        ),
         
         // 온라인 전용 K-Pop 방송국들
-        RadioStation(
-            name: "비전트로트",
-            frequency: 95.2,
-            streamURL: "http://pb1.inlive.co.kr:10070/",
-            genre: .music,
-            subGenre: "Trot",
-            countryCode: "KR"
-        ),
         RadioStation(
             name: "K-Pop 24/7",
             frequency: 88.7,
@@ -228,14 +155,6 @@ extension RadioStation {
             streamURL: "https://listen.openstream.co/6393/audio",
             genre: .pop,
             subGenre: "K-Ballad",
-            countryCode: "KR"
-        ),
-        RadioStation(
-            name: "Traditional Korean Music",
-            frequency: 99.1,
-            streamURL: "https://streamer.radio.co/s5aae3c2e8/listen",
-            genre: .culture,
-            subGenre: "Traditional",
             countryCode: "KR"
         )
     ]
@@ -723,38 +642,6 @@ extension RadioStation {
     static let ukStations = [
         // Music stations
         RadioStation(
-            name: "BBC Radio 1",
-            frequency: 97.6,
-            streamURL: "https://stream.live.vc.bbcmedia.co.uk/bbc_radio_one",
-            genre: .pop,
-            subGenre: "Pop/Dance",
-            countryCode: "UK"
-        ),
-        RadioStation(
-            name: "BBC Radio 2",
-            frequency: 88.1,
-            streamURL: "https://stream.live.vc.bbcmedia.co.uk/bbc_radio_two",
-            genre: .music,
-            subGenre: "Adult Contemporary",
-            countryCode: "UK"
-        ),
-        RadioStation(
-            name: "BBC Radio 3",
-            frequency: 90.2,
-            streamURL: "https://stream.live.vc.bbcmedia.co.uk/bbc_radio_three",
-            genre: .classical,
-            subGenre: "Classical",
-            countryCode: "UK"
-        ),
-        RadioStation(
-            name: "BBC Radio 6",
-            frequency: 97.9,
-            streamURL: "https://stream.live.vc.bbcmedia.co.uk/bbc_6music",
-            genre: .rock,
-            subGenre: "Alternative",
-            countryCode: "UK"
-        ),
-        RadioStation(
             name: "Jazz FM",
             frequency: 102.2,
             streamURL: "https://edge-bauerall-01-gos2.sharp-stream.com/jazzfm.mp3",
@@ -765,22 +652,6 @@ extension RadioStation {
         
         // News stations
         RadioStation(
-            name: "BBC Radio 4",
-            frequency: 93.5,
-            streamURL: "https://stream.live.vc.bbcmedia.co.uk/bbc_radio_fourfm",
-            genre: .news,
-            subGenre: "News/Talk",
-            countryCode: "UK"
-        ),
-        RadioStation(
-            name: "BBC Radio 5",
-            frequency: 909.0,
-            streamURL: "https://stream.live.vc.bbcmedia.co.uk/bbc_radio_five_live",
-            genre: .sports,
-            subGenre: "Sports/News",
-            countryCode: "UK"
-        ),
-        RadioStation(
             name: "Times Radio",
             frequency: 104.9,
             streamURL: "https://timesradio.wireless.radio/stream",
@@ -790,22 +661,6 @@ extension RadioStation {
         ),
         
         // Education/Culture
-        RadioStation(
-            name: "BBC World Service",
-            frequency: 91.6,
-            streamURL: "https://stream.live.vc.bbcmedia.co.uk/bbc_world_service",
-            genre: .education,
-            subGenre: "World News",
-            countryCode: "UK"
-        ),
-        RadioStation(
-            name: "BBC Radio 4 Extra",
-            frequency: 198.0,
-            streamURL: "https://stream.live.vc.bbcmedia.co.uk/bbc_radio_four_extra",
-            genre: .entertainment,
-            subGenre: "Comedy/Drama",
-            countryCode: "UK"
-        ),
         
         // Entertainment
         RadioStation(
@@ -817,59 +672,11 @@ extension RadioStation {
             countryCode: "UK"
         ),
         RadioStation(
-            name: "BBC Radio Scotland",
-            frequency: 92.5,
-            streamURL: "https://stream.live.vc.bbcmedia.co.uk/bbc_radio_scotland_fm",
-            genre: .news,
-            subGenre: "Regional",
-            countryCode: "UK"
-        ),
-        RadioStation(
-            name: "BBC Radio Wales",
-            frequency: 95.2,
-            streamURL: "https://stream.live.vc.bbcmedia.co.uk/bbc_radio_wales_fm",
-            genre: .news,
-            subGenre: "Regional",
-            countryCode: "UK"
-        ),
-        RadioStation(
-            name: "BBC Radio Ulster",
-            frequency: 92.4,
-            streamURL: "https://stream.live.vc.bbcmedia.co.uk/bbc_radio_ulster",
-            genre: .news,
-            subGenre: "Regional",
-            countryCode: "UK"
-        ),
-        RadioStation(
-            name: "BBC Radio 1Xtra",
-            frequency: 96.0,
-            streamURL: "https://stream.live.vc.bbcmedia.co.uk/bbc_1xtra",
-            genre: .music,
-            subGenre: "Hip Hop/R&B",
-            countryCode: "UK"
-        ),
-        RadioStation(
-            name: "BBC Asian Network",
-            frequency: 94.6,
-            streamURL: "https://stream.live.vc.bbcmedia.co.uk/bbc_asian_network",
-            genre: .music,
-            subGenre: "Asian Music",
-            countryCode: "UK"
-        ),
-        RadioStation(
             name: "Fun Kids",
             frequency: 106.7,
             streamURL: "https://stream.funkidslive.com/funkids.mp3",
             genre: .entertainment,
             subGenre: "Children's Radio",
-            countryCode: "UK"
-        ),
-        RadioStation(
-            name: "BBC Radio Ulster",
-            frequency: 94.5,
-            streamURL: "https://stream.live.vc.bbcmedia.co.uk/bbc_radio_ulster",
-            genre: .music,
-            subGenre: "Northern Irish",
             countryCode: "UK"
         )
     ]

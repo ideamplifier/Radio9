@@ -674,8 +674,8 @@ class RadioViewModel: NSObject, ObservableObject {
         loadTimeoutTask?.cancel()
         isLoading = true
         
-        // Set timeout - 빠른 응답을 위해 5초로 단축
-        let timeoutDuration: UInt64 = 5_000_000_000 // 5초
+        // Set timeout - 빠른 응답을 위해 3초로 단축
+        let timeoutDuration: UInt64 = 3_000_000_000 // 3초
         loadTimeoutTask = Task { @MainActor in
             try? await Task.sleep(nanoseconds: timeoutDuration)
             if self.isLoading {
