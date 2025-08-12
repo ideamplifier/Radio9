@@ -82,6 +82,7 @@ struct RadioStation: Identifiable, Codable, Equatable {
         }
         self.id = UUID()
         self.countryCode = "KR"
+        self.isPodcast = false  // 기본값 false
     }
     
     init(name: String, frequency: Double, streamURL: String, genre: StationGenre, subGenre: String? = nil) {
@@ -92,6 +93,7 @@ struct RadioStation: Identifiable, Codable, Equatable {
         self.genre = genre
         self.subGenre = subGenre
         self.countryCode = "KR"
+        self.isPodcast = false  // 기본값 false
     }
 }
 
