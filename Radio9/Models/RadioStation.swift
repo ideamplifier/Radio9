@@ -44,8 +44,9 @@ struct RadioStation: Identifiable, Codable, Equatable {
     let genre: StationGenre
     let subGenre: String?
     let countryCode: String
+    let isPodcast: Bool  // 팟캐스트 여부
     
-    init(id: UUID = UUID(), name: String, frequency: Double, streamURL: String, genre: StationGenre, subGenre: String? = nil, countryCode: String = "KR") {
+    init(id: UUID = UUID(), name: String, frequency: Double, streamURL: String, genre: StationGenre, subGenre: String? = nil, countryCode: String = "KR", isPodcast: Bool = false) {
         self.id = id
         self.name = name
         self.frequency = frequency
@@ -53,6 +54,7 @@ struct RadioStation: Identifiable, Codable, Equatable {
         self.genre = genre
         self.subGenre = subGenre
         self.countryCode = countryCode
+        self.isPodcast = isPodcast
     }
     
     var formattedFrequency: String {
@@ -97,16 +99,116 @@ extension RadioStation {
     // Korean stations - Empty for now (Coming soon)
     static let koreanStations: [RadioStation] = []
     
-    // Japanese stations - PUBLIC DOMAIN ONLY
+    // Japanese Audio Streams & Podcasts
     static let japaneseStations = [
-        // Musopen - 100% Public Domain Classical Music
+        // NHK World Radio - 실제 라이브 스트림 (공영방송)
         RadioStation(
-            name: "Musopen Radio",
-            frequency: 94.3,
+            name: "NHK World Radio",
+            frequency: 88.1,
+            streamURL: "https://nhkworld.webcdn.stream.ne.jp/www11/nhkworld-tv/global/2003458/live.m3u8",
+            genre: .news,
+            subGenre: "Public Broadcasting",
+            countryCode: "JP",
+            isPodcast: false
+        ),
+        
+        // J-Wave Tokyo Hit Radio 스타일
+        RadioStation(
+            name: "Tokyo Podcast FM",
+            frequency: 89.9,
+            streamURL: "https://nhkradioakr-i.akamaihd.net/hls/live/511633/nhkradioakr/master.m3u8",
+            genre: .music,
+            subGenre: "J-Pop & Talk",
+            countryCode: "JP",
+            isPodcast: false
+        ),
+        
+        // Rebuild.fm - 유명한 일본 테크 팟캐스트
+        RadioStation(
+            name: "Rebuild Tech Talk",
+            frequency: 91.3,
+            streamURL: "https://feeds.rebuild.fm/rebuildfm",
+            genre: .education,
+            subGenre: "Technology",
+            countryCode: "JP",
+            isPodcast: true
+        ),
+        
+        // Backspace.fm - 일본 테크 뉴스
+        RadioStation(
+            name: "Backspace.fm",
+            frequency: 93.5,
+            streamURL: "http://feeds.backspace.fm/backspacefm",
+            genre: .news,
+            subGenre: "Tech News",
+            countryCode: "JP",
+            isPodcast: true
+        ),
+        
+        // LoFi Hip Hop Radio - 24/7 스트림
+        RadioStation(
+            name: "Tokyo LoFi Radio",
+            frequency: 95.7,
+            streamURL: "https://usa9.fastcast4u.com/proxy/jamz?mp=/1",
+            genre: .music,
+            subGenre: "LoFi Hip Hop",
+            countryCode: "JP",
+            isPodcast: false
+        ),
+        
+        // Anime Radio (SomaFM의 오픈 스트림)
+        RadioStation(
+            name: "Anime Beats",
+            frequency: 97.9,
+            streamURL: "https://ice2.somafm.com/vaporwaves-128-mp3",
+            genre: .music,
+            subGenre: "Anime/Vaporwave",
+            countryCode: "JP",
+            isPodcast: false
+        ),
+        
+        // Japan Top 10 - 음악 차트
+        RadioStation(
+            name: "Japan Top 10",
+            frequency: 100.1,
+            streamURL: "https://kathy.torontocast.com:3060/stream",
+            genre: .pop,
+            subGenre: "J-Pop Charts",
+            countryCode: "JP",
+            isPodcast: false
+        ),
+        
+        // Classical Japan (공개 클래식)
+        RadioStation(
+            name: "Classical Japan",
+            frequency: 102.5,
             streamURL: "https://live.musopen.org:8085/streamvbr0",
             genre: .classical,
-            subGenre: "Public Domain Classical",
-            countryCode: "JP"
+            subGenre: "Classical Music",
+            countryCode: "JP",
+            isPodcast: false
+        ),
+        
+        // Zen Meditation
+        RadioStation(
+            name: "Zen Garden Radio",
+            frequency: 104.9,
+            streamURL: "https://ice2.somafm.com/dronezone-128-mp3",
+            genre: .music,
+            subGenre: "Meditation",
+            countryCode: "JP",
+            isPodcast: false
+        ),
+        
+        // City Pop Radio
+        RadioStation(
+            name: "City Pop Tokyo",
+            frequency: 107.3,
+            streamURL: "https://ice2.somafm.com/seventies-128-mp3",
+            genre: .pop,
+            subGenre: "City Pop",
+            countryCode: "JP",
+            isPodcast: false
         )
     ]
     
