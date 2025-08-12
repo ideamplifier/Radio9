@@ -16,7 +16,7 @@ struct VersionPlateView: View {
                             .stroke(Color.gray.opacity(0.5), lineWidth: 0.5)
                     )
                 
-                Text("1.0.0")
+                Text("1.1.0")
                     .font(.system(size: 10.5, weight: .medium, design: .monospaced))
                     .foregroundColor(Color.black.opacity(0.65))
             }
