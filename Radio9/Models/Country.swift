@@ -17,7 +17,7 @@ struct Country: Identifiable, Equatable {
         Country(code: "IS", name: "Iceland", flag: "🇮🇸", defaultFrequency: 92.4),   // Rás 1
         Country(code: "IN", name: "India", flag: "🇮🇳", defaultFrequency: 91.1),     // Radio City Hindi
         Country(code: "IT", name: "Italy", flag: "🇮🇹", defaultFrequency: 105.0),    // Radio Italia
-        Country(code: "JP", name: "Japan", flag: "🇯🇵", defaultFrequency: 89.7),     // Japan Hits
+        Country(code: "JP", name: "Japan", flag: "🇯🇵", defaultFrequency: 88.1),     // 24/7 LoFi Radio
         Country(code: "KR", name: "South Korea", flag: "🇰🇷", defaultFrequency: 92.4), // 올드팝카페
         Country(code: "MX", name: "Mexico", flag: "🇲🇽", defaultFrequency: 104.3),   // Los 40
         Country(code: "MN", name: "Mongolia", flag: "🇲🇳", defaultFrequency: 99.0),  // MNB Radio
@@ -31,8 +31,7 @@ struct Country: Identifiable, Equatable {
     ].sorted { $0.name < $1.name }
     
     static func defaultCountry() -> Country {
-        let locale = Locale.current
-        let countryCode = locale.region?.identifier ?? "US"
-        return countries.first { $0.code == countryCode } ?? countries.first { $0.code == "US" }!
+        // Always default to Japan for now
+        return countries.first { $0.code == "JP" }!
     }
 }

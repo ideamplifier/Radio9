@@ -94,298 +94,77 @@ struct RadioStation: Identifiable, Codable, Equatable {
 }
 
 extension RadioStation {
-    // Korean stations - 검증된 실제 작동 방송국들만 포함
-    static let koreanStations = [
-        // 올드팝카페 - 가장 빠른 연결속도
-        RadioStation(
-            name: "올드팝카페",
-            frequency: 92.4,
-            streamURL: "http://cast.oldpopcafe.net:7080/",
-            genre: .pop,
-            subGenre: "Oldies",
-            countryCode: "KR"
-        ),
-        
-        // 실제 작동하는 방송국들
-        RadioStation(
-            name: "Arirang Radio",
-            frequency: 88.1,
-            streamURL: "http://amdlive-ch01.ctnd.com.edgesuite.net/arirang_1ch/smil:arirang_1ch.smil/playlist.m3u8",
-            genre: .education,
-            subGenre: "English/International",
-            countryCode: "KR"
-        ),
-        RadioStation(
-            name: "Arirang TV",
-            frequency: 98.4,
-            streamURL: "http://amdlive.ctnd.com.edgesuite.net/arirang_1ch/smil:arirang_1ch.smil/playlist.m3u8",
-            genre: .education,
-            subGenre: "Korean Culture",
-            countryCode: "KR"
-        ),
-        RadioStation(
-            name: "EBS FM",
-            frequency: 104.5,
-            streamURL: "https://ebsonairiosaod.ebs.co.kr/fmradiofamilypc/familypc1m/playlist.m3u8",
-            genre: .education,
-            subGenre: "Education",
-            countryCode: "KR"
-        ),
-        RadioStation(
-            name: "EBS TV-Kids",
-            frequency: 104.8,
-            streamURL: "https://ebsonairios.ebs.co.kr/ebsufamilypc/familypc1m/playlist.m3u8",
-            genre: .education,
-            subGenre: "Kids Education",
-            countryCode: "KR"
-        ),
-        
-        // 온라인 전용 K-Pop 방송국들
-        RadioStation(
-            name: "K-Pop 24/7",
-            frequency: 88.7,
-            streamURL: "https://streams.radio.co/s2c5c6a7a5/listen",
-            genre: .pop,
-            subGenre: "K-Pop",
-            countryCode: "KR"
-        ),
-        RadioStation(
-            name: "Korean Ballad Radio",
-            frequency: 90.0,
-            streamURL: "https://listen.openstream.co/6393/audio",
-            genre: .pop,
-            subGenre: "K-Ballad",
-            countryCode: "KR"
-        )
-    ]
+    // Korean stations - Empty for now (Coming soon)
+    static let koreanStations: [RadioStation] = []
     
-    // Japanese stations
+    // Japanese stations - Copyright-free stations only
     static let japaneseStations = [
-        // Music stations
+        // LoFi & Chill
         RadioStation(
-            name: "J-Pop Sakura",
-            frequency: 81.3,
-            streamURL: "https://kathy.torontocast.com:3060/stream",
-            genre: .pop,
-            subGenre: "J-Pop",
-            countryCode: "JP"
-        ),
-        RadioStation(
-            name: "BOX : Japan City Pop",
-            frequency: 90.0,
-            streamURL: "https://boxradio-edge-00.streamafrica.net/jpopchill",
-            genre: .pop,
-            subGenre: "City Pop",
-            countryCode: "JP"
-        ),
-        RadioStation(
-            name: "J-Rock Powerplay",
-            frequency: 82.5,
-            streamURL: "https://kathy.torontocast.com:3450/stream",
-            genre: .rock,
-            subGenre: "J-Rock",
-            countryCode: "JP"
-        ),
-        RadioStation(
-            name: "Japan Hits",
-            frequency: 89.7,
-            streamURL: "https://cast1.torontocast.com/JapanHits",
-            genre: .pop,
-            subGenre: "Contemporary",
-            countryCode: "JP"
-        ),
-        RadioStation(
-            name: "J1 HITS Radio",
-            frequency: 87.5,
-            streamURL: "https://jenny.torontocast.com:8062/stream",
-            genre: .pop,
-            subGenre: "J-Pop Hits",
-            countryCode: "JP"
-        ),
-        RadioStation(
-            name: "Classical Japan",
-            frequency: 92.5,
-            streamURL: "https://stream-uk1.radioparadise.com/aac-320",
-            genre: .classical,
-            subGenre: "Classical",
-            countryCode: "JP"
-        ),
-        
-        // Education
-        RadioStation(
-            name: "Shonan Beach FM",
-            frequency: 105.7,
-            streamURL: "http://shonanbeachfm.out.airtime.pro:8000/shonanbeachfm_a",
+            name: "24/7 LoFi Radio",
+            frequency: 88.1,
+            streamURL: "https://usa9.fastcast4u.com/proxy/jamz?mp=/1",
             genre: .music,
-            subGenre: "Beach Music",
+            subGenre: "LoFi Hip Hop",
             countryCode: "JP"
         ),
         
-        // Entertainment
+        // Jazz
         RadioStation(
-            name: "J-Pop Powerplay",
-            frequency: 92.1,
-            streamURL: "https://kathy.torontocast.com:3560/",
-            genre: .pop,
-            subGenre: "Top J-Pop",
-            countryCode: "JP"
-        ),
-        RadioStation(
-            name: "Jazz Sakura",
-            frequency: 88.8,
-            streamURL: "http://kathy.torontocast.com:3330/stream/1/",
+            name: "RadioNOS Jazz",
+            frequency: 91.3,
+            streamURL: "https://nos.radio.br/stream/2/",
             genre: .jazz,
-            subGenre: "Jazz",
+            subGenre: "Creative Commons Jazz",
             countryCode: "JP"
         ),
+        
+        // Ambient
         RadioStation(
-            name: "J-Pop Sakura 懐かしい",
-            frequency: 92.8,
-            streamURL: "https://cast1.torontocast.com:2170/stream",
-            genre: .pop,
-            subGenre: "Nostalgic J-Pop",
-            countryCode: "JP"
-        ),
-        RadioStation(
-            name: "Gensokyo Radio",
-            frequency: 89.2,
-            streamURL: "https://stream.gensokyoradio.net/3/",
-            genre: .entertainment,
-            subGenre: "Game Music",
-            countryCode: "JP"
-        ),
-        RadioStation(
-            name: "R/a/dio",
-            frequency: 91.2,
-            streamURL: "https://relay0.r-a-d.io/main.mp3",
-            genre: .entertainment,
-            subGenre: "Anime/Game",
-            countryCode: "JP"
-        ),
-        RadioStation(
-            name: "Retro PC GAME MUSIC",
-            frequency: 96.0,
-            streamURL: "http://gyusyabu.ddo.jp:8000/;",
-            genre: .entertainment,
-            subGenre: "Retro Game",
-            countryCode: "JP"
-        ),
-        RadioStation(
-            name: "J-Club Club Bandstand",
-            frequency: 105.2,
-            streamURL: "https://kathy.torontocast.com:3250/stream",
+            name: "RadioNOS Ambient",
+            frequency: 94.5,
+            streamURL: "https://nos.radio.br/stream/3/",
             genre: .music,
-            subGenre: "J-Club",
+            subGenre: "Ambient & Meditation",
             countryCode: "JP"
         ),
+        
+        // Classical
         RadioStation(
-            name: "CGNTV日本台",
-            frequency: 107.6,
-            streamURL: "https://cgntvlive-944.acs.wecandeo.com/ms/2850/944/index_1.m3u8",
-            genre: .culture,
-            subGenre: "Christian",
+            name: "24/7 Classical Radio",
+            frequency: 96.7,
+            streamURL: "https://live.musopen.org:8085/streamvbr0",
+            genre: .classical,
+            subGenre: "Public Domain Classical",
             countryCode: "JP"
         ),
+        
+        // Creative Commons Mix
         RadioStation(
-            name: "BAN-BANラジオ",
-            frequency: 90.4,
-            streamURL: "https://mtist.as.smartstream.ne.jp/30078/livestream/playlist.m3u8",
+            name: "TheRadio.cc",
+            frequency: 99.9,
+            streamURL: "https://theradio.cc:8443/trcc-mp3",
             genre: .music,
-            subGenre: "Local",
+            subGenre: "Creative Commons Mix",
             countryCode: "JP"
         ),
+        
+        // Lounge
         RadioStation(
-            name: "かわさきＦＭ",
-            frequency: 103.2,
-            streamURL: "https://mtist.as.smartstream.ne.jp/30053/livestream/playlist.m3u8",
+            name: "24/7 Lounge Radio",
+            frequency: 102.3,
+            streamURL: "https://radio.24-7lounge.com:8000/lounge",
             genre: .music,
-            subGenre: "Kawasaki Local",
-            countryCode: "JP"
-        ),
-        RadioStation(
-            name: "FM那覇",
-            frequency: 103.6,
-            streamURL: "https://mtist.as.smartstream.ne.jp/30047/livestream/playlist.m3u8",
-            genre: .music,
-            subGenre: "Okinawa Local",
-            countryCode: "JP"
-        ),
-        RadioStation(
-            name: "FMおたる",
-            frequency: 98.8,
-            streamURL: "https://mtist.as.smartstream.ne.jp/30026/livestream/playlist.m3u8",
-            genre: .music,
-            subGenre: "Otaru Local",
-            countryCode: "JP"
-        ),
-        RadioStation(
-            name: "エフエム椿台",
-            frequency: 100.4,
-            streamURL: "https://mtist.as.smartstream.ne.jp/30025/livestream/playlist.m3u8",
-            genre: .music,
-            subGenre: "Local FM",
-            countryCode: "JP"
-        ),
-        RadioStation(
-            name: "775ライブリーFM",
-            frequency: 99.2,
-            streamURL: "https://mtist.as.smartstream.ne.jp/30023/livestream/playlist.m3u8",
-            genre: .music,
-            subGenre: "Community Radio",
-            countryCode: "JP"
-        ),
-        RadioStation(
-            name: "Kamakura FM",
-            frequency: 97.2,
-            streamURL: "https://mtist.as.smartstream.ne.jp/30030/livestream/playlist.m3u8",
-            genre: .music,
-            subGenre: "Kamakura Local",
-            countryCode: "JP"
-        ),
-        RadioStation(
-            name: "99.1 HD3 - J1 HD",
-            frequency: 98.0,
-            streamURL: "https://jenny.torontocast.com:8062/stream",
-            genre: .pop,
-            subGenre: "J-Pop HD",
-            countryCode: "JP"
-        ),
-        RadioStation(
-            name: "J1 Radio Japan",
-            frequency: 101.0,
-            streamURL: "https://listen.j1fm.com/j1japan",
-            genre: .pop,
-            subGenre: "J-Pop",
-            countryCode: "JP"
-        ),
-        RadioStation(
-            name: "J-Pop Project Radio",
-            frequency: 103.5,
-            streamURL: "https://kathy.torontocast.com:3000/stream",
-            genre: .pop,
-            subGenre: "J-Pop",
-            countryCode: "JP"
-        ),
-        RadioStation(
-            name: "J-Club Powerplay HipHop",
-            frequency: 104.7,
-            streamURL: "https://kathy.torontocast.com:3210/stream",
-            genre: .music,
-            subGenre: "J-HipHop",
-            countryCode: "JP"
-        ),
-        RadioStation(
-            name: "KPOP Way Radio",
-            frequency: 106.3,
-            streamURL: "https://listen.radioking.com/radio/314534/stream/365614",
-            genre: .pop,
-            subGenre: "K-Pop/J-Pop",
+            subGenre: "Lounge & Chill",
             countryCode: "JP"
         )
     ]
     
-    // US stations
-    static let usStations = [
+    // US stations - Empty for now (Coming soon)
+    static let usStations: [RadioStation] = []
+    
+    // Original US stations (commented out for now)
+    static let usStationsComingSoon = [
         // Soft Classic Rock Radio - Fast connection
         RadioStation(
             name: "Soft Classic Rock Radio",
@@ -638,8 +417,11 @@ extension RadioStation {
         ),
     ]
     
-    // UK stations
-    static let ukStations = [
+    // UK stations - Empty for now (Coming soon)
+    static let ukStations: [RadioStation] = []
+    
+    // Original UK stations (commented out for now)
+    static let ukStationsComingSoon = [
         // Music stations
         
         // News stations
@@ -657,11 +439,14 @@ extension RadioStation {
         )
     ]
     
-    // Brazil stations
+    // Brazil stations - Empty for now (Coming soon)
     static let brazilStations: [RadioStation] = []
     
-    // Spain stations
-    static let spainStations = [
+    // Spain stations - Empty for now (Coming soon)
+    static let spainStations: [RadioStation] = []
+    
+    // Original Spain stations (commented out for now)
+    static let spainStationsComingSoon = [
         RadioStation(
             name: "Catalunya Radio",
             frequency: 102.8,
@@ -696,8 +481,11 @@ extension RadioStation {
         ),
     ]
     
-    // France stations
-    static let franceStations = [
+    // France stations - Empty for now (Coming soon)
+    static let franceStations: [RadioStation] = []
+    
+    // Original France stations (commented out for now)
+    static let franceStationsComingSoon = [
         RadioStation(
             name: "FIP",
             frequency: 105.1,
@@ -788,8 +576,11 @@ extension RadioStation {
         )
     ]
     
-    // Germany stations
-    static let germanyStations = [
+    // Germany stations - Empty for now (Coming soon)
+    static let germanyStations: [RadioStation] = []
+    
+    // Original Germany stations (commented out for now)
+    static let germanyStationsComingSoon = [
         RadioStation(
             name: "Bayern 3",
             frequency: 97.3,
@@ -896,8 +687,11 @@ extension RadioStation {
         )
     ]
     
-    // Italy stations
-    static let italyStations = [
+    // Italy stations - Empty for now (Coming soon)
+    static let italyStations: [RadioStation] = []
+    
+    // Original Italy stations (commented out for now)
+    static let italyStationsComingSoon = [
         RadioStation(
             name: "Rai Radio 1",
             frequency: 89.7,
@@ -924,8 +718,11 @@ extension RadioStation {
         ),
     ]
     
-    // Australia stations
-    static let australiaStations = [
+    // Australia stations - Empty for now (Coming soon)
+    static let australiaStations: [RadioStation] = []
+    
+    // Original Australia stations (commented out for now)
+    static let australiaStationsComingSoon = [
         RadioStation(
             name: "Triple J",
             frequency: 104.1,
@@ -952,8 +749,11 @@ extension RadioStation {
         )
     ]
     
-    // Canada stations
-    static let canadaStations = [
+    // Canada stations - Empty for now (Coming soon)
+    static let canadaStations: [RadioStation] = []
+    
+    // Original Canada stations (commented out for now)
+    static let canadaStationsComingSoon = [
         RadioStation(
             name: "CBC Radio One",
             frequency: 99.1,
@@ -980,8 +780,11 @@ extension RadioStation {
         )
     ]
     
-    // Mexico stations
-    static let mexicoStations = [
+    // Mexico stations - Empty for now (Coming soon)
+    static let mexicoStations: [RadioStation] = []
+    
+    // Original Mexico stations (commented out for now)
+    static let mexicoStationsComingSoon = [
         RadioStation(
             name: "Stereo Cien",
             frequency: 100.1,
@@ -1008,8 +811,11 @@ extension RadioStation {
         )
     ]
     
-    // Swedish stations
-    static let swedishStations = [
+    // Swedish stations - Empty for now (Coming soon)
+    static let swedishStations: [RadioStation] = []
+    
+    // Original Swedish stations (commented out for now)
+    static let swedishStationsComingSoon = [
         RadioStation(
             name: "P3 Sveriges Radio",
             frequency: 92.4,
@@ -1044,8 +850,11 @@ extension RadioStation {
         ),
     ]
     
-    // Finnish stations
-    static let finnishStations = [
+    // Finnish stations - Empty for now (Coming soon)
+    static let finnishStations: [RadioStation] = []
+    
+    // Original Finnish stations (commented out for now)
+    static let finnishStationsComingSoon = [
         RadioStation(
             name: "Yle Radio Suomi",
             frequency: 94.0,
@@ -1112,8 +921,11 @@ extension RadioStation {
         )
     ]
     
-    // Thai stations
-    static let thaiStations = [
+    // Thai stations - Empty for now (Coming soon)
+    static let thaiStations: [RadioStation] = []
+    
+    // Original Thai stations (commented out for now)
+    static let thaiStationsComingSoon = [
         RadioStation(
             name: "Cool Fahrenheit",
             frequency: 93.0,
@@ -1196,8 +1008,11 @@ extension RadioStation {
         )
     ]
     
-    // Icelandic stations
-    static let icelandicStations = [
+    // Icelandic stations - Empty for now (Coming soon)
+    static let icelandicStations: [RadioStation] = []
+    
+    // Original Icelandic stations (commented out for now)
+    static let icelandicStationsComingSoon = [
         RadioStation(
             name: "Rás 1",
             frequency: 92.4,
@@ -1280,8 +1095,11 @@ extension RadioStation {
         )
     ]
     
-    // Mongolian stations
-    static let mongolianStations = [
+    // Mongolian stations - Empty for now (Coming soon)
+    static let mongolianStations: [RadioStation] = []
+    
+    // Original Mongolian stations (commented out for now)
+    static let mongolianStationsComingSoon = [
         RadioStation(
             name: "MNB Radio",
             frequency: 99.0,
@@ -1365,8 +1183,11 @@ extension RadioStation {
     ]
     
     
-    // Taiwanese stations
-    static let taiwaneseStations = [
+    // Taiwanese stations - Empty for now (Coming soon)
+    static let taiwaneseStations: [RadioStation] = []
+    
+    // Original Taiwanese stations (commented out for now)
+    static let taiwaneseStationsComingSoon = [
         RadioStation(
             name: "ICRT",
             frequency: 100.7,
@@ -1449,8 +1270,11 @@ extension RadioStation {
         )
     ]
     
-    // Indian stations
-    static let indianStations = [
+    // Indian stations - Empty for now (Coming soon)
+    static let indianStations: [RadioStation] = []
+    
+    // Original Indian stations (commented out for now)
+    static let indianStationsComingSoon = [
         RadioStation(
             name: "Radio City Hindi",
             frequency: 91.1,
@@ -1533,8 +1357,11 @@ extension RadioStation {
         )
     ]
     
-    // Russian stations
-    static let russianStations = [
+    // Russian stations - Empty for now (Coming soon)
+    static let russianStations: [RadioStation] = []
+    
+    // Original Russian stations (commented out for now)
+    static let russianStationsComingSoon = [
         RadioStation(
             name: "Europa Plus",
             frequency: 106.2,
@@ -1618,8 +1445,8 @@ extension RadioStation {
     ]
     
     
-    // Default stations (same as Korean for backwards compatibility)
-    static let sampleStations = koreanStations
+    // Default stations (Japanese stations for now)
+    static let sampleStations = japaneseStations
     
     // Get stations for country code
     static func stations(for countryCode: String) -> [RadioStation] {

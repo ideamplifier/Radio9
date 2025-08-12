@@ -31,8 +31,11 @@ struct StationInfoView: View {
                         .frame(height: 12)  // 고정 높이
                         .offset(x: 1)  // 오른쪽으로 1픽셀
                 } else {
-                    // Station name
-                    Text(station?.name ?? "- - -")
+                    // Check if current country has no stations (Coming soon)
+                    let hasStations = !viewModel.stations.isEmpty
+                    
+                    // Station name or "Coming soon"
+                    Text(hasStations ? (station?.name ?? "- - -") : "Coming soon")
                         .font(.system(size: 15.5, weight: .semibold, design: .monospaced))
                         .foregroundColor(Color(red: 1.0, green: 0.9, blue: 0.7))
                         .shadow(color: Color(red: 1.0, green: 0.7, blue: 0.3), radius: 6)
@@ -42,7 +45,13 @@ struct StationInfoView: View {
                     
                     // 하단 텍스트 영역 - 항상 높이 확보
                     Group {
-                        if showEqualizerMessage {
+                        if !hasStations {
+                            // Show message for countries with no stations
+                            Text("No stations available yet")
+                                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                                .foregroundColor(Color(red: 1.0, green: 0.8, blue: 0.5).opacity(0.7))
+                                .shadow(color: Color(red: 1.0, green: 0.6, blue: 0.2).opacity(0.5), radius: 2)
+                        } else if showEqualizerMessage {
                             Text(LocalizationHelper.getLocalizedString(for: "equalizer_on"))
                                 .font(.system(size: 10, weight: .medium, design: .monospaced))
                                 .foregroundColor(Color(red: 1.0, green: 0.8, blue: 0.5).opacity(0.8))
