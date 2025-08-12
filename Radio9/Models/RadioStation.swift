@@ -97,55 +97,15 @@ extension RadioStation {
     // Korean stations - Empty for now (Coming soon)
     static let koreanStations: [RadioStation] = []
     
-    // Japanese stations - Copyright-free stations only
+    // Japanese stations - PUBLIC DOMAIN ONLY
     static let japaneseStations = [
-        // LoFi & Chill - Working
+        // Musopen - 100% Public Domain Classical Music
         RadioStation(
-            name: "24/7 LoFi Radio",
-            frequency: 88.1,
-            streamURL: "https://usa9.fastcast4u.com/proxy/jamz?mp=/1",
-            genre: .music,
-            subGenre: "LoFi Hip Hop",
-            countryCode: "JP"
-        ),
-        
-        // Ambient - Working
-        RadioStation(
-            name: "RadioNOS Ambient",
-            frequency: 91.5,
-            streamURL: "https://nos.radio.br/stream/3/",
-            genre: .music,
-            subGenre: "Ambient & Meditation",
-            countryCode: "JP"
-        ),
-        
-        // Classical - Working
-        RadioStation(
-            name: "Musopen Classical",
+            name: "Musopen Radio",
             frequency: 94.3,
             streamURL: "https://live.musopen.org:8085/streamvbr0",
             genre: .classical,
             subGenre: "Public Domain Classical",
-            countryCode: "JP"
-        ),
-        
-        // SomaFM Deep Space One - License-free deep ambient
-        RadioStation(
-            name: "SomaFM Deep Space",
-            frequency: 99.1,
-            streamURL: "https://ice2.somafm.com/deepspaceone-128-mp3",
-            genre: .music,
-            subGenre: "Space Ambient",
-            countryCode: "JP"
-        ),
-        
-        // SomaFM Secret Agent - License-free lounge
-        RadioStation(
-            name: "SomaFM Secret Agent", 
-            frequency: 102.5,
-            streamURL: "https://ice2.somafm.com/secretagent-128-mp3",
-            genre: .music,
-            subGenre: "Spy Lounge",
             countryCode: "JP"
         )
     ]
