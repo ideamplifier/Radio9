@@ -24,6 +24,7 @@ class RadioViewModel: NSObject, ObservableObject {
     @Published var favoriteStations: [RadioStation] = []
     @Published var showAddedToFavoritesMessage = false
     @Published var showFavoritesDotAnimation = false
+    @Published var showComingSoonMessage = false
     
     // Sleep Timer
     @Published var isSleepTimerActive = false
@@ -1169,6 +1170,18 @@ class RadioViewModel: NSObject, ObservableObject {
     }
     
     func toggleCountrySelectionMode() {
+        // If not Japan, just show "Coming soon" message instead of entering selection mode
+        if selectedCountry.code != "JP" {
+            showComingSoonMessage = true
+            
+            // Hide message after 2 seconds
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                self.showComingSoonMessage = false
+            }
+            return
+        }
+        
+        // Original behavior for Japan
         isCountrySelectionMode.toggle()
         if isCountrySelectionMode {
             // 국가 선택 모드 진입 - 현재 국가 인덱스 찾기
