@@ -129,33 +129,33 @@ extension RadioStation {
             countryCode: "JP"
         ),
         
-        // Free Music Archive streams
+        // SomaFM Drone Zone - License-free ambient
         RadioStation(
-            name: "FMA Electronic",
+            name: "SomaFM Drone Zone",
             frequency: 96.7,
-            streamURL: "https://freemusicarchive.org/stream.php",
+            streamURL: "https://ice2.somafm.com/dronezone-128-mp3",
             genre: .music,
-            subGenre: "Electronic CC",
+            subGenre: "Ambient Drone",
             countryCode: "JP"
         ),
         
-        // Jamendo Lounge - Creative Commons
+        // SomaFM Deep Space One - License-free deep ambient
         RadioStation(
-            name: "Jamendo Lounge",
+            name: "SomaFM Deep Space",
             frequency: 99.1,
-            streamURL: "https://streaming.jamendo.com/JamLounge",
+            streamURL: "https://ice2.somafm.com/deepspaceone-128-mp3",
             genre: .music,
-            subGenre: "Lounge CC",
+            subGenre: "Space Ambient",
             countryCode: "JP"
         ),
         
-        // Jamendo Chillout - Creative Commons
+        // SomaFM Secret Agent - License-free lounge
         RadioStation(
-            name: "Jamendo Chillout", 
+            name: "SomaFM Secret Agent", 
             frequency: 102.5,
-            streamURL: "https://streaming.jamendo.com/JamChillout",
+            streamURL: "https://ice2.somafm.com/secretagent-128-mp3",
             genre: .music,
-            subGenre: "Chillout CC",
+            subGenre: "Spy Lounge",
             countryCode: "JP"
         )
     ]
