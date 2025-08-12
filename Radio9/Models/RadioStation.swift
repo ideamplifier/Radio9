@@ -129,16 +129,6 @@ extension RadioStation {
             countryCode: "JP"
         ),
         
-        // SomaFM Drone Zone - License-free ambient
-        RadioStation(
-            name: "SomaFM Drone Zone",
-            frequency: 96.7,
-            streamURL: "https://ice2.somafm.com/dronezone-128-mp3",
-            genre: .music,
-            subGenre: "Ambient Drone",
-            countryCode: "JP"
-        ),
-        
         // SomaFM Deep Space One - License-free deep ambient
         RadioStation(
             name: "SomaFM Deep Space",
