@@ -1218,31 +1218,23 @@ class RadioViewModel: NSObject, ObservableObject {
             self.updateFilteredStations()
             self.updateFastestStations()
             
-            // 초기 스테이션 선택
-            if isInitialLoad {
-                // 앱 첫 실행 시 - 국가의 기본 주파수에 정확히 맞는 스테이션 선택
-                self.currentFrequency = self.selectedCountry.defaultFrequency
-                if let defaultStation = self.filteredStations.first(where: { $0.frequency == self.selectedCountry.defaultFrequency }) {
-                    self.currentStation = defaultStation
-                    print("✅ Initial station set to: \(defaultStation.name) at \(defaultStation.frequency) MHz")
-                } else if let nearbyStation = self.filteredStations.first(where: { abs($0.frequency - self.selectedCountry.defaultFrequency) < 0.5 }) {
-                    self.currentStation = nearbyStation
-                    self.currentFrequency = nearbyStation.frequency
-                    print("✅ Initial station set to nearby: \(nearbyStation.name) at \(nearbyStation.frequency) MHz")
-                }
-            } else {
-                // 국가 변경 시 - 기본 주파수 근처 스테이션 선택
-                if let nearbyStation = self.filteredStations.first(where: { abs($0.frequency - self.currentFrequency) < 2.0 }) {
-                    self.currentStation = nearbyStation
-                    self.currentFrequency = nearbyStation.frequency
-                } else if let firstStation = self.filteredStations.first {
-                    self.currentStation = firstStation
-                    self.currentFrequency = firstStation.frequency
+            // 초기 스테이션 선택 - Musopen Radio만 있으므로 항상 첫번째 선택
+            if let firstStation = self.filteredStations.first {
+                self.currentStation = firstStation
+                self.currentFrequency = firstStation.frequency
+                print("✅ Initial station set to: \(firstStation.name) at \(firstStation.frequency) MHz")
+                
+                // 앱 첫 실행시 자동 재생
+                if isInitialLoad {
+                    // UI 업데이트를 위한 약간의 지연
+                    try? await Task.sleep(nanoseconds: 200_000_000) // 0.2초
+                    self.play()
+                    print("🎵 Auto-playing Musopen Radio on app launch")
                 }
             }
             
             // 국가 변경 전에 재생 중이었다면 새 스테이션도 자동 재생
-            if wasPlaying && self.currentStation != nil {
+            if wasPlaying && !isInitialLoad && self.currentStation != nil {
                 // 약간의 지연을 주어 UI가 업데이트되도록 함
                 try? await Task.sleep(nanoseconds: 100_000_000) // 0.1초
                 self.play()
