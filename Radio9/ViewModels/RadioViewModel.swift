@@ -1223,14 +1223,6 @@ class RadioViewModel: NSObject, ObservableObject {
                 self.currentStation = firstStation
                 self.currentFrequency = firstStation.frequency
                 print("✅ Initial station set to: \(firstStation.name) at \(firstStation.frequency) MHz")
-                
-                // 앱 첫 실행시 자동 재생
-                if isInitialLoad {
-                    // UI 업데이트를 위한 약간의 지연
-                    try? await Task.sleep(nanoseconds: 200_000_000) // 0.2초
-                    self.play()
-                    print("🎵 Auto-playing Musopen Radio on app launch")
-                }
             }
             
             // 국가 변경 전에 재생 중이었다면 새 스테이션도 자동 재생
