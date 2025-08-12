@@ -1170,34 +1170,16 @@ class RadioViewModel: NSObject, ObservableObject {
     }
     
     func toggleCountrySelectionMode() {
-        // If not Japan, just show "Coming soon" message instead of entering selection mode
-        if selectedCountry.code != "JP" {
-            showComingSoonMessage = true
-            
-            // Hide message after 2 seconds
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                self.showComingSoonMessage = false
-            }
-            return
+        // Always just show "Coming soon" message, never enter selection mode
+        showComingSoonMessage = true
+        
+        // Hide message after 2 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            self.showComingSoonMessage = false
         }
         
-        // Original behavior for Japan
-        isCountrySelectionMode.toggle()
-        if isCountrySelectionMode {
-            // 국가 선택 모드 진입 - 현재 국가 인덱스 찾기
-            if let index = Country.countries.firstIndex(where: { $0.code == selectedCountry.code }) {
-                countrySelectionIndex = Double(index)
-            }
-            tempSelectedCountry = selectedCountry  // 현재 국가를 임시로 저장
-        } else {
-            // 완료 버튼 클릭 - 실제로 국가 변경
-            if let newCountry = tempSelectedCountry, newCountry.code != selectedCountry.code {
-                selectedCountry = newCountry
-                currentFrequency = selectedCountry.defaultFrequency
-                loadStationsForCountry()
-            }
-            tempSelectedCountry = nil
-        }
+        // Don't enter country selection mode at all
+        return
     }
     
     func selectCountryByIndex(_ index: Double) {

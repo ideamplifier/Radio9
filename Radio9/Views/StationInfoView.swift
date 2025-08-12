@@ -45,9 +45,9 @@ struct StationInfoView: View {
                     
                     // 하단 텍스트 영역 - 항상 높이 확보
                     Group {
-                        if viewModel.showComingSoonMessage || !hasStations {
-                            // Show message for countries with no stations or when Coming soon is active
-                            Text(viewModel.showComingSoonMessage ? "Currently available in Japan only" : "No stations available yet")
+                        if viewModel.showComingSoonMessage {
+                            // Show message when Coming soon is active
+                            Text("More countries coming soon")
                                 .font(.system(size: 10, weight: .medium, design: .monospaced))
                                 .foregroundColor(Color(red: 1.0, green: 0.8, blue: 0.5).opacity(0.7))
                                 .shadow(color: Color(red: 1.0, green: 0.6, blue: 0.2).opacity(0.5), radius: 2)
