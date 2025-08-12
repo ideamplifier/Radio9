@@ -99,7 +99,7 @@ extension RadioStation {
     
     // Japanese stations - Copyright-free stations only
     static let japaneseStations = [
-        // LoFi & Chill
+        // LoFi & Chill - Working
         RadioStation(
             name: "24/7 LoFi Radio",
             frequency: 88.1,
@@ -109,53 +109,53 @@ extension RadioStation {
             countryCode: "JP"
         ),
         
-        // Jazz
-        RadioStation(
-            name: "RadioNOS Jazz",
-            frequency: 91.3,
-            streamURL: "https://nos.radio.br/stream/2/",
-            genre: .jazz,
-            subGenre: "Creative Commons Jazz",
-            countryCode: "JP"
-        ),
-        
-        // Ambient
+        // Ambient - Working
         RadioStation(
             name: "RadioNOS Ambient",
-            frequency: 94.5,
+            frequency: 91.5,
             streamURL: "https://nos.radio.br/stream/3/",
             genre: .music,
             subGenre: "Ambient & Meditation",
             countryCode: "JP"
         ),
         
-        // Classical
+        // Classical - Working
         RadioStation(
-            name: "24/7 Classical Radio",
-            frequency: 96.7,
+            name: "Musopen Classical",
+            frequency: 94.3,
             streamURL: "https://live.musopen.org:8085/streamvbr0",
             genre: .classical,
             subGenre: "Public Domain Classical",
             countryCode: "JP"
         ),
         
-        // Creative Commons Mix
+        // Free Music Archive streams
         RadioStation(
-            name: "TheRadio.cc",
-            frequency: 99.9,
-            streamURL: "https://theradio.cc:8443/trcc-mp3",
+            name: "FMA Electronic",
+            frequency: 96.7,
+            streamURL: "https://freemusicarchive.org/stream.php",
             genre: .music,
-            subGenre: "Creative Commons Mix",
+            subGenre: "Electronic CC",
             countryCode: "JP"
         ),
         
-        // Lounge
+        // Jamendo Lounge - Creative Commons
         RadioStation(
-            name: "24/7 Lounge Radio",
-            frequency: 102.3,
-            streamURL: "https://radio.24-7lounge.com:8000/lounge",
+            name: "Jamendo Lounge",
+            frequency: 99.1,
+            streamURL: "https://streaming.jamendo.com/JamLounge",
             genre: .music,
-            subGenre: "Lounge & Chill",
+            subGenre: "Lounge CC",
+            countryCode: "JP"
+        ),
+        
+        // Jamendo Chillout - Creative Commons
+        RadioStation(
+            name: "Jamendo Chillout", 
+            frequency: 102.5,
+            streamURL: "https://streaming.jamendo.com/JamChillout",
+            genre: .music,
+            subGenre: "Chillout CC",
             countryCode: "JP"
         )
     ]
