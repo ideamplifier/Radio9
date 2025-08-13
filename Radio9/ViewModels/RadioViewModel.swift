@@ -7,7 +7,7 @@ import UIKit
 import MediaPlayer
 
 @MainActor
-class RadioViewModel: NSObject, ObservableObject {
+class RadioViewModel: NSObject, ObservableObject, AVAudioPlayerDelegate {
     @Published var currentStation: RadioStation?
     @Published var isPlaying = false
     @Published var volume: Float = 1.0  // Max volume for testing
@@ -52,7 +52,8 @@ class RadioViewModel: NSObject, ObservableObject {
     }
     @Published var latestSongInfo: SongInfo?
     
-    private var player: AVPlayer?
+    private var player: AVPlayer?  // For streaming
+    private var audioPlayer: AVAudioPlayer?  // For local files (nature sounds)
     private var isObserving = false
     private var observedPlayerItem: AVPlayerItem?  // Track which item we're observing
     private var stationLoadTimes: [String: TimeInterval] = [:]
@@ -576,7 +577,40 @@ class RadioViewModel: NSObject, ObservableObject {
     }
     
     func play() {
-        guard let station = currentStation else { return }
+        // Easter egg: 106.7 MHz
+        if abs(currentFrequency - 106.7) < 0.1 {
+            playGlitchSound()
+            return
+        }
+        
+        // If no station, play static noise
+        guard let station = currentStation else {
+            if isPlaying {
+                playStaticNoise()
+            }
+            return
+        }
+        
+        // If we have an audioPlayer AND it's the same station, just resume it
+        if let audioPlayer = audioPlayer {
+            let currentFile = audioPlayer.url?.lastPathComponent ?? "none"
+            let newFile = station.streamURL.components(separatedBy: "/").last ?? "none"
+            
+            print("🔍 Current file: \(currentFile), New file: \(newFile)")
+            
+            if currentFile == newFile {
+                audioPlayer.play()
+                isPlaying = true
+                isLoading = false
+                print("▶️ Resuming same AVAudioPlayer for: \(currentFile)")
+                return
+            } else {
+                print("🔄 Different file detected, will load new: \(newFile)")
+                // Stop current player to load new file
+                audioPlayer.stop()
+                self.audioPlayer = nil
+            }
+        }
         
         // Remove from failed stations when trying again
         let key = stationKey(station)
@@ -638,6 +672,52 @@ class RadioViewModel: NSObject, ObservableObject {
         streamURL = streamURL.replacingOccurrences(of: "://", with: ":/")
             .replacingOccurrences(of: ":/", with: "://")
         
+        // Check if this is a podcast
+        if station.isPodcast {
+            print("🎧 Loading podcast: \(station.name)")
+            isLoading = true
+            
+            // Simple regex-based parsing for now
+            let feedURL = URL(string: streamURL)!
+            URLSession.shared.dataTask(with: feedURL) { [weak self] data, response, error in
+                guard let data = data else {
+                    DispatchQueue.main.async {
+                        self?.isLoading = false
+                    }
+                    return
+                }
+                
+                if let xmlString = String(data: data, encoding: .utf8) {
+                    // Find first enclosure URL
+                    let pattern = #"<enclosure[^>]*url="([^"]+)"[^>]*>"#
+                    
+                    if let regex = try? NSRegularExpression(pattern: pattern, options: []) {
+                        if let match = regex.firstMatch(in: xmlString, options: [], range: NSRange(location: 0, length: xmlString.count)) {
+                            if let range = Range(match.range(at: 1), in: xmlString) {
+                                let mp3URL = String(xmlString[range])
+                                print("🎧 Found podcast MP3: \(mp3URL)")
+                                
+                                DispatchQueue.main.async {
+                                    if let url = URL(string: mp3URL) {
+                                        self?.playStreamURL(url, station: station)
+                                    } else {
+                                        self?.isLoading = false
+                                    }
+                                }
+                                return
+                            }
+                        }
+                    }
+                }
+                
+                DispatchQueue.main.async {
+                    print("🚫 No MP3 found in podcast feed")
+                    self?.isLoading = false
+                }
+            }.resume()
+            return
+        }
+        
         guard let url = URL(string: streamURL) else { 
             print("🚫 Invalid URL: \(streamURL)")
             return 
@@ -672,33 +752,179 @@ class RadioViewModel: NSObject, ObservableObject {
         removeObserver()
         player?.pause()
         player = nil  // Clear the player reference
+        audioPlayer?.stop()
+        audioPlayer = nil
         loadTimeoutTask?.cancel()
-        isLoading = true
         
-        // Set timeout - 빠른 응답을 위해 3초로 단축
-        let timeoutDuration: UInt64 = 3_000_000_000 // 3초
-        loadTimeoutTask = Task { @MainActor in
-            try? await Task.sleep(nanoseconds: timeoutDuration)
-            if self.isLoading {
-                self.isLoading = false
-                self.player?.pause()
-                self.removeObserver()
+        // Check if this is a local file (nature sounds)
+        let isLocalFile = station.streamURL.starts(with: "file://") || station.countryCode == "NATURE"
+        
+        if isLocalFile {
+            // Use AVAudioPlayer for local files (perfect looping)
+            playLocalFile(station: station)
+        } else {
+            // Use AVPlayer for streaming
+            isLoading = true
+            playStreamURL(url, station: station)
+        }
+    }
+    
+    private func playGlitchSound() {
+        // Load glitch sound file from bundle
+        guard let fileURL = Bundle.main.url(forResource: "glitch1", withExtension: "mp3") else {
+            print("❌ Failed to find glitch1.mp3 in bundle")
+            return
+        }
+        
+        // Stop any existing audio player
+        audioPlayer?.stop()
+        audioPlayer = nil
+        
+        do {
+            // Create AVAudioPlayer for glitch sound
+            audioPlayer = try AVAudioPlayer(contentsOf: fileURL)
+            audioPlayer?.delegate = self
+            audioPlayer?.numberOfLoops = -1  // Infinite loop
+            audioPlayer?.volume = volume * 0.12  // Lower volume for glitch (12%)
+            audioPlayer?.prepareToPlay()
+            
+            // Start playback
+            if audioPlayer?.play() == true {
+                print("🎛 Playing easter egg glitch sound at 106.7 MHz")
+                // Don't set isLoading since glitch plays immediately
+            } else {
+                print("❌ Failed to start glitch sound")
+            }
+        } catch {
+            print("❌ Error creating AVAudioPlayer for glitch: \(error)")
+        }
+    }
+    
+    private func playStaticNoise() {
+        // Load static noise file from bundle
+        guard let fileURL = Bundle.main.url(forResource: "static", withExtension: "mp3") else {
+            print("❌ Failed to find static.mp3 in bundle")
+            return
+        }
+        
+        // Stop any existing audio player
+        audioPlayer?.stop()
+        audioPlayer = nil
+        
+        do {
+            // Create AVAudioPlayer for static noise
+            audioPlayer = try AVAudioPlayer(contentsOf: fileURL)
+            audioPlayer?.delegate = self
+            audioPlayer?.numberOfLoops = -1  // Infinite loop
+            audioPlayer?.volume = volume * 0.113  // Lower volume for static (11.3%, 기존 12.6%에서 -10%)
+            audioPlayer?.prepareToPlay()
+            
+            // Start playback
+            if audioPlayer?.play() == true {
+                print("📻 Playing static noise for empty frequency")
+                // Don't set isLoading since static plays immediately
+            } else {
+                print("❌ Failed to start static noise")
+            }
+        } catch {
+            print("❌ Error creating AVAudioPlayer for static: \(error)")
+        }
+    }
+    
+    private func playLocalFile(station: RadioStation) {
+        // Extract file name from bundle URL
+        let urlString = station.streamURL
+        var resourceName = ""
+        var fileExtension = "mp3"
+        var volumeAdjustment: Float = 1.0  // Volume multiplier
+        
+        if urlString.contains("rain.mp3") {
+            resourceName = "rain"
+            volumeAdjustment = 1.0  // Normal volume
+        } else if urlString.contains("wave.mp3") {
+            resourceName = "wave"
+            volumeAdjustment = 0.55  // -45% volume (기존 60%에서 -5%)
+        } else if urlString.contains("night.mp3") {
+            resourceName = "night"
+            volumeAdjustment = 0.2  // -80% volume (기존 30%에서 -10%)
+        } else if urlString.contains("campfire.mp3") {
+            resourceName = "campfire"
+            volumeAdjustment = 1.3  // +30% volume (기존 120%에서 +10%, 최대 1.0으로 제한됨)
+        } else if urlString.contains("bird.mp3") {
+            resourceName = "bird"
+            volumeAdjustment = 0.2  // -80% volume (20%)
+        } else if urlString.contains("thunder.mp3") {
+            resourceName = "thunder"
+            volumeAdjustment = 0.75  // -25% volume (75%)
+        } else if urlString.contains("drizzle.mp3") {
+            resourceName = "drizzle"
+            volumeAdjustment = 0.45  // -55% volume (45%)
+        }
+        
+        // Load file from bundle
+        guard let fileURL = Bundle.main.url(forResource: resourceName, withExtension: fileExtension) else {
+            print("❌ Failed to find \(resourceName).\(fileExtension) in bundle")
+            return
+        }
+        
+        do {
+            // Create AVAudioPlayer for perfect looping
+            audioPlayer = try AVAudioPlayer(contentsOf: fileURL)
+            audioPlayer?.delegate = self  // Set delegate to handle playback events
+            audioPlayer?.numberOfLoops = -1  // Infinite loop
+            audioPlayer?.volume = min(1.0, volume * volumeAdjustment)  // Apply volume adjustment (cap at 1.0)
+            audioPlayer?.prepareToPlay()
+            
+            // Start playback
+            if audioPlayer?.play() == true {
+                print("🎵 Playing local file with AVAudioPlayer: \(resourceName).\(fileExtension)")
+                print("🔄 Infinite looping enabled (gapless)")
+                isPlaying = true
+                isLoading = false
                 
-                // 타임아웃 스테이션 기록
-                if let station = self.currentStation {
-                    let key = self.stationKey(station)
-                    self.stationHealthScores[key] = 0.3
+                // Start audio analysis if needed
+                // Note: AVAudioPlayer doesn't support audio analysis like AVPlayer
+            } else {
+                print("❌ Failed to start AVAudioPlayer")
+                isPlaying = false
+                isLoading = false
+            }
+        } catch {
+            print("❌ Error creating AVAudioPlayer: \(error)")
+            isPlaying = false
+            isLoading = false
+        }
+    }
+    
+    private func playStreamURL(_ url: URL, station: RadioStation) {
+        // Skip timeout for local files and nature sounds
+        let isLocalFile = station.streamURL.starts(with: "file://") || station.countryCode == "NATURE"
+        
+        if !isLocalFile {
+            let timeoutDuration: UInt64 = 3_000_000_000 // 3초
+            loadTimeoutTask = Task { @MainActor in
+                try? await Task.sleep(nanoseconds: timeoutDuration)
+                if self.isLoading {
+                    self.isLoading = false
+                    self.player?.pause()
+                    self.removeObserver()
                     
-                    // Track timeout count  
-                    self.failedStationCounts[key] = (self.failedStationCounts[key] ?? 0) + 1
-                    let failureCount = self.failedStationCounts[key] ?? 1
-                    
-                    self.recentlyFailedStations.insert(key)
-                    self.scheduleFailedStationReset()
-                    
-                    // 플레이어만 정지, isPlaying 상태는 유지
-                    if failureCount == 1 || failureCount % 10 == 0 {
-                        print("⏱️ Station timeout: \(station.name) (attempt #\(failureCount))")
+                    // 타임아웃 스테이션 기록
+                    if let station = self.currentStation {
+                        let key = self.stationKey(station)
+                        self.stationHealthScores[key] = 0.3
+                        
+                        // Track timeout count  
+                        self.failedStationCounts[key] = (self.failedStationCounts[key] ?? 0) + 1
+                        let failureCount = self.failedStationCounts[key] ?? 1
+                        
+                        self.recentlyFailedStations.insert(key)
+                        self.scheduleFailedStationReset()
+                        
+                        // 플레이어만 정지, isPlaying 상태는 유지
+                        if failureCount == 1 || failureCount % 10 == 0 {
+                            print("⏱️ Station timeout: \(station.name) (attempt #\(failureCount))")
+                        }
                     }
                 }
             }
@@ -744,6 +970,7 @@ class RadioViewModel: NSObject, ObservableObject {
                 playerItem.configuredTimeOffsetFromLive = CMTime(seconds: 0.1, preferredTimescale: 1) // 0.1초 지연
             }
             
+            // Always use AVPlayer for streaming (nature sounds now use AVAudioPlayer)
             player = AVPlayer(playerItem: playerItem)
             player?.automaticallyWaitsToMinimizeStalling = false  // Don't wait for buffer
             player?.allowsExternalPlayback = true
@@ -757,11 +984,6 @@ class RadioViewModel: NSObject, ObservableObject {
             // Prevent sleep and ensure background playback
             if #available(iOS 12.0, *) {
                 player?.preventsDisplaySleepDuringVideoPlayback = false // We're audio only
-            }
-            
-            // Enable background playback
-            if #available(iOS 15.0, *) {
-                player?.audiovisualBackgroundPlaybackPolicy = .continuesIfPossible
             }
             
             player?.volume = volume
@@ -882,6 +1104,7 @@ class RadioViewModel: NSObject, ObservableObject {
                 playerItem.preferredMaximumResolution = .zero // Audio only
             }
             
+            // Always use AVPlayer for streaming (nature sounds now use AVAudioPlayer)
             player = AVPlayer(playerItem: playerItem)
             player?.automaticallyWaitsToMinimizeStalling = false  // Don't wait for buffer
             player?.allowsExternalPlayback = true
@@ -895,11 +1118,6 @@ class RadioViewModel: NSObject, ObservableObject {
             // Prevent sleep and ensure background playback
             if #available(iOS 12.0, *) {
                 player?.preventsDisplaySleepDuringVideoPlayback = false // We're audio only
-            }
-            
-            // Enable background playback
-            if #available(iOS 15.0, *) {
-                player?.audiovisualBackgroundPlaybackPolicy = .continuesIfPossible
             }
             
             player?.volume = volume
@@ -925,8 +1143,10 @@ class RadioViewModel: NSObject, ObservableObject {
         isLoading = false
         removeObserver()
         player?.pause()
+        audioPlayer?.pause()  // Pause AVAudioPlayer for nature sounds
         // Don't clear player reference - keep it for background
         // player = nil
+        // audioPlayer = nil
         
         // Stop audio analysis
         audioAnalyzer.stopAnalyzing()
@@ -962,33 +1182,48 @@ class RadioViewModel: NSObject, ObservableObject {
         player?.addObserver(self, forKeyPath: "timeControlStatus", options: [.new], context: nil)
         
         observedPlayerItem = playerItem
+        observedPlayer = player  // Track which player we're observing
         isObserving = true
         print("Observer added for status, timedMetadata, rate, and timeControlStatus")
     }
     
+    private var observedPlayer: AVPlayer?  // Track which player we're observing
+    
+    private func setupLooping(for player: AVPlayer) {
+        // Deprecated - now using AVAudioPlayer for local files
+        print("⚠️ setupLooping called but now using AVAudioPlayer for local files")
+    }
+    
     private func removeObserver() {
-        guard isObserving, let observedItem = observedPlayerItem else { 
+        guard isObserving else { 
             isObserving = false
             observedPlayerItem = nil
+            observedPlayer = nil
             return 
         }
         
         // Only remove observer from the exact item we added it to
-        observedItem.removeObserver(self, forKeyPath: "status", context: nil)
-        observedItem.removeObserver(self, forKeyPath: "timedMetadata", context: nil)
+        if let observedItem = observedPlayerItem {
+            observedItem.removeObserver(self, forKeyPath: "status", context: nil)
+            observedItem.removeObserver(self, forKeyPath: "timedMetadata", context: nil)
+        }
         
-        // Remove player observers
-        player?.removeObserver(self, forKeyPath: "rate", context: nil)
-        player?.removeObserver(self, forKeyPath: "timeControlStatus", context: nil)
+        // Remove player observers only if we're observing this specific player
+        if let observedPlayer = observedPlayer {
+            observedPlayer.removeObserver(self, forKeyPath: "rate", context: nil)
+            observedPlayer.removeObserver(self, forKeyPath: "timeControlStatus", context: nil)
+        }
         
         isObserving = false
         observedPlayerItem = nil
+        observedPlayer = nil
         print("Observer removed successfully")
     }
     
     func adjustVolume(_ newVolume: Float) {
         volume = newVolume
         player?.volume = volume
+        audioPlayer?.volume = volume
     }
     
     func recognizeCurrentSong() {
@@ -1025,6 +1260,29 @@ class RadioViewModel: NSObject, ObservableObject {
     func tuneToFrequency(_ frequency: Double) {
         currentFrequency = frequency
         
+        // Easter egg: 106.7 MHz - play glitch sound
+        if abs(frequency - 106.7) < 0.1 {
+            // Stop any existing playback
+            currentStation = nil
+            latestSongInfo = nil
+            
+            if player != nil {
+                player?.pause()
+                removeObserver()
+                player = nil
+                loadTimeoutTask?.cancel()
+                isLoading = false
+            }
+            
+            // Play glitch sound if playing
+            if isPlaying {
+                playGlitchSound()
+            }
+            
+            tuneDebounceTimer?.invalidate()
+            return
+        }
+        
         // 다이얼 회전 중에는 스테이션만 표시하고 재생은 지연
         if let station = filteredStations.first(where: { abs($0.frequency - frequency) < 0.1 }) {
             if currentStation?.id != station.id {
@@ -1044,17 +1302,23 @@ class RadioViewModel: NSObject, ObservableObject {
                 }
             }
         } else {
-            if currentStation != nil {
+            // No station at this frequency - play static noise
+            if currentStation != nil || audioPlayer?.url?.lastPathComponent != "static.mp3" {
                 currentStation = nil
                 latestSongInfo = nil
                 
-                // 스테이션이 없는 주파수에서는 플레이어만 정지
+                // Stop any existing player
                 if player != nil {
                     player?.pause()
                     removeObserver()
                     player = nil
                     loadTimeoutTask?.cancel()
                     isLoading = false
+                }
+                
+                // Play static noise if user is playing
+                if isPlaying {
+                    playStaticNoise()
                 }
                 
                 // 다이얼 타이머 취소
@@ -1583,11 +1847,12 @@ class RadioViewModel: NSObject, ObservableObject {
                         }
                     }
                     
-                    // Force play again if not playing
+                    // Force play if not playing
                     if player?.rate == 0 {
                         player?.play()
                         print("Forcing play after ready state")
                     }
+                    
                     // Ensure isPlaying is set to true on main thread
                     Task { @MainActor in
                         self.isPlaying = true
@@ -1844,5 +2109,20 @@ class RadioViewModel: NSObject, ObservableObject {
                 backgroundTaskID = .invalid
             }
         }
+    }
+    
+    // MARK: - AVAudioPlayerDelegate
+    
+    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        // This shouldn't be called with numberOfLoops = -1, but just in case
+        if !flag {
+            print("⚠️ AVAudioPlayer stopped unexpectedly")
+            isPlaying = false
+        }
+    }
+    
+    func audioPlayerDecodeErrorDidOccur(_ player: AVAudioPlayer, error: Error?) {
+        print("❌ AVAudioPlayer decode error: \(error?.localizedDescription ?? "unknown")")
+        isPlaying = false
     }
 }

@@ -34,7 +34,7 @@ struct StationInfoView: View {
                     // Check if current country has no stations (Coming soon)
                     let hasStations = !viewModel.stations.isEmpty
                     
-                    // Station name or "Coming soon"
+                    // Station name or empty for no station
                     Text(viewModel.showComingSoonMessage ? "Coming soon" : (hasStations ? (station?.name ?? "- - -") : "Coming soon"))
                         .font(.system(size: 15.5, weight: .semibold, design: .monospaced))
                         .foregroundColor(Color(red: 1.0, green: 0.9, blue: 0.7))
@@ -63,7 +63,7 @@ struct StationInfoView: View {
                                 .foregroundColor(Color(red: 1.0, green: 0.8, blue: 0.5).opacity(0.8))
                                 .shadow(color: Color(red: 1.0, green: 0.6, blue: 0.2).opacity(0.5), radius: 2)
                                 .transition(.opacity.combined(with: .scale))
-                        } else if isLoading {
+                        } else if isLoading && station?.countryCode != "NATURE" {
                             Text(LocalizationHelper.getLocalizedString(for: "loading"))
                                 .font(.system(size: 8.5, weight: .medium, design: .monospaced))
                                 .foregroundColor(Color(red: 1.0, green: 0.8, blue: 0.5).opacity(0.5))

@@ -101,118 +101,193 @@ extension RadioStation {
     // Korean stations - Empty for now (Coming soon)
     static let koreanStations: [RadioStation] = []
     
-    // Japanese Audio Streams & Podcasts
-    static let japaneseStations = [
-        // NHK World Radio - 실제 라이브 스트림 (공영방송)
+    // Nature Sound Stations
+    static let natureStations = [
         RadioStation(
-            name: "NHK World Radio",
+            name: "Tokyo Rain FM",
             frequency: 88.1,
-            streamURL: "https://nhkworld.webcdn.stream.ne.jp/www11/nhkworld-tv/global/2003458/live.m3u8",
-            genre: .news,
-            subGenre: "Public Broadcasting",
-            countryCode: "JP",
-            isPodcast: false
-        ),
-        
-        // J-Wave Tokyo Hit Radio 스타일
-        RadioStation(
-            name: "Tokyo Podcast FM",
-            frequency: 89.9,
-            streamURL: "https://nhkradioakr-i.akamaihd.net/hls/live/511633/nhkradioakr/master.m3u8",
+            streamURL: {
+                // Try to load from bundle first
+                if let bundleURL = Bundle.main.url(forResource: "rain", withExtension: "mp3") {
+                    print("✅ Loading rain.mp3 from app bundle")
+                    return bundleURL.absoluteString
+                } else {
+                    print("⚠️ rain.mp3 not found in bundle, using online URL")
+                    return "https://ia800605.us.archive.org/7/items/Rain_201308/rain.mp3"
+                }
+            }(),
             genre: .music,
-            subGenre: "J-Pop & Talk",
-            countryCode: "JP",
+            subGenre: "Natural Broadcast",
+            countryCode: "NATURE",
             isPodcast: false
         ),
-        
-        // Rebuild.fm - 유명한 일본 테크 팟캐스트
         RadioStation(
-            name: "Rebuild Tech Talk",
-            frequency: 91.3,
-            streamURL: "https://feeds.rebuild.fm/rebuildfm",
-            genre: .education,
-            subGenre: "Technology",
-            countryCode: "JP",
-            isPodcast: true
-        ),
-        
-        // Backspace.fm - 일본 테크 뉴스
-        RadioStation(
-            name: "Backspace.fm",
-            frequency: 93.5,
-            streamURL: "http://feeds.backspace.fm/backspacefm",
-            genre: .news,
-            subGenre: "Tech News",
-            countryCode: "JP",
-            isPodcast: true
-        ),
-        
-        // LoFi Hip Hop Radio - 24/7 스트림
-        RadioStation(
-            name: "Tokyo LoFi Radio",
-            frequency: 95.7,
-            streamURL: "https://usa9.fastcast4u.com/proxy/jamz?mp=/1",
+            name: "Night Cricket FM",
+            frequency: 90.3,
+            streamURL: {
+                // Try to load from bundle first
+                if let bundleURL = Bundle.main.url(forResource: "night", withExtension: "mp3") {
+                    print("✅ Loading night.mp3 from app bundle")
+                    return bundleURL.absoluteString
+                } else {
+                    print("⚠️ night.mp3 not found in bundle, using online URL")
+                    return "https://ia800304.us.archive.org/14/items/BirdsInForest/birds_in_forest.mp3"
+                }
+            }(),
             genre: .music,
-            subGenre: "LoFi Hip Hop",
-            countryCode: "JP",
+            subGenre: "Night Sounds",
+            countryCode: "NATURE",
             isPodcast: false
         ),
-        
-        // Anime Radio (SomaFM의 오픈 스트림)
         RadioStation(
-            name: "Anime Beats",
-            frequency: 97.9,
-            streamURL: "https://ice2.somafm.com/vaporwaves-128-mp3",
+            name: "Pacific Ocean FM",
+            frequency: 92.5,
+            streamURL: {
+                // Try to load from bundle first
+                if let bundleURL = Bundle.main.url(forResource: "wave", withExtension: "mp3") {
+                    print("✅ Loading wave.mp3 from app bundle")
+                    return bundleURL.absoluteString
+                } else {
+                    print("⚠️ wave.mp3 not found in bundle, using online URL")
+                    return "https://ia600205.us.archive.org/11/items/OceanWavesSound/Ocean%20Waves%20Sound.mp3"
+                }
+            }(),
             genre: .music,
-            subGenre: "Anime/Vaporwave",
-            countryCode: "JP",
+            subGenre: "Wave Transmission",
+            countryCode: "NATURE",
             isPodcast: false
         ),
-        
-        // Japan Top 10 - 음악 차트
         RadioStation(
-            name: "Japan Top 10",
-            frequency: 100.1,
-            streamURL: "https://kathy.torontocast.com:3060/stream",
-            genre: .pop,
-            subGenre: "J-Pop Charts",
-            countryCode: "JP",
-            isPodcast: false
-        ),
-        
-        // Classical Japan (공개 클래식)
-        RadioStation(
-            name: "Classical Japan",
-            frequency: 102.5,
-            streamURL: "https://live.musopen.org:8085/streamvbr0",
-            genre: .classical,
-            subGenre: "Classical Music",
-            countryCode: "JP",
-            isPodcast: false
-        ),
-        
-        // Zen Meditation
-        RadioStation(
-            name: "Zen Garden Radio",
-            frequency: 104.9,
-            streamURL: "https://ice2.somafm.com/dronezone-128-mp3",
+            name: "Campfire Radio",
+            frequency: 94.7,
+            streamURL: {
+                // Try to load from bundle first
+                if let bundleURL = Bundle.main.url(forResource: "campfire", withExtension: "mp3") {
+                    print("✅ Loading campfire.mp3 from app bundle")
+                    return bundleURL.absoluteString
+                } else {
+                    print("⚠️ campfire.mp3 not found in bundle, using online URL")
+                    return "https://ia600500.us.archive.org/8/items/Fireplace-soundmp3/fireplace-sound.mp3"
+                }
+            }(),
             genre: .music,
-            subGenre: "Meditation",
-            countryCode: "JP",
+            subGenre: "Fire Crackling",
+            countryCode: "NATURE",
             isPodcast: false
         ),
-        
-        // City Pop Radio
         RadioStation(
-            name: "City Pop Tokyo",
-            frequency: 107.3,
-            streamURL: "https://ice2.somafm.com/seventies-128-mp3",
-            genre: .pop,
-            subGenre: "City Pop",
-            countryCode: "JP",
+            name: "Thunder Storm FM",
+            frequency: 96.9,
+            streamURL: {
+                // Try to load from bundle first
+                if let bundleURL = Bundle.main.url(forResource: "thunder", withExtension: "mp3") {
+                    print("✅ Loading thunder.mp3 from app bundle")
+                    return bundleURL.absoluteString
+                } else {
+                    print("⚠️ thunder.mp3 not found in bundle, using online URL")
+                    return "https://ia800407.us.archive.org/3/items/ThunderSounds/thunder_sounds.mp3"
+                }
+            }(),
+            genre: .music,
+            subGenre: "Storm Broadcast",
+            countryCode: "NATURE",
+            isPodcast: false
+        ),
+        RadioStation(
+            name: "Drizzle FM",
+            frequency: 101.3,
+            streamURL: {
+                // Try to load from bundle first
+                if let bundleURL = Bundle.main.url(forResource: "drizzle", withExtension: "mp3") {
+                    print("✅ Loading drizzle.mp3 from app bundle")
+                    return bundleURL.absoluteString
+                } else {
+                    print("⚠️ drizzle.mp3 not found in bundle, using online URL")
+                    return "https://ia800605.us.archive.org/7/items/LightRain/light_rain.mp3"
+                }
+            }(),
+            genre: .music,
+            subGenre: "Soft Rain",
+            countryCode: "NATURE",
+            isPodcast: false
+        ),
+        RadioStation(
+            name: "Morning Birds FM",
+            frequency: 99.7,
+            streamURL: {
+                // Try to load from bundle first
+                if let bundleURL = Bundle.main.url(forResource: "bird", withExtension: "mp3") {
+                    print("✅ Loading bird.mp3 from app bundle")
+                    return bundleURL.absoluteString
+                } else {
+                    print("⚠️ bird.mp3 not found in bundle, using online URL")
+                    return "https://ia800207.us.archive.org/29/items/BirdsIngInTheMorning/Birds%20Singing%20In%20The%20Morning.mp3"
+                }
+            }(),
+            genre: .music,
+            subGenre: "Dawn Chorus",
+            countryCode: "NATURE",
             isPodcast: false
         )
     ]
+    
+    // Lo-Fi Stations (placeholder for now)
+    static let lofiStations: [RadioStation] = natureStations // Temporary fallback
+    
+    // Classical Stations
+    static let classicalStations = [
+        RadioStation(
+            name: "Musopen Classical",
+            frequency: 88.1,
+            streamURL: "https://live.musopen.org:8085/streamvbr0",
+            genre: .classical,
+            subGenre: "Public Domain",
+            countryCode: "CLASSIC",
+            isPodcast: false
+        )
+    ]
+    
+    // Radio Stations (to be added with proper licensing)
+    static let radioStations: [RadioStation] = []
+    
+    // Podcast Stations (renamed from japaneseStations)
+    static let podcastStations = [
+        // Rebuild.fm - Popular tech podcast
+        RadioStation(
+            name: "Rebuild.fm",
+            frequency: 88.1,
+            streamURL: "https://feeds.rebuild.fm/rebuildfm",
+            genre: .talk,
+            subGenre: "Technology",
+            countryCode: "JP",
+            isPodcast: true  // RSS feed
+        ),
+        
+        // Bilingual News 
+        RadioStation(
+            name: "Bilingual News",
+            frequency: 90.3,
+            streamURL: "https://bilingualnews.libsyn.com/rss",
+            genre: .news,
+            subGenre: "Bilingual",
+            countryCode: "JP",
+            isPodcast: true  // RSS feed
+        ),
+        
+        // COTEN RADIO - History podcast
+        RadioStation(
+            name: "COTEN RADIO",
+            frequency: 92.5,
+            streamURL: "https://anchor.fm/s/8c2088c/podcast/rss",
+            genre: .education,
+            subGenre: "History",
+            countryCode: "JP",
+            isPodcast: true  // RSS feed
+        )
+    ]
+    
+    // Keep japaneseStations for backward compatibility
+    static let japaneseStations = podcastStations
     
     // US stations - Empty for now (Coming soon)
     static let usStations: [RadioStation] = []
@@ -1505,6 +1580,16 @@ extension RadioStation {
     // Get stations for country code
     static func stations(for countryCode: String) -> [RadioStation] {
         switch countryCode {
+        case "NATURE":
+            return natureStations
+        case "LOFI":
+            return lofiStations  
+        case "CLASSIC":
+            return classicalStations
+        case "PODCAST":
+            return podcastStations
+        case "RADIO":
+            return radioStations.isEmpty ? natureStations : radioStations // Fallback to nature if no radio
         case "KR":
             return koreanStations
         case "JP":

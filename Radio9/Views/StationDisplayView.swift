@@ -21,6 +21,105 @@ struct StationInfoModal: View {
         }
     }
     
+    private func getEmotionalDescription(for station: RadioStation) -> String? {
+        // Nature sounds get special emotional descriptions
+        if station.countryCode == "NATURE" {
+            switch station.name {
+            case "Tokyo Rain FM":
+                return """
+                🌧 시부야 골목, 오후 3시 47분
+                
+                창가에 앉아 커피 한 모금.
+                유리창을 두드리는 빗방울이
+                도시의 소음을 지워갑니다.
+                
+                이 빗소리는 1962년부터
+                같은 주파수로 방송되고 있습니다.
+                """
+                
+            case "Pacific Ocean FM":
+                return """
+                🌊 가마쿠라 해변, 새벽 5시
+                
+                첫 서퍼가 나서기 전,
+                파도만이 말을 걸어옵니다.
+                
+                7초마다 밀려오는 파도.
+                태평양이 직접 운영하는
+                24시간 라디오 방송국.
+                """
+                
+            case "Night Cricket FM":
+                return """
+                🦗 나라의 대나무 숲, 자정
+                
+                달빛이 대나무 잎을 비추고
+                귀뚜라미들이 밤의 교향곡을 시작합니다.
+                
+                1초에 4번, 정확한 리듬.
+                기온이 1도 올라가면 템포도 빨라집니다.
+                자연의 온도계이자 시계, 그리고 라디오.
+                
+                천 년 전 헤이안 시대부터
+                같은 주파수로 울려왔습니다.
+                """
+                
+            case "Campfire Radio":
+                return """
+                🔥 홋카이도 설원, 겨울밤 10시
+                
+                영하 20도의 맑은 밤.
+                오로라가 춤추는 하늘 아래
+                통나무가 따뜻한 이야기를 들려줍니다.
+                
+                아이누 족이 천 년 전부터
+                같은 자리에서 피워온 불.
+                눈 속에서 타오르는 생명의 주파수.
+                """
+                
+            case "Thunder Storm FM":
+                return """
+                ⛈ 오사카 상공, 여름밤
+                
+                하늘이 보내는 긴급 속보.
+                천둥은 베이스, 비는 드럼.
+                
+                10km 떨어진 곳의 빗소리가
+                7초 후 당신의 창문에 도착합니다.
+                자연의 라이브 중계.
+                """
+                
+            case "Drizzle FM":
+                return """
+                🌦 교토 정원, 오전 10시
+                
+                가랑비가 내립니다.
+                연못 위로 동심원이 퍼집니다.
+                
+                우산 없이도 걸을 수 있는 비.
+                대나무 잎 끝에 맺힌 물방울이
+                똑, 똑, 떨어집니다.
+                """
+                
+            case "Morning Birds FM":
+                return """
+                🐦 교토 아라시야마, 새벽 4시 30분
+                
+                첫 참새가 눈을 뜹니다.
+                이어서 휘파람새, 지빠귀, 종달새.
+                
+                태양이 뜨기 한 시간 전,
+                새들의 모닝콜이 시작됩니다.
+                천 년간 이어진 아침 방송.
+                """
+                
+            default:
+                return nil
+            }
+        }
+        return nil
+    }
+    
     var body: some View {
         VStack(spacing: 20) {
             // Header
@@ -47,8 +146,22 @@ struct StationInfoModal: View {
             Divider()
                 .padding(.horizontal)
             
-            // Current Song Info
-            if let songInfo = songInfo {
+            // Emotional description for nature sounds
+            if let station = station,
+               let description = getEmotionalDescription(for: station) {
+                ScrollView(showsIndicators: false) {
+                    Text(description)
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundColor(.primary.opacity(0.85))
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(6)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                }
+                .frame(maxHeight: 200)
+            }
+            // Current Song Info (for regular stations)
+            else if let songInfo = songInfo {
                 VStack(spacing: 12) {
                     Text(songInfo.title)
                         .font(.system(size: 18, weight: .medium))
@@ -95,7 +208,7 @@ struct StationInfoModal: View {
             
             Spacer()
         }
-        .presentationDetents([.height(300)])
+        .presentationDetents([.height(station?.countryCode == "NATURE" ? 400 : 300)])
         .presentationDragIndicator(.hidden)
         .presentationCornerRadius(30)
         .presentationBackground(.regularMaterial)
