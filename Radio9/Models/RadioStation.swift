@@ -194,6 +194,24 @@ extension RadioStation {
             isPodcast: false
         ),
         RadioStation(
+            name: "Mountain Stream FM",
+            frequency: 98.3,
+            streamURL: {
+                // Try to load from bundle first
+                if let bundleURL = Bundle.main.url(forResource: "stream", withExtension: "mp3") {
+                    print("✅ Loading stream.mp3 from app bundle")
+                    return bundleURL.absoluteString
+                } else {
+                    print("⚠️ stream.mp3 not found in bundle, using online URL")
+                    return "https://ia800605.us.archive.org/7/items/StreamSounds/stream.mp3"
+                }
+            }(),
+            genre: .music,
+            subGenre: "Brook Radio",
+            countryCode: "NATURE",
+            isPodcast: false
+        ),
+        RadioStation(
             name: "Drizzle FM",
             frequency: 101.3,
             streamURL: {

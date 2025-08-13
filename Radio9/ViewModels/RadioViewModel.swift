@@ -577,9 +577,15 @@ class RadioViewModel: NSObject, ObservableObject, AVAudioPlayerDelegate {
     }
     
     func play() {
-        // Easter egg: 106.7 MHz
+        // Easter egg: 106.7 MHz - glitch1
         if abs(currentFrequency - 106.7) < 0.1 {
-            playGlitchSound()
+            playGlitchSound(fileName: "glitch1")
+            return
+        }
+        
+        // Easter egg: 102.8 MHz - glitch2
+        if abs(currentFrequency - 102.8) < 0.1 {
+            playGlitchSound(fileName: "glitch2")
             return
         }
         
@@ -769,10 +775,10 @@ class RadioViewModel: NSObject, ObservableObject, AVAudioPlayerDelegate {
         }
     }
     
-    private func playGlitchSound() {
+    private func playGlitchSound(fileName: String = "glitch1") {
         // Load glitch sound file from bundle
-        guard let fileURL = Bundle.main.url(forResource: "glitch1", withExtension: "mp3") else {
-            print("❌ Failed to find glitch1.mp3 in bundle")
+        guard let fileURL = Bundle.main.url(forResource: fileName, withExtension: "mp3") else {
+            print("❌ Failed to find \(fileName).mp3 in bundle")
             return
         }
         
@@ -790,8 +796,9 @@ class RadioViewModel: NSObject, ObservableObject, AVAudioPlayerDelegate {
             
             // Start playback
             if audioPlayer?.play() == true {
-                print("🎛 Playing easter egg glitch sound at 106.7 MHz")
-                // Don't set isLoading since glitch plays immediately
+                print("🎛 Playing easter egg \(fileName) sound")
+                // Start glitch pattern animation
+                audioAnalyzer.startAnalyzingForNature(stationName: "Glitch")
             } else {
                 print("❌ Failed to start glitch sound")
             }
@@ -822,7 +829,8 @@ class RadioViewModel: NSObject, ObservableObject, AVAudioPlayerDelegate {
             // Start playback
             if audioPlayer?.play() == true {
                 print("📻 Playing static noise for empty frequency")
-                // Don't set isLoading since static plays immediately
+                // Start static pattern animation
+                audioAnalyzer.startAnalyzingForNature(stationName: "Static")
             } else {
                 print("❌ Failed to start static noise")
             }
@@ -859,6 +867,9 @@ class RadioViewModel: NSObject, ObservableObject, AVAudioPlayerDelegate {
         } else if urlString.contains("drizzle.mp3") {
             resourceName = "drizzle"
             volumeAdjustment = 0.45  // -55% volume (45%)
+        } else if urlString.contains("stream.mp3") {
+            resourceName = "stream"
+            volumeAdjustment = 0.25  // -75% volume (25%)
         }
         
         // Load file from bundle
@@ -882,8 +893,10 @@ class RadioViewModel: NSObject, ObservableObject, AVAudioPlayerDelegate {
                 isPlaying = true
                 isLoading = false
                 
-                // Start audio analysis if needed
-                // Note: AVAudioPlayer doesn't support audio analysis like AVPlayer
+                // Start fake equalizer animation for nature sounds
+                if let station = currentStation {
+                    audioAnalyzer.startAnalyzingForNature(stationName: station.name)
+                }
             } else {
                 print("❌ Failed to start AVAudioPlayer")
                 isPlaying = false
@@ -1260,7 +1273,7 @@ class RadioViewModel: NSObject, ObservableObject, AVAudioPlayerDelegate {
     func tuneToFrequency(_ frequency: Double) {
         currentFrequency = frequency
         
-        // Easter egg: 106.7 MHz - play glitch sound
+        // Easter egg: 106.7 MHz - play glitch1 sound
         if abs(frequency - 106.7) < 0.1 {
             // Stop any existing playback
             currentStation = nil
@@ -1274,9 +1287,32 @@ class RadioViewModel: NSObject, ObservableObject, AVAudioPlayerDelegate {
                 isLoading = false
             }
             
-            // Play glitch sound if playing
+            // Play glitch1 sound if playing
             if isPlaying {
-                playGlitchSound()
+                playGlitchSound(fileName: "glitch1")
+            }
+            
+            tuneDebounceTimer?.invalidate()
+            return
+        }
+        
+        // Easter egg: 102.8 MHz - play glitch2 sound
+        if abs(frequency - 102.8) < 0.1 {
+            // Stop any existing playback
+            currentStation = nil
+            latestSongInfo = nil
+            
+            if player != nil {
+                player?.pause()
+                removeObserver()
+                player = nil
+                loadTimeoutTask?.cancel()
+                isLoading = false
+            }
+            
+            // Play glitch2 sound if playing
+            if isPlaying {
+                playGlitchSound(fileName: "glitch2")
             }
             
             tuneDebounceTimer?.invalidate()

@@ -33,7 +33,8 @@ struct CountrySelectorButton: View {
                             radius: 6
                         )
                 } else {
-                    Text(viewModel.selectedCountry.code)
+                    // Show abbreviated code for NATURE
+                    Text(viewModel.selectedCountry.code == "NATURE" ? "NA" : viewModel.selectedCountry.code)
                         .font(.system(size: 14, weight: .medium, design: .monospaced))
                         .foregroundColor(Color(red: 1.0, green: 0.9, blue: 0.7))
                         .shadow(

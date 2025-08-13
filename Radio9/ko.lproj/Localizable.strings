@@ -5,7 +5,7 @@
 
 /* Settings Modal */
 "settings" = "설정";
-"suggest_radio_channel" = "라디오 채널 제안하기";
+"suggest_radio_channel" = "소리 제안하기";
 "haptic_feedback" = "진동 피드백";
 "version" = "버전";
 
@@ -24,6 +24,7 @@
 "turn_dial_select_country" = "다이얼을 돌려 국가를 선택하세요";
 "loading" = "로딩중...";
 "equalizer_on" = "이퀄라이저 켜짐";
+"more_sounds_coming_soon" = "더 많은 소리가 곧 추가됩니다";
 
 /* Station Info Modal */
 "now_playing" = "지금 재생 중";
@@ -31,5 +32,22 @@
 "view_in_apple_music" = "애플뮤직에서 보기";
 
 /* Legal */
-"legal_notice" = "법적 고지";
-"disclaimer_text" = "이 앱은 공개적으로 이용 가능한 인터넷 라디오 스트림에 대한 접근을 제공합니다. 모든 콘텐츠는 제3자 방송사에 의해 제공됩니다. 저희는 어떠한 콘텐츠도 호스팅하거나 관리하지 않습니다.";
+"legal_notice" = "앱 설명";
+"disclaimer_text" = "우리는 모든 소리가 고유한 주파수를 가지고\n있다고 믿습니다. 지구의 자연음부터 시작해,\n머지않아 별들의 속삭임까지 들려드릴\n예정입니다.";
+
+/* Nature Sound Descriptions */
+"tokyo_rain_description" = "🌧 시부야 골목, 오후 3시 47분\n\n창가에 앉아 커피 한 모금.\n유리창을 두드리는 빗방울이\n도시의 소음을 지워갑니다.\n\n이 빗소리는 1962년부터\n같은 주파수로 방송되고 있습니다.";
+
+"pacific_ocean_description" = "🌊 가마쿠라 해변, 새벽 5시\n\n첫 서퍼가 나서기 전,\n파도만이 말을 걸어옵니다.\n\n7초마다 밀려오는 파도.\n태평양이 직접 운영하는\n24시간 라디오 방송국.";
+
+"night_cricket_description" = "🦗 나라의 대나무 숲, 자정\n\n달빛이 대나무 잎을 비추고\n귀뚜라미들이 밤의 교향곡을 시작합니다.\n\n1초에 4번, 정확한 리듬.\n기온이 1도 올라가면 템포도 빨라집니다.\n자연의 온도계이자 시계, 그리고 라디오.\n\n천 년 전 헤이안 시대부터\n같은 주파수로 울려왔습니다.";
+
+"campfire_description" = "🔥 홋카이도 설원, 겨울밤 10시\n\n영하 20도의 맑은 밤.\n오로라가 춤추는 하늘 아래\n통나무가 따뜻한 이야기를 들려줍니다.\n\n아이누 족이 천 년 전부터\n같은 자리에서 피워온 불.\n눈 속에서 타오르는 생명의 주파수.";
+
+"thunder_storm_description" = "⛈ 오사카 상공, 여름밤\n\n하늘이 보내는 긴급 속보.\n천둥은 베이스, 비는 드럼.\n\n10km 떨어진 곳의 빗소리가\n7초 후 당신의 창문에 도착합니다.\n자연의 라이브 중계.";
+
+"mountain_stream_description" = "💧 후지산 계곡, 봄날 오후\n\n눈 녹은 물이 바위를 타고\n맑게 흐릅니다.\n\n차가운 물소리가\n도시의 열기를 식혀줍니다.\n산이 보내는 청량한 메시지.";
+
+"drizzle_description" = "🌦 교토 정원, 오전 10시\n\n가랑비가 내립니다.\n연못 위로 동심원이 퍼집니다.\n\n우산 없이도 걸을 수 있는 비.\n대나무 잎 끝에 맺힌 물방울이\n똑, 똑, 떨어집니다.";
+
+"morning_birds_description" = "🐦 교토 아라시야마, 새벽 4시 30분\n\n첫 참새가 눈을 뜹니다.\n이어서 휘파람새, 지빠귀, 종달새.\n\n태양이 뜨기 한 시간 전,\n새들의 모닝콜이 시작됩니다.\n천 년간 이어진 아침 방송.";

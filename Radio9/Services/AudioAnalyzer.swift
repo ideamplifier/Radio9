@@ -14,6 +14,7 @@ class AudioAnalyzer: ObservableObject {
     private var updateTimer: Timer?
     private var animationTimer: Timer?
     private var currentStation: String?
+    private var currentStationName: String = ""
     
     // 이전 프레임 값들 (비트 감지용)
     private var beatHistory: [Float] = Array(repeating: 0.0, count: 30)
@@ -41,6 +42,18 @@ class AudioAnalyzer: ObservableObject {
         
         // Start appropriate animation
         startAnimation()
+    }
+    
+    func startAnalyzingForNature(stationName: String) {
+        // Stop any existing timers
+        stopAnalyzing()
+        
+        // Store station name for pattern selection
+        currentStationName = stationName
+        contentType = .music
+        
+        // Start nature-specific animation
+        startNatureAnimation()
     }
     
     func stopAnalyzing() {
@@ -91,6 +104,129 @@ class AudioAnalyzer: ObservableObject {
             
             // Limit to bottom 3 rows (0.5 max)
             frequencyBands[i] = min(0.5, Float(wave) + randomness)
+        }
+    }
+    
+    private func startNatureAnimation() {
+        // Nature-specific patterns
+        updateTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            
+            DispatchQueue.main.async {
+                self.animateNaturePattern()
+            }
+        }
+    }
+    
+    private func animateNaturePattern() {
+        let time = Date().timeIntervalSinceReferenceDate
+        
+        switch currentStationName {
+        case "Tokyo Rain FM", "Drizzle FM":
+            // Rain: Mid-frequency emphasis with random drops
+            frequencyBands[0] = Float.random(in: 0.1...0.2)  // Sub-bass
+            frequencyBands[1] = Float.random(in: 0.2...0.3)  // Bass
+            frequencyBands[2] = Float.random(in: 0.4...0.6)  // Low-mid (rain hits)
+            frequencyBands[3] = Float.random(in: 0.5...0.7)  // Mid (main rain)
+            frequencyBands[4] = Float.random(in: 0.3...0.5)  // High-mid
+            frequencyBands[5] = Float.random(in: 0.2...0.3)  // High
+            
+        case "Pacific Ocean FM":
+            // Waves: Low frequency rolling pattern
+            let wave = sin(time * 0.5) * 0.3 + 0.5
+            frequencyBands[0] = Float(wave) + Float.random(in: -0.1...0.1)  // Sub-bass (deep waves)
+            frequencyBands[1] = Float(wave * 0.8) + Float.random(in: -0.1...0.1)  // Bass
+            frequencyBands[2] = Float(wave * 0.6) + Float.random(in: -0.05...0.05)  // Low-mid
+            frequencyBands[3] = Float(wave * 0.4)  // Mid
+            frequencyBands[4] = Float.random(in: 0.1...0.2)  // High-mid (foam)
+            frequencyBands[5] = Float.random(in: 0.05...0.15)  // High
+            
+        case "Night Cricket FM":
+            // Crickets: High frequency pulses
+            let pulse = (sin(time * 8) + 1) * 0.5  // Fast pulse for cricket chirps
+            frequencyBands[0] = Float.random(in: 0.05...0.1)  // Sub-bass
+            frequencyBands[1] = Float.random(in: 0.05...0.1)  // Bass
+            frequencyBands[2] = Float.random(in: 0.1...0.15)  // Low-mid
+            frequencyBands[3] = Float.random(in: 0.15...0.25)  // Mid
+            frequencyBands[4] = Float(pulse * 0.4) + Float.random(in: -0.05...0.05)  // High-mid
+            frequencyBands[5] = Float(pulse * 0.6) + Float.random(in: -0.1...0.1)  // High (cricket chirps)
+            
+        case "Campfire Radio":
+            // Fire: Random crackling across mid frequencies
+            frequencyBands[0] = Float.random(in: 0.2...0.3)  // Sub-bass
+            frequencyBands[1] = Float.random(in: 0.3...0.5)  // Bass (wood pops)
+            frequencyBands[2] = Float.random(in: 0.3...0.6)  // Low-mid (crackling)
+            frequencyBands[3] = Float.random(in: 0.4...0.7)  // Mid (main fire)
+            frequencyBands[4] = Float.random(in: 0.2...0.4)  // High-mid
+            frequencyBands[5] = Float.random(in: 0.1...0.2)  // High
+            
+        case "Thunder Storm FM":
+            // Thunder: Occasional bass spikes
+            let thunder = Int.random(in: 0...100) < 5  // 5% chance of thunder
+            if thunder {
+                frequencyBands[0] = Float.random(in: 0.7...0.9)  // Sub-bass (thunder rumble)
+                frequencyBands[1] = Float.random(in: 0.6...0.8)  // Bass
+            } else {
+                frequencyBands[0] = Float.random(in: 0.2...0.3)  // Sub-bass
+                frequencyBands[1] = Float.random(in: 0.2...0.3)  // Bass
+            }
+            frequencyBands[2] = Float.random(in: 0.3...0.5)  // Low-mid (rain)
+            frequencyBands[3] = Float.random(in: 0.4...0.6)  // Mid (rain)
+            frequencyBands[4] = Float.random(in: 0.3...0.4)  // High-mid
+            frequencyBands[5] = Float.random(in: 0.2...0.3)  // High
+            
+        case "Morning Birds FM":
+            // Birds: High frequency chirps
+            let chirp = sin(time * 15 + Double.random(in: 0...2)) * 0.5 + 0.5
+            frequencyBands[0] = Float.random(in: 0.05...0.1)  // Sub-bass
+            frequencyBands[1] = Float.random(in: 0.05...0.1)  // Bass
+            frequencyBands[2] = Float.random(in: 0.1...0.2)  // Low-mid
+            frequencyBands[3] = Float.random(in: 0.2...0.3)  // Mid
+            frequencyBands[4] = Float(chirp * 0.5) + Float.random(in: -0.1...0.1)  // High-mid
+            frequencyBands[5] = Float(chirp * 0.7) + Float.random(in: -0.1...0.1)  // High (bird chirps)
+            
+        case "Mountain Stream FM":
+            // Stream: Consistent mid-high frequency water flow
+            let flow = sin(time * 2) * 0.1 + 0.4  // Gentle variation
+            frequencyBands[0] = Float.random(in: 0.1...0.15)  // Sub-bass
+            frequencyBands[1] = Float.random(in: 0.15...0.25)  // Bass
+            frequencyBands[2] = Float(flow) + Float.random(in: -0.05...0.05)  // Low-mid
+            frequencyBands[3] = Float(flow * 1.2) + Float.random(in: -0.1...0.1)  // Mid (water flow)
+            frequencyBands[4] = Float(flow * 1.1) + Float.random(in: -0.1...0.1)  // High-mid (bubbling)
+            frequencyBands[5] = Float.random(in: 0.3...0.4)  // High (splashing)
+            
+        case "Static":
+            // Static: Random noise across all frequencies
+            for i in 0..<6 {
+                frequencyBands[i] = Float.random(in: 0.05...0.25)  // Low amplitude random
+            }
+            
+        case "Glitch":
+            // Glitch: Erratic spikes
+            let glitch = Int.random(in: 0...100) < 20  // 20% chance of glitch spike
+            if glitch {
+                let band = Int.random(in: 0...5)
+                frequencyBands[band] = Float.random(in: 0.6...0.9)
+                // Other bands normal
+                for i in 0..<6 where i != band {
+                    frequencyBands[i] = Float.random(in: 0.1...0.2)
+                }
+            } else {
+                for i in 0..<6 {
+                    frequencyBands[i] = Float.random(in: 0.05...0.15)
+                }
+            }
+            
+        default:
+            // Default pattern for unknown stations
+            for i in 0..<6 {
+                frequencyBands[i] = Float.random(in: 0.1...0.3)
+            }
+        }
+        
+        // Ensure all values are within 0...1 range
+        for i in 0..<6 {
+            frequencyBands[i] = max(0, min(1, frequencyBands[i]))
         }
     }
     

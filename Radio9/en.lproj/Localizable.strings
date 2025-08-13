@@ -5,7 +5,7 @@
 
 /* Settings Modal */
 "settings" = "Settings";
-"suggest_radio_channel" = "Suggest Radio Channel";
+"suggest_radio_channel" = "Suggest Sound";
 "haptic_feedback" = "Haptic Feedback";
 "version" = "Version";
 
@@ -24,6 +24,7 @@
 "turn_dial_select_country" = "Turn the dial to select a country";
 "loading" = "loading...";
 "equalizer_on" = "EQUALIZER ON";
+"more_sounds_coming_soon" = "More sounds coming soon";
 
 /* Station Info Modal */
 "now_playing" = "NOW PLAYING";
@@ -31,5 +32,22 @@
 "view_in_apple_music" = "View in Apple Music";
 
 /* Legal */
-"legal_notice" = "Legal Notice";
-"disclaimer_text" = "This app provides access to publicly available internet radio streams. All content is provided by third-party broadcasters. We do not host or control any content.";
+"legal_notice" = "About App";
+"disclaimer_text" = "We believe every sound has its own\nunique frequency. Starting with Earth's nature sounds,\nwe'll soon bring you whispers from\nthe stars.";
+
+/* Nature Sound Descriptions */
+"tokyo_rain_description" = "🌧 Shibuya alley, 3:47 PM\n\nSitting by the window, sipping coffee.\nRaindrops tapping on the glass\nerasing the city's noise.\n\nThis rain has been broadcasting\non the same frequency since 1962.";
+
+"pacific_ocean_description" = "🌊 Kamakura Beach, 5 AM\n\nBefore the first surfer arrives,\nonly the waves speak to you.\n\nWaves every seven seconds.\nA 24-hour radio station\noperated directly by the Pacific Ocean.";
+
+"night_cricket_description" = "🦗 Nara bamboo forest, midnight\n\nMoonlight illuminates bamboo leaves\nas crickets begin their nocturnal symphony.\n\nFour chirps per second, precise rhythm.\nTempo increases with each degree of warmth.\nNature's thermometer, clock, and radio.\n\nChirping on the same frequency\nsince the Heian period a thousand years ago.";
+
+"campfire_description" = "🔥 Hokkaido snowfield, 10 PM winter night\n\nA clear night at minus 20 degrees.\nUnder the dancing aurora,\nlogs tell warm stories.\n\nA fire the Ainu people have kept burning\nin the same place for a thousand years.\nLife's frequency burning through snow.";
+
+"thunder_storm_description" = "⛈ Above Osaka, summer night\n\nBreaking news from the sky.\nThunder on bass, rain on drums.\n\nRain from 10km away\nreaches your window 7 seconds later.\nNature's live broadcast.";
+
+"mountain_stream_description" = "💧 Mt. Fuji valley, spring afternoon\n\nSnowmelt flowing over rocks,\ncrystal clear.\n\nCold water sounds\ncooling the city's heat.\nA refreshing message from the mountain.";
+
+"drizzle_description" = "🌦 Kyoto garden, 10 AM\n\nDrizzle falling.\nConcentric circles spreading on the pond.\n\nRain you can walk through without an umbrella.\nWater droplets gathered on bamboo tips\nfalling drop by drop.";
+
+"morning_birds_description" = "🐦 Kyoto Arashiyama, 4:30 AM\n\nThe first sparrow awakens.\nFollowed by warblers, thrushes, larks.\n\nOne hour before sunrise,\nthe birds' morning call begins.\nA morning broadcast continuing for a thousand years.";
