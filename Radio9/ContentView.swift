@@ -28,6 +28,7 @@ struct ContentView: View {
     @State private var showSettingsModal = false
     @State private var showSleepTimerModal = false
     @Environment(\.scenePhase) var scenePhase
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     var body: some View {
         ZStack {

@@ -8,6 +8,7 @@ struct StationInfoView: View {
     @ObservedObject var viewModel: RadioViewModel
     @Binding var isPowerOn: Bool
     @State private var showEqualizerMessage = false
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     var body: some View {
         HStack(spacing: 15) {
