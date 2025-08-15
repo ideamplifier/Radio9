@@ -92,6 +92,14 @@ struct SettingsModalView: View {
                     .foregroundColor(.secondary.opacity(0.8))
                     .lineSpacing(4)
                     .multilineTextAlignment(.leading)
+                
+                // CC BY-ND 3.0 Attribution
+                Text("\"Clair de Lune\" performed by Caela Harrison\nLicensed under CC BY-ND 3.0")
+                    .font(.system(size: 10, weight: .regular))
+                    .foregroundColor(.secondary.opacity(0.6))
+                    .lineSpacing(2)
+                    .multilineTextAlignment(.leading)
+                    .padding(.top, 8)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 16)

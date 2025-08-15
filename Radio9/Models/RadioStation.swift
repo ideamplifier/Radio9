@@ -294,6 +294,36 @@ extension RadioStation {
             subGenre: "Arctic Wind",
             countryCode: "NATURE",
             isPodcast: false
+        ),
+        RadioStation(
+            name: "- - -",
+            frequency: 93.7,
+            streamURL: {
+                if let bundleURL = Bundle.main.url(forResource: "debussy", withExtension: "mp3") {
+                    return bundleURL.absoluteString
+                } else {
+                    return "https://fallback-url"
+                }
+            }(),
+            genre: .music,
+            subGenre: "",
+            countryCode: "NATURE",
+            isPodcast: false
+        ),
+        RadioStation(
+            name: "- - -",
+            frequency: 105.3,
+            streamURL: {
+                if let bundleURL = Bundle.main.url(forResource: "grace", withExtension: "mp3") {
+                    return bundleURL.absoluteString
+                } else {
+                    return "https://fallback-url"
+                }
+            }(),
+            genre: .music,
+            subGenre: "",
+            countryCode: "NATURE",
+            isPodcast: false
         )
     ]
     

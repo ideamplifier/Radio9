@@ -879,6 +879,12 @@ class RadioViewModel: NSObject, ObservableObject, AVAudioPlayerDelegate {
         } else if urlString.contains("snowstorm.mp3") {
             resourceName = "snowstorm"
             volumeAdjustment = 0.3  // 30% volume for snowstorm
+        } else if urlString.contains("debussy.mp3") {
+            resourceName = "debussy"
+            volumeAdjustment = 0.85  // 85% volume for classical piano
+        } else if urlString.contains("grace.mp3") {
+            resourceName = "grace"
+            volumeAdjustment = 0.5  // 50% volume for hymn
         }
         
         // Load file from bundle
@@ -1413,8 +1419,10 @@ class RadioViewModel: NSObject, ObservableObject, AVAudioPlayerDelegate {
     
     // MARK: - Station Navigation
     func selectNextStation() {
-        // 주파수로 정렬된 스테이션 목록
-        let sortedStations = filteredStations.sorted { $0.frequency < $1.frequency }
+        // 주파수로 정렬된 스테이션 목록 (--- 이스터에그 제외)
+        let sortedStations = filteredStations
+            .filter { $0.name != "- - -" && $0.name != "---" }  // Easter egg 제외
+            .sorted { $0.frequency < $1.frequency }
         
         guard !sortedStations.isEmpty else { return }
         
@@ -1440,8 +1448,10 @@ class RadioViewModel: NSObject, ObservableObject, AVAudioPlayerDelegate {
     }
     
     func selectPreviousStation() {
-        // 주파수로 정렬된 스테이션 목록
-        let sortedStations = filteredStations.sorted { $0.frequency < $1.frequency }
+        // 주파수로 정렬된 스테이션 목록 (--- 이스터에그 제외)
+        let sortedStations = filteredStations
+            .filter { $0.name != "- - -" && $0.name != "---" }  // Easter egg 제외
+            .sorted { $0.frequency < $1.frequency }
         
         guard !sortedStations.isEmpty else { return }
         

@@ -268,6 +268,48 @@ class AudioAnalyzer: ObservableObject {
                 frequencyBands[5] = Float.random(in: 0.45...0.6)  // High
             }
             
+        case "- - -":
+            // Hidden easter egg: Classical piano with subtle pattern
+            let accent = Int.random(in: 0...100) < 25  // 25% chance of accent note
+            if accent {
+                // Strong piano note
+                frequencyBands[0] = Float.random(in: 0.1...0.2)  // Sub-bass (minimal)
+                frequencyBands[1] = Float.random(in: 0.2...0.3)  // Bass (piano body)
+                frequencyBands[2] = Float.random(in: 0.5...0.7)  // Low-mid (fundamental)
+                frequencyBands[3] = Float.random(in: 0.6...0.8)  // Mid (melody)
+                frequencyBands[4] = Float.random(in: 0.4...0.6)  // High-mid (harmonics)
+                frequencyBands[5] = Float.random(in: 0.3...0.5)  // High (brilliance)
+            } else {
+                // Soft flowing notes
+                frequencyBands[0] = Float.random(in: 0.05...0.1)  // Sub-bass
+                frequencyBands[1] = Float.random(in: 0.1...0.2)  // Bass
+                frequencyBands[2] = Float.random(in: 0.3...0.45)  // Low-mid
+                frequencyBands[3] = Float.random(in: 0.35...0.5)  // Mid
+                frequencyBands[4] = Float.random(in: 0.25...0.4)  // High-mid
+                frequencyBands[5] = Float.random(in: 0.15...0.3)  // High
+            }
+            
+        case "- - -":
+            // Hidden easter egg: Different styles for multiple easter eggs
+            let choir = Int.random(in: 0...100) < 30  // 30% chance of choir swell
+            if choir {
+                // Choir swell
+                frequencyBands[0] = Float.random(in: 0.15...0.25)  // Sub-bass
+                frequencyBands[1] = Float.random(in: 0.25...0.35)  // Bass (organ)
+                frequencyBands[2] = Float.random(in: 0.45...0.65)  // Low-mid (choir bass)
+                frequencyBands[3] = Float.random(in: 0.55...0.75)  // Mid (choir mid)
+                frequencyBands[4] = Float.random(in: 0.5...0.7)  // High-mid (soprano)
+                frequencyBands[5] = Float.random(in: 0.35...0.55)  // High
+            } else {
+                // Gentle hymn
+                frequencyBands[0] = Float.random(in: 0.05...0.15)  // Sub-bass
+                frequencyBands[1] = Float.random(in: 0.15...0.25)  // Bass
+                frequencyBands[2] = Float.random(in: 0.25...0.4)  // Low-mid
+                frequencyBands[3] = Float.random(in: 0.3...0.45)  // Mid
+                frequencyBands[4] = Float.random(in: 0.25...0.4)  // High-mid
+                frequencyBands[5] = Float.random(in: 0.2...0.35)  // High
+            }
+            
         default:
             // Default pattern for unknown stations
             for i in 0..<6 {
