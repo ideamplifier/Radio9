@@ -141,7 +141,7 @@ extension RadioStation {
         ),
         RadioStation(
             name: "Pacific Ocean FM",
-            frequency: 92.5,
+            frequency: 91.0,
             streamURL: {
                 // Try to load from bundle first
                 if let bundleURL = Bundle.main.url(forResource: "wave", withExtension: "mp3") {
@@ -194,6 +194,21 @@ extension RadioStation {
             isPodcast: false
         ),
         RadioStation(
+            name: "- - -",
+            frequency: 97.7,
+            streamURL: {
+                if let bundleURL = Bundle.main.url(forResource: "lofi", withExtension: "mp3") {
+                    return bundleURL.absoluteString
+                } else {
+                    return "https://fallback-url"
+                }
+            }(),
+            genre: .music,
+            subGenre: "",
+            countryCode: "NATURE",
+            isPodcast: false
+        ),
+        RadioStation(
             name: "Mountain Stream FM",
             frequency: 98.3,
             streamURL: {
@@ -208,6 +223,21 @@ extension RadioStation {
             }(),
             genre: .music,
             subGenre: "Brook Radio",
+            countryCode: "NATURE",
+            isPodcast: false
+        ),
+        RadioStation(
+            name: "Nagano Creek FM",
+            frequency: 93.1,
+            streamURL: {
+                if let bundleURL = Bundle.main.url(forResource: "stream2", withExtension: "mp3") {
+                    return bundleURL.absoluteString
+                } else {
+                    return "https://fallback-url"
+                }
+            }(),
+            genre: .music,
+            subGenre: "Mountain Creek",
             countryCode: "NATURE",
             isPodcast: false
         ),
@@ -297,9 +327,39 @@ extension RadioStation {
         ),
         RadioStation(
             name: "- - -",
+            frequency: 92.3,
+            streamURL: {
+                if let bundleURL = Bundle.main.url(forResource: "psalm231", withExtension: "mp3") {
+                    return bundleURL.absoluteString
+                } else {
+                    return "https://fallback-url"
+                }
+            }(),
+            genre: .music,
+            subGenre: "",
+            countryCode: "NATURE",
+            isPodcast: false
+        ),
+        RadioStation(
+            name: "- - -",
             frequency: 93.7,
             streamURL: {
                 if let bundleURL = Bundle.main.url(forResource: "debussy", withExtension: "mp3") {
+                    return bundleURL.absoluteString
+                } else {
+                    return "https://fallback-url"
+                }
+            }(),
+            genre: .music,
+            subGenre: "",
+            countryCode: "NATURE",
+            isPodcast: false
+        ),
+        RadioStation(
+            name: "- - -",
+            frequency: 103.6,
+            streamURL: {
+                if let bundleURL = Bundle.main.url(forResource: "john316", withExtension: "mp3") {
                     return bundleURL.absoluteString
                 } else {
                     return "https://fallback-url"
@@ -322,6 +382,21 @@ extension RadioStation {
             }(),
             genre: .music,
             subGenre: "",
+            countryCode: "NATURE",
+            isPodcast: false
+        ),
+        RadioStation(
+            name: "Saitama Owls FM",
+            frequency: 105.8,
+            streamURL: {
+                if let bundleURL = Bundle.main.url(forResource: "owls", withExtension: "mp3") {
+                    return bundleURL.absoluteString
+                } else {
+                    return "https://fallback-url"
+                }
+            }(),
+            genre: .music,
+            subGenre: "Forest Night",
             countryCode: "NATURE",
             isPodcast: false
         )

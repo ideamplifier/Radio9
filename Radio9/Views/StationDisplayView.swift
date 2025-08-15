@@ -48,6 +48,8 @@ struct StationInfoModal: View {
                 descriptionKey = "epic_thunder_description"
             case "Hokkaido Blizzard FM":
                 descriptionKey = "hokkaido_blizzard_description"
+            case "Nagano Creek FM":
+                descriptionKey = "nagano_creek_description"
             default:
                 descriptionKey = nil
             }

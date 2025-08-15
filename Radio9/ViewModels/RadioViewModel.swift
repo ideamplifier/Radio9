@@ -881,10 +881,25 @@ class RadioViewModel: NSObject, ObservableObject, AVAudioPlayerDelegate {
             volumeAdjustment = 0.3  // 30% volume for snowstorm
         } else if urlString.contains("debussy.mp3") {
             resourceName = "debussy"
-            volumeAdjustment = 0.85  // 85% volume for classical piano
+            volumeAdjustment = 0.93  // 93% volume for classical piano
         } else if urlString.contains("grace.mp3") {
             resourceName = "grace"
             volumeAdjustment = 0.5  // 50% volume for hymn
+        } else if urlString.contains("psalm231.mp3") {
+            resourceName = "psalm231"
+            volumeAdjustment = 0.6  // 60% volume for psalm
+        } else if urlString.contains("john316.mp3") {
+            resourceName = "john316"
+            volumeAdjustment = 0.65  // 65% volume
+        } else if urlString.contains("stream2.mp3") {
+            resourceName = "stream2"
+            volumeAdjustment = 0.5  // 50% volume for creek
+        } else if urlString.contains("lofi.mp3") {
+            resourceName = "lofi"
+            volumeAdjustment = 0.6  // 60% volume for lofi
+        } else if urlString.contains("owls.mp3") {
+            resourceName = "owls"
+            volumeAdjustment = 0.14  // 14% volume for owls
         }
         
         // Load file from bundle
@@ -900,6 +915,14 @@ class RadioViewModel: NSObject, ObservableObject, AVAudioPlayerDelegate {
             audioPlayer?.numberOfLoops = -1  // Infinite loop
             audioPlayer?.volume = min(1.0, volume * volumeAdjustment)  // Apply volume adjustment (cap at 1.0)
             audioPlayer?.prepareToPlay()
+            
+            // Special handling for lofi.mp3 at 97.7 MHz - random start points
+            if resourceName == "lofi" {
+                let startPoints = [0.0, 103.0, 239.0, 399.0]  // 00:00, 01:43, 03:59, 06:39
+                let randomStart = startPoints.randomElement() ?? 0.0
+                audioPlayer?.currentTime = randomStart
+                print("🎵 Lo-fi starting at: \(Int(randomStart/60)):\(String(format: "%02d", Int(randomStart.truncatingRemainder(dividingBy: 60))))")
+            }
             
             // Start playback
             if audioPlayer?.play() == true {

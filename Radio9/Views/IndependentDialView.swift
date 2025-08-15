@@ -46,6 +46,19 @@ struct IndependentDialView: View {
                             isInitialized = true
                         }
                     }
+                    .onChange(of: frequency) { newFrequency in
+                        // Sync dial position when frequency changes externally (e.g., from fast forward button)
+                        if !isInteracting {
+                            let frequencyRange = range.upperBound - range.lowerBound
+                            let normalizedFreq = (newFrequency - range.lowerBound) / frequencyRange
+                            let newRotation = normalizedFreq * frequencyRange * degreesPerMHz
+                            
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                accumulatedRotation = newRotation
+                                dialRotation = newRotation
+                            }
+                        }
+                    }
                 
                 // Center
                 Circle()

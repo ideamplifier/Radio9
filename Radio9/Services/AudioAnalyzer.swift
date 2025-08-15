@@ -204,6 +204,16 @@ class AudioAnalyzer: ObservableObject {
             frequencyBands[4] = Float(flow * 1.1) + Float.random(in: -0.1...0.1)  // High-mid (bubbling)
             frequencyBands[5] = Float.random(in: 0.3...0.4)  // High (splashing)
             
+        case "Nagano Creek FM":
+            // Nagano creek: Clear alpine water, delicate and pristine
+            let pureFlow = sin(time * 1.5) * 0.08 + 0.35  // Gentle, consistent flow
+            frequencyBands[0] = Float.random(in: 0.05...0.1)  // Sub-bass (very minimal)
+            frequencyBands[1] = Float.random(in: 0.1...0.15)  // Bass (light)
+            frequencyBands[2] = Float(pureFlow) + Float.random(in: -0.03...0.03)  // Low-mid
+            frequencyBands[3] = Float(pureFlow * 1.3) + Float.random(in: -0.05...0.05)  // Mid (crystal clear)
+            frequencyBands[4] = Float(pureFlow * 1.4) + Float.random(in: -0.05...0.05)  // High-mid (trickling)
+            frequencyBands[5] = Float.random(in: 0.35...0.5)  // High (pristine water)
+            
         case "Static":
             // Static: Random noise across all frequencies
             for i in 0..<6 {
@@ -287,6 +297,27 @@ class AudioAnalyzer: ObservableObject {
                 frequencyBands[3] = Float.random(in: 0.35...0.5)  // Mid
                 frequencyBands[4] = Float.random(in: 0.25...0.4)  // High-mid
                 frequencyBands[5] = Float.random(in: 0.15...0.3)  // High
+            }
+            
+        case "Saitama Owls FM":
+            // Owls: Deep hoots with forest ambience
+            let hoot = Int.random(in: 0...100) < 20  // 20% chance of owl hoot
+            if hoot {
+                // Owl hooting
+                frequencyBands[0] = Float.random(in: 0.2...0.3)  // Sub-bass (deep hoot resonance)
+                frequencyBands[1] = Float.random(in: 0.4...0.6)  // Bass (main hoot frequency)
+                frequencyBands[2] = Float.random(in: 0.5...0.7)  // Low-mid (hoot body)
+                frequencyBands[3] = Float.random(in: 0.3...0.5)  // Mid (overtones)
+                frequencyBands[4] = Float.random(in: 0.15...0.25)  // High-mid
+                frequencyBands[5] = Float.random(in: 0.05...0.15)  // High
+            } else {
+                // Forest night ambience
+                frequencyBands[0] = Float.random(in: 0.05...0.1)  // Sub-bass (minimal)
+                frequencyBands[1] = Float.random(in: 0.1...0.15)  // Bass
+                frequencyBands[2] = Float.random(in: 0.15...0.25)  // Low-mid (leaves rustling)
+                frequencyBands[3] = Float.random(in: 0.2...0.3)  // Mid (wind)
+                frequencyBands[4] = Float.random(in: 0.25...0.35)  // High-mid (insects)
+                frequencyBands[5] = Float.random(in: 0.2...0.3)  // High (night sounds)
             }
             
         case "- - -":
