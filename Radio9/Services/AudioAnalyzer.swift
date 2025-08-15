@@ -131,6 +131,15 @@ class AudioAnalyzer: ObservableObject {
             frequencyBands[4] = Float.random(in: 0.3...0.5)  // High-mid
             frequencyBands[5] = Float.random(in: 0.2...0.3)  // High
             
+        case "Rooftop Rain FM":
+            // Rooftop rain: More metallic/percussive sound
+            frequencyBands[0] = Float.random(in: 0.05...0.15)  // Sub-bass (minimal)
+            frequencyBands[1] = Float.random(in: 0.15...0.25)  // Bass
+            frequencyBands[2] = Float.random(in: 0.3...0.5)  // Low-mid (impact)
+            frequencyBands[3] = Float.random(in: 0.6...0.8)  // Mid (metallic hits)
+            frequencyBands[4] = Float.random(in: 0.5...0.7)  // High-mid (splashing)
+            frequencyBands[5] = Float.random(in: 0.4...0.6)  // High (roof resonance)
+            
         case "Pacific Ocean FM":
             // Waves: Low frequency rolling pattern
             let wave = sin(time * 0.5) * 0.3 + 0.5
@@ -215,6 +224,48 @@ class AudioAnalyzer: ObservableObject {
                 for i in 0..<6 {
                     frequencyBands[i] = Float.random(in: 0.05...0.15)
                 }
+            }
+            
+        case "Epic Thunder FM":
+            // Epic thunder: Deep rumbling with dramatic peaks
+            let thunderStrike = Int.random(in: 0...100) < 15  // 15% chance of thunder strike
+            if thunderStrike {
+                // Thunder strike - all bands spike
+                frequencyBands[0] = Float.random(in: 0.8...1.0)  // Sub-bass (massive rumble)
+                frequencyBands[1] = Float.random(in: 0.7...0.95)  // Bass (deep thunder)
+                frequencyBands[2] = Float.random(in: 0.6...0.85)  // Low-mid (power)
+                frequencyBands[3] = Float.random(in: 0.5...0.75)  // Mid (crack)
+                frequencyBands[4] = Float.random(in: 0.4...0.65)  // High-mid (echo)
+                frequencyBands[5] = Float.random(in: 0.3...0.5)  // High (sizzle)
+            } else {
+                // Rolling thunder ambience
+                frequencyBands[0] = Float.random(in: 0.3...0.5)  // Sub-bass (continuous rumble)
+                frequencyBands[1] = Float.random(in: 0.25...0.45)  // Bass
+                frequencyBands[2] = Float.random(in: 0.2...0.35)  // Low-mid
+                frequencyBands[3] = Float.random(in: 0.15...0.25)  // Mid
+                frequencyBands[4] = Float.random(in: 0.1...0.2)  // High-mid
+                frequencyBands[5] = Float.random(in: 0.05...0.15)  // High
+            }
+            
+        case "Hokkaido Blizzard FM":
+            // Snowstorm: Howling wind with whistling highs
+            let gust = Int.random(in: 0...100) < 30  // 30% chance of strong gust
+            if gust {
+                // Strong wind gust
+                frequencyBands[0] = Float.random(in: 0.15...0.25)  // Sub-bass (minimal)
+                frequencyBands[1] = Float.random(in: 0.2...0.35)  // Bass (low rumble)
+                frequencyBands[2] = Float.random(in: 0.4...0.6)  // Low-mid (wind body)
+                frequencyBands[3] = Float.random(in: 0.5...0.7)  // Mid (howling)
+                frequencyBands[4] = Float.random(in: 0.6...0.85)  // High-mid (whistling)
+                frequencyBands[5] = Float.random(in: 0.7...0.9)  // High (sharp whistle)
+            } else {
+                // Steady blizzard wind
+                frequencyBands[0] = Float.random(in: 0.05...0.15)  // Sub-bass
+                frequencyBands[1] = Float.random(in: 0.1...0.2)  // Bass
+                frequencyBands[2] = Float.random(in: 0.25...0.4)  // Low-mid
+                frequencyBands[3] = Float.random(in: 0.35...0.5)  // Mid
+                frequencyBands[4] = Float.random(in: 0.4...0.55)  // High-mid
+                frequencyBands[5] = Float.random(in: 0.45...0.6)  // High
             }
             
         default:

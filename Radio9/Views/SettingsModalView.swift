@@ -121,7 +121,7 @@ struct SettingsModalView: View {
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(.secondary)
                     
-                    Text("\(LocalizationHelper.getLocalizedString(for: "version")) 1.1.0")
+                    Text("\(LocalizationHelper.getLocalizedString(for: "version")) 1.1.1")
                         .font(.system(size: 11, weight: .regular))
                         .foregroundColor(.secondary.opacity(0.7))
                 }

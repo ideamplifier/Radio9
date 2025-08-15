@@ -42,6 +42,12 @@ struct StationInfoModal: View {
                 descriptionKey = "drizzle_description"
             case "Morning Birds FM":
                 descriptionKey = "morning_birds_description"
+            case "Rooftop Rain FM":
+                descriptionKey = "rooftop_rain_description"
+            case "Epic Thunder FM":
+                descriptionKey = "epic_thunder_description"
+            case "Hokkaido Blizzard FM":
+                descriptionKey = "hokkaido_blizzard_description"
             default:
                 descriptionKey = nil
             }

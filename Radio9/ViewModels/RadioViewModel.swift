@@ -846,9 +846,12 @@ class RadioViewModel: NSObject, ObservableObject, AVAudioPlayerDelegate {
         var fileExtension = "mp3"
         var volumeAdjustment: Float = 1.0  // Volume multiplier
         
-        if urlString.contains("rain.mp3") {
+        if urlString.contains("rain.mp3") && !urlString.contains("rain_rooftop.mp3") {
             resourceName = "rain"
             volumeAdjustment = 1.0  // Normal volume
+        } else if urlString.contains("rain_rooftop.mp3") {
+            resourceName = "rain_rooftop"
+            volumeAdjustment = 0.4  // 40% volume for rooftop rain
         } else if urlString.contains("wave.mp3") {
             resourceName = "wave"
             volumeAdjustment = 0.55  // -45% volume (기존 60%에서 -5%)
@@ -870,6 +873,12 @@ class RadioViewModel: NSObject, ObservableObject, AVAudioPlayerDelegate {
         } else if urlString.contains("stream.mp3") {
             resourceName = "stream"
             volumeAdjustment = 0.25  // -75% volume (25%)
+        } else if urlString.contains("thunder2.mp3") {
+            resourceName = "thunder2"
+            volumeAdjustment = 0.6  // 60% volume for epic thunder
+        } else if urlString.contains("snowstorm.mp3") {
+            resourceName = "snowstorm"
+            volumeAdjustment = 0.3  // 30% volume for snowstorm
         }
         
         // Load file from bundle

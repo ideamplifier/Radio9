@@ -230,6 +230,24 @@ extension RadioStation {
             isPodcast: false
         ),
         RadioStation(
+            name: "Rooftop Rain FM",
+            frequency: 107.3,
+            streamURL: {
+                // Try to load from bundle first
+                if let bundleURL = Bundle.main.url(forResource: "rain_rooftop", withExtension: "mp3") {
+                    print("✅ Loading rain_rooftop.mp3 from app bundle")
+                    return bundleURL.absoluteString
+                } else {
+                    print("⚠️ rain_rooftop.mp3 not found in bundle")
+                    return "https://fallback-url"
+                }
+            }(),
+            genre: .music,
+            subGenre: "Urban Rain",
+            countryCode: "NATURE",
+            isPodcast: false
+        ),
+        RadioStation(
             name: "Morning Birds FM",
             frequency: 99.7,
             streamURL: {
@@ -244,6 +262,36 @@ extension RadioStation {
             }(),
             genre: .music,
             subGenre: "Dawn Chorus",
+            countryCode: "NATURE",
+            isPodcast: false
+        ),
+        RadioStation(
+            name: "Epic Thunder FM",
+            frequency: 104.2,
+            streamURL: {
+                if let bundleURL = Bundle.main.url(forResource: "thunder2", withExtension: "mp3") {
+                    return bundleURL.absoluteString
+                } else {
+                    return "https://fallback-url"
+                }
+            }(),
+            genre: .music,
+            subGenre: "Storm Power",
+            countryCode: "NATURE",
+            isPodcast: false
+        ),
+        RadioStation(
+            name: "Hokkaido Blizzard FM",
+            frequency: 102.3,
+            streamURL: {
+                if let bundleURL = Bundle.main.url(forResource: "snowstorm", withExtension: "mp3") {
+                    return bundleURL.absoluteString
+                } else {
+                    return "https://fallback-url"
+                }
+            }(),
+            genre: .music,
+            subGenre: "Arctic Wind",
             countryCode: "NATURE",
             isPodcast: false
         )
